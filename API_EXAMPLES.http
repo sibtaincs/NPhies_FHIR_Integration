@@ -1,0 +1,189 @@
+HTTP/1.1 GET https://localhost:5001/api/v1/health
+Accept: application/json
+
+###
+
+HTTP/1.1 GET https://localhost:5001/api/v1/health/version
+Accept: application/json
+
+###
+
+# Example: Get a Patient by ID
+HTTP/1.1 GET https://localhost:5001/api/v1/patient/123
+Accept: application/json
+
+###
+
+# Example: Get All Patients
+HTTP/1.1 GET https://localhost:5001/api/v1/patient
+Accept: application/json
+
+###
+
+# Example: Create a Patient
+HTTP/1.1 POST https://localhost:5001/api/v1/patient
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "mrn": "MRN123456",
+  "dateOfBirth": "1990-01-15",
+  "gender": "M",
+  "email": "john.doe@example.com"
+}
+
+###
+
+# Example: Update a Patient
+HTTP/1.1 PUT https://localhost:5001/api/v1/patient/123
+Content-Type: application/json
+
+{
+  "id": "123",
+  "firstName": "John",
+  "lastName": "Smith",
+  "mrn": "MRN123456",
+  "dateOfBirth": "1990-01-15",
+  "gender": "M",
+  "email": "john.smith@example.com"
+}
+
+###
+
+# Example: Delete a Patient
+HTTP/1.1 DELETE https://localhost:5001/api/v1/patient/123
+Accept: application/json
+
+###
+
+# Example: Create a Claim
+HTTP/1.1 POST https://localhost:5001/api/v1/claim
+Content-Type: application/json
+
+{
+  "claimNumber": "CLM123456",
+  "patientId": "123",
+  "providerId": "DOC456",
+  "claimAmount": 5000.00,
+  "claimDate": "2024-01-15",
+  "status": "Submitted",
+  "items": [
+    {
+   "serviceCode": "99213",
+      "description": "Office visit",
+      "amount": 150.00
+    }
+  ]
+}
+
+###
+
+# Example: Get Claim by ID
+HTTP/1.1 GET https://localhost:5001/api/v1/claim/CLM123456
+Accept: application/json
+
+###
+
+# Example: Get All Claims for a Patient
+HTTP/1.1 GET https://localhost:5001/api/v1/claim?patientId=123
+Accept: application/json
+
+###
+
+# Example: Get Provider
+HTTP/1.1 GET https://localhost:5001/api/v1/provider/DOC456
+Accept: application/json
+
+###
+
+# Example: Create Provider
+HTTP/1.1 POST https://localhost:5001/api/v1/provider
+Content-Type: application/json
+
+{
+  "licenseNumber": "LIC123456",
+  "firstName": "Dr.",
+  "lastName": "Smith",
+  "specialization": "General Medicine",
+  "hospital": "Main Hospital",
+  "email": "dr.smith@hospital.com"
+}
+
+###
+
+# Example: Get Eligibility Check
+HTTP/1.1 POST https://localhost:5001/api/v1/eligibility/check
+Content-Type: application/json
+
+{
+  "patientId": "123",
+  "providerId": "DOC456",
+  "serviceCode": "99213",
+  "serviceDate": "2024-01-20"
+}
+
+###
+
+# Example: Get Claim Response
+HTTP/1.1 GET https://localhost:5001/api/v1/claimresponse/CLM123456
+Accept: application/json
+
+###
+
+# Example: Search Claims by Status
+HTTP/1.1 GET https://localhost:5001/api/v1/claim/search?status=Approved
+Accept: application/json
+
+###
+
+# Expected Success Response (200 OK)
+{
+  "success": true,
+  "message": "Record created successfully",
+  "data": {
+    "id": "123",
+    "firstName": "John",
+    "lastName": "Doe",
+    "mrn": "MRN123456",
+    "createdAt": "2024-01-15T10:30:00Z",
+    "updatedAt": null,
+    "isActive": true
+  },
+  "errors": []
+}
+
+###
+
+# Expected Error Response (404 Not Found)
+{
+  "success": false,
+  "message": "Record not found",
+  "data": null,
+  "errors": []
+}
+
+###
+
+# Expected Error Response (400 Bad Request)
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": null,
+  "errors": [
+    "First name is required",
+    "Email format is invalid"
+  ]
+}
+
+###
+
+# Expected Error Response (500 Internal Server Error)
+{
+  "success": false,
+  "message": "An internal server error occurred",
+  "data": null,
+  "errors": [
+    "Database connection failed"
+  ]
+}

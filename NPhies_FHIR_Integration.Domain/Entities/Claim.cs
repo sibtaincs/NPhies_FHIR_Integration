@@ -1,0 +1,239 @@
+namespace NPhies_FHIR_Integration.Domain.Entities;
+
+/// <summary>
+/// Claim entity - represents insurance claim, pre-authorization, or predetermination request
+/// FHIR Resource: Claim
+/// </summary>
+public class Claim : BaseEntity
+{
+    /// <summary>
+    /// Claim number/identifier
+    /// </summary>
+    public string ClaimNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Claim identifier system (e.g., "http://hmg.com/Takhassusi/Authorization")
+    /// </summary>
+    public string? ClaimIdentifierSystem { get; set; }
+
+    /// <summary>
+    /// Claim identifier value
+    /// </summary>
+    public string? ClaimIdentifierValue { get; set; }
+
+    /// <summary>
+    /// Claim status: "active", "cancelled", "draft", "entered-in-error"
+    /// </summary>
+    public string Status { get; set; } = "active";
+
+    /// <summary>
+    /// Claim type: "institutional", "professional", "pharmacy", "oral", "vision", "transport", "other"
+    /// </summary>
+    public string ClaimType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Claim type system URL
+    /// </summary>
+    public string? ClaimTypeSystem { get; set; }
+
+    /// <summary>
+    /// Claim subtype: "ip" (inpatient), "op" (outpatient), "er" (emergency), "ambulatory"
+    /// </summary>
+    public string? ClaimSubType { get; set; }
+
+    /// <summary>
+    /// Claim subtype system URL
+    /// </summary>
+    public string? ClaimSubTypeSystem { get; set; }
+
+    /// <summary>
+    /// Claim use: "claim", "preauthorization", "predetermination"
+    /// </summary>
+    public string Use { get; set; } = "claim";
+
+    /// <summary>
+    /// When the claim was created
+    /// </summary>
+    public DateTime CreatedDate { get; set; }
+
+    /// <summary>
+    /// Service period start date
+    /// </summary>
+    public DateTime? ServicedPeriodStart { get; set; }
+
+    /// <summary>
+    /// Service period end date
+    /// </summary>
+    public DateTime? ServicedPeriodEnd { get; set; }
+
+    /// <summary>
+    /// Claim priority: "stat", "urgent", "normal", "deferred"
+    /// </summary>
+    public string Priority { get; set; } = "normal";
+
+    /// <summary>
+    /// Priority system URL
+    /// </summary>
+    public string? PrioritySystem { get; set; }
+
+    /// <summary>
+    /// Patient ID
+    /// </summary>
+    public string PatientId { get; set; } = string.Empty;
+
+    /// <summary>
+ /// Patient
+    /// </summary>
+    public Patient? Patient { get; set; }
+
+    /// <summary>
+    /// Coverage ID
+    /// </summary>
+    public string CoverageId { get; set; } = string.Empty;
+
+  /// <summary>
+    /// Coverage
+    /// </summary>
+    public Coverage? Coverage { get; set; }
+
+  /// <summary>
+  /// Provider (submitting facility) ID
+    /// </summary>
+    public string ProviderId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Provider (submitting facility)
+    /// </summary>
+    public Organization? Provider { get; set; }
+
+/// <summary>
+    /// Insurer ID
+    /// </summary>
+    public string InsurerId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Insurer
+    /// </summary>
+    public Organization? Insurer { get; set; }
+
+    /// <summary>
+    /// Practitioner ID (enterer/responsible)
+    /// </summary>
+    public string? PractitionerId { get; set; }
+
+    /// <summary>
+    /// Practitioner (enterer/responsible)
+    /// </summary>
+    public Practitioner? Practitioner { get; set; }
+
+    /// <summary>
+    /// Location ID (service location)
+    /// </summary>
+    public string? LocationId { get; set; }
+
+    /// <summary>
+    /// Location (service location)
+    /// </summary>
+    public Location? ServiceLocation { get; set; }
+
+    /// <summary>
+    /// Message header ID
+    /// </summary>
+    public string? MessageHeaderId { get; set; }
+
+    /// <summary>
+    /// Message header
+    /// </summary>
+  public MessageHeader? MessageHeader { get; set; }
+
+    /// <summary>
+    /// Encounter ID
+    /// </summary>
+    public string? EncounterId { get; set; }
+
+  /// <summary>
+    /// Encounter
+  /// </summary>
+    public Encounter? Encounter { get; set; }
+
+    /// <summary>
+    /// Payee type: "subscriber", "provider", "organization", "patient", "other"
+    /// </summary>
+    public string? PayeeType { get; set; }
+
+    /// <summary>
+    /// Payee type system URL
+    /// </summary>
+    public string? PayeeTypeSystem { get; set; }
+
+    /// <summary>
+    /// Total claim amount
+    /// </summary>
+    public decimal Total { get; set; }
+
+    /// <summary>
+    /// Total currency (e.g., "SAR")
+ /// </summary>
+    public string TotalCurrency { get; set; } = "SAR";
+
+    // Navigation Properties
+    /// <summary>
+    /// Collection of claim items
+    /// </summary>
+    public ICollection<ClaimItem> Items { get; set; } = new List<ClaimItem>();
+
+    /// <summary>
+    /// Collection of diagnoses
+    /// </summary>
+    public ICollection<ClaimDiagnosis> Diagnoses { get; set; } = new List<ClaimDiagnosis>();
+
+    /// <summary>
+  /// Collection of care team members
+    /// </summary>
+    public ICollection<ClaimCareTeam> CareTeam { get; set; } = new List<ClaimCareTeam>();
+
+    /// <summary>
+    /// Collection of supporting information
+ /// </summary>
+    public ICollection<ClaimSupportingInfo> SupportingInfo { get; set; } = new List<ClaimSupportingInfo>();
+
+    /// <summary>
+    /// Collection of related claims
+    /// </summary>
+    public ICollection<ClaimRelated> RelatedClaims { get; set; } = new List<ClaimRelated>();
+
+    /// <summary>
+    /// FHIR Claim bundle JSON for storage
+    /// </summary>
+    public string? FhirClaimBundle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Episode identifier system (treatment episode reference)
+    /// Example: "http://saudidentalclinic.com.sa/episode"
+    /// </summary>
+    public string? EpisodeIdentifierSystem { get; set; }
+
+    /// <summary>
+    /// Episode identifier value (e.g., "SDC_EpisodeID_48903211")
+    /// Links claim to a treatment episode
+    /// </summary>
+    public string? EpisodeIdentifierValue { get; set; }
+
+    /// <summary>
+    /// Eligibility response offline reference (e.g., "EligResp-31212432")
+    /// For offline eligibility checks
+    /// </summary>
+    public string? EligibilityOfflineReference { get; set; }
+
+    /// <summary>
+    /// Eligibility offline date (when eligibility was checked offline)
+    /// Example: "2021-08-30"
+    /// </summary>
+    public DateTime? EligibilityOfflineDate { get; set; }
+
+    /// <summary>
+    /// Authorization offline date (when authorization was obtained offline)
+    /// Example: "2021-06-30T11:05:48+03:00"
+    /// </summary>
+    public DateTime? AuthorizationOfflineDate { get; set; }
+}
