@@ -159,6 +159,16 @@ public class ApplicationDbContext : DbContext
     public DbSet<ClaimResponseSupportingInfoExt> ClaimResponseSupportingInfosExt { get; set; } = null!;
 
     /// <summary>
+    /// TaskRequest entities (for cancellation and other task requests)
+    /// </summary>
+    public DbSet<TaskRequest> TaskRequests { get; set; } = null!;
+
+    /// <summary>
+    /// TaskResponse entities (for cancellation and other task responses)
+    /// </summary>
+    public DbSet<TaskResponse> TaskResponses { get; set; } = null!;
+
+    /// <summary>
     /// Task entities (for polling and work items)
     /// </summary>
     // public DbSet<PollTask> Tasks { get; set; } = null!;
@@ -217,8 +227,12 @@ ConfigureClaimDiagnosisEntity(modelBuilder);
  ConfigureClaimResponseDiagnosisExtEntity(modelBuilder);
     ConfigureClaimResponseSupportingInfoExtEntity(modelBuilder);
 
-// GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
-// This fixes FK column length mismatches systematically
+    // Task Management Configuration
+    ConfigureTaskRequestEntity(modelBuilder);
+    ConfigureTaskResponseEntity(modelBuilder);
+
+    // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
+    // This fixes FK column length mismatches systematically
 foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             var idProperty = entity.FindProperty("Id");
@@ -1537,27 +1551,27 @@ var entity = modelBuilder.Entity<PaymentReconciliation>();
     /// </summary>
     private void ConfigurePaymentReconciliationDetailEntity(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<PaymentReconciliationDetail>();
+    var entity = modelBuilder.Entity<PaymentReconciliationDetail>();
 
-        // Primary Key
+    // Primary Key
   entity.HasKey(d => d.Id);
 
-        // Properties
-        entity.Property(d => d.PaymentReconciliationId).IsRequired().HasMaxLength(100);
-  entity.Property(d => d.DetailType).IsRequired().HasMaxLength(50);
+   // Properties
+    entity.Property(d => d.PaymentReconciliationId).IsRequired().HasMaxLength(100);
+entity.Property(d => d.DetailType).IsRequired().HasMaxLength(50);
     entity.Property(d => d.RequestIdentifierSystem).HasMaxLength(500);
         entity.Property(d => d.RequestIdentifierValue).HasMaxLength(100);
       entity.Property(d => d.RequestReference).HasMaxLength(500);
         entity.Property(d => d.ResponseIdentifierSystem).HasMaxLength(500);
    entity.Property(d => d.ResponseIdentifierValue).HasMaxLength(100);
-        entity.Property(d => d.ResponseReference).HasMaxLength(500);
+    entity.Property(d => d.ResponseReference).HasMaxLength(500);
       entity.Property(d => d.DetailDate);
      entity.Property(d => d.Amount).IsRequired().HasPrecision(18, 2);
-        entity.Property(d => d.AmountCurrency).HasMaxLength(3);
-   entity.Property(d => d.SubmitterId).HasMaxLength(450);
+   entity.Property(d => d.AmountCurrency).HasMaxLength(3);
+ entity.Property(d => d.SubmitterId).HasMaxLength(450);
    entity.Property(d => d.PayeeId).HasMaxLength(450);
    entity.Property(d => d.ComponentPayment).HasPrecision(18, 2);
-        entity.Property(d => d.EarlyFee).HasPrecision(18, 2);
+ entity.Property(d => d.EarlyFee).HasPrecision(18, 2);
   entity.Property(d => d.NphiesFee).HasPrecision(18, 2);
         entity.Property(d => d.Notes).HasMaxLength(1000);
 
@@ -1566,8 +1580,115 @@ var entity = modelBuilder.Entity<PaymentReconciliation>();
         entity.HasIndex(d => d.DetailType);
       entity.HasIndex(d => d.DetailDate);
       entity.HasIndex(d => d.SubmitterId);
-        entity.HasIndex(d => d.PayeeId);
+  entity.HasIndex(d => d.PayeeId);
         entity.HasIndex(d => d.Amount);
 
+ }
+
+    /// <summary>
+    /// Configure TaskRequest entity
+    /// </summary>
+    private void ConfigureTaskRequestEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<TaskRequest>();
+
+        // Primary Key
+        entity.HasKey(t => t.Id);
+
+        // Properties
+        entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
+ entity.Property(t => t.IdentifierSystem).HasMaxLength(500);
+        entity.Property(t => t.IdentifierValue).HasMaxLength(100);
+        entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
+      entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
+        entity.Property(t => t.Priority).HasMaxLength(50);
+        entity.Property(t => t.Code).HasMaxLength(50);
+        entity.Property(t => t.CodeSystem).HasMaxLength(500);
+      entity.Property(t => t.FocusResourceType).HasMaxLength(100);
+        entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
+        entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
+        entity.Property(t => t.ReasonCode).HasMaxLength(50);
+        entity.Property(t => t.ReasonCodeSystem).HasMaxLength(500);
+        entity.Property(t => t.ReasonText).HasMaxLength(1000);
+     entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
+        entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
+        entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
+
+        // Indexes
+entity.HasIndex(t => t.TaskId);
+        entity.HasIndex(t => t.Status);
+     entity.HasIndex(t => t.Code);
+        entity.HasIndex(t => t.RequesterId);
+        entity.HasIndex(t => t.OwnerId);
+        entity.HasIndex(t => t.FocusIdentifierValue);
+     entity.HasIndex(t => t.ReasonCode);
+
+    // Relationships
+        entity.HasOne(t => t.Requester)
+            .WithMany()
+        .HasForeignKey(t => t.RequesterId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(t => t.Owner)
+          .WithMany()
+            .HasForeignKey(t => t.OwnerId)
+    .OnDelete(DeleteBehavior.Restrict);
     }
+
+    /// <summary>
+    /// Configure TaskResponse entity
+    /// </summary>
+    private void ConfigureTaskResponseEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<TaskResponse>();
+
+   // Primary Key
+        entity.HasKey(t => t.Id);
+
+        // Properties
+        entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
+        entity.Property(t => t.IdentifierSystem).HasMaxLength(500);
+        entity.Property(t => t.IdentifierValue).HasMaxLength(100);
+        entity.Property(t => t.ReferencedRequestId).HasMaxLength(100);
+     entity.Property(t => t.TaskRequestId).HasMaxLength(100);
+    entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
+        entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
+   entity.Property(t => t.Priority).HasMaxLength(50);
+  entity.Property(t => t.Code).HasMaxLength(50);
+        entity.Property(t => t.CodeSystem).HasMaxLength(500);
+   entity.Property(t => t.FocusResourceType).HasMaxLength(100);
+        entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
+    entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
+        entity.Property(t => t.ResponseCode).HasMaxLength(50);
+     entity.Property(t => t.ResponseMessage).HasMaxLength(1000);
+ entity.Property(t => t.ResultText).HasMaxLength(1000);
+    entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
+     entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
+        entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
+
+   // Indexes
+        entity.HasIndex(t => t.TaskId);
+        entity.HasIndex(t => t.Status);
+     entity.HasIndex(t => t.Code);
+    entity.HasIndex(t => t.ResponseCode);
+        entity.HasIndex(t => t.RequesterId);
+        entity.HasIndex(t => t.OwnerId);
+        entity.HasIndex(t => t.FocusIdentifierValue);
+
+    // Relationships
+ entity.HasOne(t => t.TaskRequest)
+          .WithMany()
+            .HasForeignKey(t => t.TaskRequestId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(t => t.Requester)
+          .WithMany()
+   .HasForeignKey(t => t.RequesterId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(t => t.Owner)
+            .WithMany()
+       .HasForeignKey(t => t.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+  }
 }
