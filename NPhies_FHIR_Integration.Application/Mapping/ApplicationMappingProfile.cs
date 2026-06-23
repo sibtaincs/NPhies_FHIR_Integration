@@ -12,12 +12,13 @@ public class ApplicationMappingProfile : Profile
 {
   public ApplicationMappingProfile()
     {
-      ApplyPatientMappings();
-     ApplyCoverageMappings();
+  ApplyPatientMappings();
+   ApplyCoverageMappings();
         ApplyOrganizationMappings();
      ApplyEligibilityMappings();
     ApplyClaimsMappings();
   ApplyPaymentMappings();
+    ApplyCommunicationMappings();
     }
 
     private void ApplyPatientMappings()
@@ -26,16 +27,16 @@ public class ApplicationMappingProfile : Profile
         CreateMap<CreatePatientDto, Patient>()
      .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
  .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-         .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
+   .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
         CreateMap<UpdatePatientDto, Patient>()
-      .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+    .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
      .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
   }
 
     private void ApplyCoverageMappings()
     {
     CreateMap<Coverage, CoverageDto>().ReverseMap();
-        CreateMap<CreateCoverageDto, Coverage>()
+  CreateMap<CreateCoverageDto, Coverage>()
      .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "active"))
 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -45,7 +46,7 @@ CreateMap<UpdateCoverageDto, Coverage>()
         .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 
-  private void ApplyOrganizationMappings()
+private void ApplyOrganizationMappings()
     {
         CreateMap<Organization, OrganizationDto>().ReverseMap();
 CreateMap<Organization, ProviderDto>();
@@ -81,11 +82,11 @@ CreateMap<Organization, ProviderDto>();
   private void ApplyClaimsMappings()
     {
         // Claim Mappings
-        CreateMap<Claim, ClaimDto>().ReverseMap();
+  CreateMap<Claim, ClaimDto>().ReverseMap();
         CreateMap<CreateClaimDto, Claim>()
 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
        .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "draft"))
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+  .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
       CreateMap<UpdateClaimDto, Claim>()
        .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
       .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -97,18 +98,31 @@ CreateMap<Organization, ProviderDto>();
       CreateMap<ClaimDiagnosis, ClaimDiagnosisDto>().ReverseMap();
   
  // ClaimResponse Mappings
-        CreateMap<ClaimResponse, ClaimResponseDto>().ReverseMap();
+     CreateMap<ClaimResponse, ClaimResponseDto>().ReverseMap();
    CreateMap<ClaimResponseInsurance, ClaimResponseInsuranceDto>().ReverseMap();
-    }
+  }
 
   private void ApplyPaymentMappings()
  {
         // PaymentNotice Mappings
-        CreateMap<PaymentNotice, PaymentNoticeDto>().ReverseMap();
+   CreateMap<PaymentNotice, PaymentNoticeDto>().ReverseMap();
  
    // PaymentReconciliation Mappings
-   CreateMap<PaymentReconciliation, PaymentReconciliationDto>().ReverseMap();
+ CreateMap<PaymentReconciliation, PaymentReconciliationDto>().ReverseMap();
       CreateMap<PaymentReconciliationDetail, PaymentReconciliationDetailDto>().ReverseMap();
+    }
+
+  private void ApplyCommunicationMappings()
+   {
+        // CommunicationRequest Mappings
+ CreateMap<CommunicationRequest, CommunicationRequestDto>().ReverseMap();
+  CreateMap<CreateCommunicationRequestDto, CommunicationRequest>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
+   .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "active"))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+        CreateMap<UpdateCommunicationRequestDto, CommunicationRequest>()
+        .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+      .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
 
@@ -117,11 +131,11 @@ CreateMap<Organization, ProviderDto>();
 /// </summary>
 public class PatientMappingProfile : Profile
 {
-    public PatientMappingProfile()
+ public PatientMappingProfile()
     {
-      // Patient -> PatientDto
+   // Patient -> PatientDto
 CreateMap<Patient, PatientDto>()
-         .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+     .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
    .ReverseMap();
 
       // CreatePatientDto -> Patient
@@ -133,8 +147,8 @@ CreateMap<Patient, PatientDto>()
       // UpdatePatientDto -> Patient
     CreateMap<UpdatePatientDto, Patient>()
    .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-    }
+       .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+  }
 }
 
 /// <summary>
@@ -155,8 +169,8 @@ public class CoverageMappingProfile : Profile
      .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
        .ForMember(dest => dest.DeductibleMet, opt => opt.MapFrom(src => 0m));
 
-      // UpdateCoverageDto -> Coverage
-        CreateMap<UpdateCoverageDto, Coverage>()
+ // UpdateCoverageDto -> Coverage
+     CreateMap<UpdateCoverageDto, Coverage>()
         .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
@@ -173,7 +187,7 @@ public class OrganizationMappingProfile : Profile
         CreateMap<Organization, OrganizationDto>()
  .ReverseMap();
 
-        // Organization -> ProviderDto
+  // Organization -> ProviderDto
      CreateMap<Organization, ProviderDto>()
 .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.OrganizationName));
 
@@ -191,5 +205,5 @@ public class OrganizationMappingProfile : Profile
     CreateMap<UpdateOrganizationDto, Organization>()
      .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-    }
+  }
 }
