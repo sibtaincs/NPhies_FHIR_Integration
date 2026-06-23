@@ -169,6 +169,16 @@ public class ApplicationDbContext : DbContext
     public DbSet<TaskResponse> TaskResponses { get; set; } = null!;
 
     /// <summary>
+    /// Communication entities (for insurer-provider communications)
+    /// </summary>
+    public DbSet<Communication> Communications { get; set; } = null!;
+
+    /// <summary>
+    /// CommunicationRequest entities (insurer-provider communication requests)
+    /// </summary>
+    public DbSet<CommunicationRequest> CommunicationRequests { get; set; } = null!;
+
+    /// <summary>
     /// Task entities (for polling and work items)
     /// </summary>
     // public DbSet<PollTask> Tasks { get; set; } = null!;
@@ -230,6 +240,10 @@ ConfigureClaimDiagnosisEntity(modelBuilder);
     // Task Management Configuration
     ConfigureTaskRequestEntity(modelBuilder);
     ConfigureTaskResponseEntity(modelBuilder);
+
+    // Communication Configuration
+    ConfigureCommunicationEntity(modelBuilder);
+    ConfigureCommunicationRequestEntity(modelBuilder);
 
     // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
     // This fixes FK column length mismatches systematically
@@ -1691,4 +1705,109 @@ entity.HasIndex(t => t.TaskId);
        .HasForeignKey(t => t.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
   }
+
+    /// <summary>
+    /// Configure Communication entity
+    /// </summary>
+    private void ConfigureCommunicationEntity(ModelBuilder modelBuilder)
+    {
+      var entity = modelBuilder.Entity<Communication>();
+
+   // Primary Key
+      entity.HasKey(c => c.Id);
+
+        // Properties
+        entity.Property(c => c.CommunicationId).IsRequired().HasMaxLength(100);
+    entity.Property(c => c.IdentifierSystem).HasMaxLength(500);
+        entity.Property(c => c.IdentifierValue).HasMaxLength(100);
+        entity.Property(c => c.BasedOnResourceType).HasMaxLength(100);
+        entity.Property(c => c.BasedOnIdentifierSystem).HasMaxLength(500);
+entity.Property(c => c.BasedOnIdentifierValue).HasMaxLength(100);
+entity.Property(c => c.Status).IsRequired().HasMaxLength(50);
+        entity.Property(c => c.Category).HasMaxLength(100);
+ entity.Property(c => c.CategorySystem).HasMaxLength(500);
+ entity.Property(c => c.Priority).HasMaxLength(50);
+        entity.Property(c => c.SubjectPatientId).HasMaxLength(100);
+entity.Property(c => c.AboutResourceType).HasMaxLength(100);
+ entity.Property(c => c.AboutIdentifierSystem).HasMaxLength(500);
+        entity.Property(c => c.AboutIdentifierValue).HasMaxLength(100);
+        entity.Property(c => c.PayloadContent).HasColumnType("nvarchar(max)");
+      entity.Property(c => c.RecipientId).HasMaxLength(450);
+     entity.Property(c => c.SenderId).HasMaxLength(450);
+        entity.Property(c => c.PayloadAttachmentContentType).HasMaxLength(100);
+    entity.Property(c => c.PayloadAttachmentTitle).HasMaxLength(500);
+
+   // Indexes
+        entity.HasIndex(c => c.CommunicationId);
+   entity.HasIndex(c => c.Status);
+        entity.HasIndex(c => c.SubjectPatientId);
+        entity.HasIndex(c => c.SenderId);
+  entity.HasIndex(c => c.RecipientId);
+
+        // Relationships
+        entity.HasOne(c => c.SubjectPatient)
+            .WithMany()
+      .HasForeignKey(c => c.SubjectPatientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(c => c.Sender)
+        .WithMany()
+    .HasForeignKey(c => c.SenderId)
+ .OnDelete(DeleteBehavior.Restrict);
+
+entity.HasOne(c => c.Recipient)
+            .WithMany()
+            .HasForeignKey(c => c.RecipientId)
+        .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Configure CommunicationRequest entity
+    /// </summary>
+    private void ConfigureCommunicationRequestEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CommunicationRequest>();
+
+        // Primary Key
+   entity.HasKey(c => c.Id);
+
+   // Properties
+        entity.Property(c => c.CommunicationRequestId).IsRequired().HasMaxLength(100);
+        entity.Property(c => c.IdentifierSystem).HasMaxLength(500);
+        entity.Property(c => c.IdentifierValue).HasMaxLength(100);
+ entity.Property(c => c.Status).IsRequired().HasMaxLength(50);
+  entity.Property(c => c.Category).HasMaxLength(100);
+   entity.Property(c => c.CategorySystem).HasMaxLength(500);
+    entity.Property(c => c.Priority).HasMaxLength(50);
+        entity.Property(c => c.SubjectPatientId).HasMaxLength(100);
+        entity.Property(c => c.AboutResourceType).HasMaxLength(100);
+        entity.Property(c => c.AboutIdentifierSystem).HasMaxLength(500);
+        entity.Property(c => c.AboutIdentifierValue).HasMaxLength(100);
+        entity.Property(c => c.PayloadContent).HasColumnType("nvarchar(max)");
+  entity.Property(c => c.RecipientId).HasMaxLength(450);
+        entity.Property(c => c.SenderId).HasMaxLength(450);
+
+  // Indexes
+        entity.HasIndex(c => c.CommunicationRequestId);
+        entity.HasIndex(c => c.Status);
+        entity.HasIndex(c => c.SubjectPatientId);
+        entity.HasIndex(c => c.SenderId);
+        entity.HasIndex(c => c.RecipientId);
+
+     // Relationships
+        entity.HasOne(c => c.SubjectPatient)
+          .WithMany()
+  .HasForeignKey(c => c.SubjectPatientId)
+     .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(c => c.Sender)
+       .WithMany()
+    .HasForeignKey(c => c.SenderId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(c => c.Recipient)
+            .WithMany()
+    .HasForeignKey(c => c.RecipientId)
+          .OnDelete(DeleteBehavior.Restrict);
+    }
 }
