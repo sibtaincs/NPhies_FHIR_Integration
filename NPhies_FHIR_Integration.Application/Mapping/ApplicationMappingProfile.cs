@@ -18,7 +18,8 @@ public class ApplicationMappingProfile : Profile
      ApplyEligibilityMappings();
     ApplyClaimsMappings();
   ApplyPaymentMappings();
-    ApplyCommunicationMappings();
+    ApplyCommunicationRequestMappings();
+        ApplyCommunicationMappings();
     }
 
     private void ApplyPatientMappings()
@@ -112,7 +113,7 @@ CreateMap<Organization, ProviderDto>();
       CreateMap<PaymentReconciliationDetail, PaymentReconciliationDetailDto>().ReverseMap();
     }
 
-  private void ApplyCommunicationMappings()
+  private void ApplyCommunicationRequestMappings()
    {
         // CommunicationRequest Mappings
  CreateMap<CommunicationRequest, CommunicationRequestDto>().ReverseMap();
@@ -123,6 +124,27 @@ CreateMap<Organization, ProviderDto>();
         CreateMap<UpdateCommunicationRequestDto, CommunicationRequest>()
         .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
       .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+    }
+
+    private void ApplyCommunicationMappings()
+ {
+        // Communication Mappings
+        CreateMap<Communication, CommunicationDto>()
+        .ForMember(dest => dest.PayloadAttachmentSizeKB, opt => opt.MapFrom(src => 
+                src.PayloadAttachmentData != null ? Math.Round((decimal)src.PayloadAttachmentData.Length / 1024, 2) : 0m))
+      .ForMember(dest => dest.HasAttachment, opt => opt.MapFrom(src => src.PayloadAttachmentData != null && src.PayloadAttachmentData.Length > 0));
+        
+  CreateMap<CreateCommunicationDto, Communication>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
+    .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "completed"))
+ .ForMember(dest => dest.ProcessingStatus, opt => opt.MapFrom(src => "received"))
+            .ForMember(dest => dest.PayloadAttachmentData, opt => opt.MapFrom(src => 
+                !string.IsNullOrEmpty(src.PayloadAttachmentDataBase64) ? Convert.FromBase64String(src.PayloadAttachmentDataBase64) : null))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+  
+        CreateMap<UpdateCommunicationDto, Communication>()
+       .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
 
