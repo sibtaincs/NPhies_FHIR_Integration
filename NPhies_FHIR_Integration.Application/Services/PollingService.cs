@@ -20,6 +20,27 @@ public interface IPollingService
   Task<TaskRequest> CreatePollRequestAsync(string providerId, List<string> messageTypes);
 
     /// <summary>
+ /// Record polling activity
+ /// </summary>
+ /// <param name="pollingRecord">Polling record to store</param>
+ /// <returns>Stored polling record</returns>
+    Task<PollingRecord> RecordPollingActivityAsync(PollingRecord pollingRecord);
+
+    /// <summary>
+    /// Get polling history for a provider
+    /// </summary>
+    /// <param name="providerId">Provider ID</param>
+    /// <returns>List of polling records</returns>
+    Task<List<PollingRecord>> GetPollingHistoryAsync(string providerId);
+
+    /// <summary>
+    /// Get polling record by ID
+    /// </summary>
+    /// <param name="recordId">Polling record ID</param>
+    /// <returns>Polling record</returns>
+Task<PollingRecord?> GetPollingRecordAsync(string recordId);
+
+    /// <summary>
     /// Process poll response with queued messages
     /// </summary>
     /// <param name="taskResponse">Poll response Task</param>
@@ -50,9 +71,9 @@ public interface IPollingService
 
     /// <summary>
  /// Get queued messages for a provider
-    /// </summary>
-    /// <param name="providerId">Provider organization ID</param>
-    /// <returns>List of queued message bundles</returns>
+ /// </summary>
+ /// <param name="providerId">Provider organization ID</param>
+ /// <returns>List of queued message bundles</returns>
     Task<List<MessageBundle>> GetQueuedMessagesAsync(string providerId);
 }
 
@@ -148,6 +169,37 @@ public class PollingService : IPollingService
       {
             _logger.LogError(ex, "Error creating poll request");
    throw;
+        }
+    }
+
+    /// <summary>
+ /// Record polling activity
+ /// </summary>
+ /// <param name="pollingRecord">Polling record to store</param>
+ /// <returns>Stored polling record</returns>
+    public async Task<PollingRecord> RecordPollingActivityAsync(PollingRecord pollingRecord)
+    {
+        try
+      {
+         _logger.LogInformation($"Recording polling activity for record: {pollingRecord.PollingRecordId}");
+
+    if (string.IsNullOrEmpty(pollingRecord.Id))
+    {
+       pollingRecord.Id = Guid.NewGuid().ToString();
+     }
+         pollingRecord.CreatedAt = DateTime.UtcNow;
+
+   await _context.PollingRecords.AddAsync(pollingRecord);
+      await _context.SaveChangesAsync();
+
+         _logger.LogInformation($"Polling activity recorded: {pollingRecord.Id}");
+
+     return pollingRecord;
+        }
+        catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error recording polling activity");
+         throw;
         }
     }
 
@@ -447,30 +499,30 @@ if (root.TryGetProperty("id", out JsonElement id))
     /// </summary>
  public async Task<List<MessageBundle>> GetQueuedMessagesAsync(string providerId)
     {
-        try
+ try
         {
-            _logger.LogInformation($"Getting queued messages for provider: {providerId}");
+       _logger.LogInformation($"Getting queued messages for provider: {providerId}");
 
-            // Get all completed poll responses for this provider
+        // Get all completed poll responses for this provider
    var responses = await GetCompletedPollResponsesAsync(providerId);
 
-    var queuedMessages = new List<MessageBundle>();
+  var queuedMessages = new List<MessageBundle>();
 
       foreach (var response in responses)
-            {
+     {
  if (!string.IsNullOrEmpty(response.FhirTaskJson))
        {
-         try
+   try
         {
-     using (JsonDocument doc = JsonDocument.Parse(response.FhirTaskJson))
-      {
-               var root = doc.RootElement;
+   using (JsonDocument doc = JsonDocument.Parse(response.FhirTaskJson))
+{
+       var root = doc.RootElement;
 
-            // Extract output bundles from Task
-  if (root.TryGetProperty("output", out JsonElement outputs))
+      // Extract output bundles from Task
+if (root.TryGetProperty("output", out JsonElement outputs))
   {
  foreach (var output in outputs.EnumerateArray())
-            {
+ {
    if (output.TryGetProperty("valueReference", out JsonElement reference) &&
          reference.TryGetProperty("reference", out JsonElement refUrl))
      {
@@ -478,32 +530,72 @@ if (root.TryGetProperty("id", out JsonElement id))
           _logger.LogInformation($"Found message bundle reference: {bundleRef}");
 
    // TODO: Retrieve actual bundle content from reference
-          queuedMessages.Add(new MessageBundle
-             {
+ queuedMessages.Add(new MessageBundle
+     {
        BundleId = bundleRef ?? string.Empty,
-       MessageType = "unknown", // Should parse from bundle
-    Content = response.FhirTaskJson,
+     MessageType = "unknown", // Should parse from bundle
+  Content = response.FhirTaskJson,
 QueuedAt = response.CreatedAt,
      Status = "pending"
-        });
+ });
  }
-              }
+   }
      }
     }
        }
           catch (Exception ex)
-         {
-             _logger.LogError(ex, $"Error parsing FHIR Task JSON for response: {response.Id}");
-                    }
-                }
-        }
+      {
+     _logger.LogError(ex, $"Error parsing FHIR Task JSON for response: {response.Id}");
+            }
+   }
+      }
 
-            return queuedMessages;
+    return queuedMessages;
         }
-    catch (Exception ex)
+catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting queued messages");
+          _logger.LogError(ex, "Error getting queued messages");
         throw;
         }
+ }
+
+    /// <summary>
+    /// Get polling history for a provider
+    /// </summary>
+    public async Task<List<PollingRecord>> GetPollingHistoryAsync(string providerId)
+    {
+     try
+  {
+     _logger.LogInformation($"Getting polling history for provider: {providerId}");
+
+      return await Task.FromResult(_context.PollingRecords
+      .Where(r => r.ProviderId == providerId)
+  .OrderByDescending(r => r.CreatedAt)
+    .ToList());
+        }
+        catch (Exception ex)
+     {
+          _logger.LogError(ex, "Error getting polling history");
+  throw;
+    }
+    }
+
+    /// <summary>
+    /// Get polling record by ID
+  /// </summary>
+    public async Task<PollingRecord?> GetPollingRecordAsync(string recordId)
+    {
+      try
+    {
+       _logger.LogInformation($"Getting polling record: {recordId}");
+
+       return await Task.FromResult(_context.PollingRecords
+   .FirstOrDefault(r => r.Id == recordId || r.PollingRecordId == recordId));
+    }
+  catch (Exception ex)
+        {
+      _logger.LogError(ex, "Error getting polling record");
+      throw;
+  }
     }
 }

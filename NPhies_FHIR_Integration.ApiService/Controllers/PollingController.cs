@@ -33,9 +33,9 @@ public class PollingController : BaseController
     /// <response code="201">Poll request created successfully</response>
     /// <response code="400">Invalid request</response>
     /// <response code="500">Internal server error</response>
-    [HttpPost("request")]
+  [HttpPost("request")]
     [ProducesResponseType(typeof(Common.Models.ApiResponse<PollRequestDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status400BadRequest)]
+ [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status500InternalServerError)]
    public async Task<IActionResult> CreatePollRequest([FromBody] CreatePollRequestDto request)
     {
@@ -45,36 +45,54 @@ public class PollingController : BaseController
 
   if (string.IsNullOrEmpty(request.ProviderId))
         {
-      return BadRequest("Provider ID is required");
+    return BadRequest("Provider ID is required");
        }
 
  if (request.MessageTypes == null || request.MessageTypes.Count == 0)
   {
   return BadRequest("At least one message type is required");
-          }
+     }
 
      var pollRequest = await _pollingService.CreatePollRequestAsync(
-         request.ProviderId,
-         request.MessageTypes
+  request.ProviderId,
+    request.MessageTypes
     );
 
-       var dto = new PollRequestDto
+       // Record polling activity
+      var pollingRecord = new Domain.Entities.PollingRecord
+   {
+  Id = Guid.NewGuid().ToString(),
+    PollingRecordId = $"poll-{Guid.NewGuid().ToString().Substring(0, 8)}",
+       ProviderId = request.ProviderId,
+   RequestTaskId = pollRequest.TaskId,
+     TaskRequestId = pollRequest.Id,
+    RequestedMessageTypes = string.Join(",", request.MessageTypes),
+    RequestSentAt = DateTime.UtcNow,
+      ProcessingStatus = "pending",
+ CycleStatus = "in-progress",
+RetryCount = 0,
+   CreatedAt = DateTime.UtcNow
+      };
+
+    await _pollingService.RecordPollingActivityAsync(pollingRecord);
+
+   var dto = new PollRequestDto
   {
-       Id = pollRequest.Id,
+   Id = pollRequest.Id,
  TaskId = pollRequest.TaskId,
-    Status = pollRequest.Status,
+        Status = pollRequest.Status,
 Code = pollRequest.Code,
-       MessageTypes = request.MessageTypes,
- ProviderId = request.ProviderId,
-     CreatedAt = pollRequest.CreatedAt
+   MessageTypes = request.MessageTypes,
+       ProviderId = request.ProviderId,
+         CreatedAt = pollRequest.CreatedAt
       };
 
    return Created($"/api/v1/polling/request/{pollRequest.Id}", 
      Ok(dto, "Poll request created successfully"));
         }
   catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating poll request");
+    {
+ _logger.LogError(ex, "Error creating poll request");
             return InternalServerError("Failed to create poll request");
         }
     }
@@ -134,38 +152,61 @@ Status = r.Status,
     public async Task<IActionResult> ProcessPollResponse([FromBody] ProcessPollResponseDto response)
     {
         try
-        {
-     _logger.LogInformation($"Processing poll response: {response.TaskId}");
+    {
+   _logger.LogInformation($"Processing poll response: {response.TaskId}");
 
         if (string.IsNullOrEmpty(response.TaskId))
-      {
+    {
       return BadRequest("Task ID is required");
-          }
+   }
 
     if (string.IsNullOrEmpty(response.ResponseBundle))
-      {
+   {
          return BadRequest("Response bundle is required");
        }
+
+  var startTime = DateTime.UtcNow;
 
      // Create TaskResponse object from request
          var taskResponse = new Domain.Entities.TaskResponse
       {
-           Id = Guid.NewGuid().ToString(),
+    Id = Guid.NewGuid().ToString(),
        TaskId = response.TaskId,
       Status = "completed",
-            ResponseCode = response.ResponseCode ?? "ok",
-         FhirTaskJson = response.ResponseBundle,
+   ResponseCode = response.ResponseCode ?? "ok",
+     FhirTaskJson = response.ResponseBundle,
 CreatedAt = DateTime.UtcNow
  };
 
-            // Process the response
-            var processedIds = await _pollingService.ProcessPollResponseAsync(
-       taskResponse,
+      // Process the response
+   var processedIds = await _pollingService.ProcessPollResponseAsync(
+   taskResponse,
          response.ResponseBundle
-        );
+ );
 
-   var dto = new PollResponseDto
-            {
+     var duration = DateTime.UtcNow.Subtract(startTime).TotalMilliseconds;
+
+   // Record polling response activity
+    var pollingRecord = new Domain.Entities.PollingRecord
+     {
+ Id = Guid.NewGuid().ToString(),
+ PollingRecordId = $"resp-{Guid.NewGuid().ToString().Substring(0, 8)}",
+      ResponseTaskId = response.TaskId,
+        TaskResponseId = taskResponse.Id,
+   ResponseStatus = response.ResponseCode ?? "ok",
+ ResponseReceivedAt = DateTime.UtcNow,
+       MessagesReceived = processedIds.Count,
+   ProcessingStatus = "completed",
+     CycleStatus = "completed",
+   DurationMs = (long)duration,
+ HttpStatusCode = 200,
+   CreatedAt = DateTime.UtcNow
+     };
+
+    await _pollingService.RecordPollingActivityAsync(pollingRecord);
+
+       var dto = new PollResponseDto
+ {
 TaskId = response.TaskId,
         Status = "processed",
      ProcessedMessageCount = processedIds.Count,
@@ -174,8 +215,8 @@ TaskId = response.TaskId,
    };
 
    return Ok(dto, $"Poll response processed successfully ({processedIds.Count} messages)");
-        }
-        catch (Exception ex)
+}
+      catch (Exception ex)
         {
    _logger.LogError(ex, "Error processing poll response");
     return InternalServerError("Failed to process poll response");
@@ -271,15 +312,15 @@ try
     [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetQueuedMessages(string providerId)
     {
-    try
-       {
+  try
+   {
  _logger.LogInformation($"Getting queued messages for provider: {providerId}");
 
     var messages = await _pollingService.GetQueuedMessagesAsync(providerId);
 
-    var dtos = messages.Select(m => new QueuedMessageDto
+   var dtos = messages.Select(m => new QueuedMessageDto
       {
-        BundleId = m.BundleId,
+BundleId = m.BundleId,
           MessageType = m.MessageType,
      Status = m.Status,
     QueuedAt = m.QueuedAt
@@ -287,17 +328,120 @@ try
 
      return Ok(dtos, $"Found {dtos.Count} queued messages");
   }
-       catch (Exception ex)
-        {
+      catch (Exception ex)
+      {
        _logger.LogError(ex, "Error getting queued messages");
      return InternalServerError("Failed to retrieve queued messages");
+}
+    }
+
+/// <summary>
+    /// Get polling history for a provider
+    /// </summary>
+    /// <param name="providerId">Provider organization ID</param>
+    /// <returns>Polling history records</returns>
+    /// <response code="200">History retrieved successfully</response>
+    /// <response code="404">Provider not found</response>
+    /// <response code="500">Internal server error</response>
+    [HttpGet("history/{providerId}")]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<List<PollingHistoryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetPollingHistory(string providerId)
+    {
+   try
+        {
+     _logger.LogInformation($"Getting polling history for provider: {providerId}");
+
+ var records = await _pollingService.GetPollingHistoryAsync(providerId);
+
+        var dtos = records.Select(r => new PollingHistoryDto
+  {
+          PollingRecordId = r.PollingRecordId,
+   RequestTaskId = r.RequestTaskId,
+       ResponseTaskId = r.ResponseTaskId,
+  RequestedMessageTypes = r.RequestedMessageTypes,
+       ReceivedMessageTypes = r.ReceivedMessageTypes,
+     RequestSentAt = r.RequestSentAt,
+ ResponseReceivedAt = r.ResponseReceivedAt,
+   MessagesReceived = r.MessagesReceived,
+    ProcessingStatus = r.GetProcessingStatusDisplay(),
+    CycleStatus = r.GetCycleStatusDisplay(),
+   ResponseStatus = r.ResponseStatus ?? "pending",
+DurationMs = r.DurationMs,
+ IsAcknowledged = r.IsAcknowledged,
+ ErrorCode = r.ErrorCode,
+       ErrorMessage = r.ErrorMessage,
+   CreatedAt = r.CreatedAt
+            }).ToList();
+
+       return Ok(dtos, $"Found {dtos.Count} polling records");
         }
-  }
+     catch (Exception ex)
+        {
+     _logger.LogError(ex, "Error getting polling history");
+     return InternalServerError("Failed to retrieve polling history");
+}
+    }
+
+    /// <summary>
+    /// Get specific polling record
+    /// </summary>
+    /// <param name="recordId">Polling record ID</param>
+    /// <returns>Polling record details</returns>
+    /// <response code="200">Record retrieved successfully</response>
+    /// <response code="404">Record not found</response>
+    /// <response code="500">Internal server error</response>
+    [HttpGet("record/{recordId}")]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<PollingHistoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Common.Models.ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetPollingRecord(string recordId)
+    {
+        try
+        {
+        _logger.LogInformation($"Getting polling record: {recordId}");
+
+ var record = await _pollingService.GetPollingRecordAsync(recordId);
+       
+   if (record == null)
+ {
+         return NotFound("Polling record not found");
+            }
+
+      var dto = new PollingHistoryDto
+ {
+    PollingRecordId = record.PollingRecordId,
+     RequestTaskId = record.RequestTaskId,
+        ResponseTaskId = record.ResponseTaskId,
+   RequestedMessageTypes = record.RequestedMessageTypes,
+      ReceivedMessageTypes = record.ReceivedMessageTypes,
+   RequestSentAt = record.RequestSentAt,
+   ResponseReceivedAt = record.ResponseReceivedAt,
+   MessagesReceived = record.MessagesReceived,
+  ProcessingStatus = record.GetProcessingStatusDisplay(),
+      CycleStatus = record.GetCycleStatusDisplay(),
+      ResponseStatus = record.ResponseStatus ?? "pending",
+  DurationMs = record.DurationMs,
+  IsAcknowledged = record.IsAcknowledged,
+    ErrorCode = record.ErrorCode,
+           ErrorMessage = record.ErrorMessage,
+  CreatedAt = record.CreatedAt
+           };
+
+            return Ok(dto, "Polling record retrieved successfully");
+    }
+        catch (Exception ex)
+        {
+    _logger.LogError(ex, "Error getting polling record");
+        return InternalServerError("Failed to retrieve polling record");
+        }
+    }
 
     /// <summary>
     /// Extract message types from reason text
     /// </summary>
-   private static List<string> ExtractMessageTypes(string? reasonText)
+    private static List<string> ExtractMessageTypes(string? reasonText)
     {
         if (string.IsNullOrEmpty(reasonText))
  return new List<string>();
@@ -307,18 +451,18 @@ try
     if (parts.Length > 1)
         {
       return parts[1]
-            .Split(",")
+    .Split(",")
        .Select(s => s.Trim())
    .Where(s => !string.IsNullOrEmpty(s))
-   .ToList();
+.ToList();
         }
 
         return new List<string>();
-    }
+ }
 
     /// <summary>
     /// Extract processed count from result text
-    /// </summary>
+  /// </summary>
     private static int ExtractProcessedCount(string? resultText)
     {
  if (string.IsNullOrEmpty(resultText))
@@ -328,10 +472,10 @@ try
  var parts = resultText.Split();
       if (parts.Length > 1 && int.TryParse(parts[1], out var count))
         {
-            return count;
+          return count;
         }
 
-        return 0;
+    return 0;
     }
 }
 
@@ -397,4 +541,27 @@ public class QueuedMessageDto
    public string MessageType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTime QueuedAt { get; set; }
+}
+
+/// <summary>
+/// DTO for polling history
+/// </summary>
+public class PollingHistoryDto
+{
+    public string PollingRecordId { get; set; } = string.Empty;
+    public string? RequestTaskId { get; set; }
+    public string? ResponseTaskId { get; set; }
+    public string? RequestedMessageTypes { get; set; }
+    public string? ReceivedMessageTypes { get; set; }
+    public DateTime? RequestSentAt { get; set; }
+    public DateTime? ResponseReceivedAt { get; set; }
+    public int MessagesReceived { get; set; }
+    public string ProcessingStatus { get; set; } = string.Empty;
+    public string CycleStatus { get; set; } = string.Empty;
+    public string ResponseStatus { get; set; } = string.Empty;
+    public long? DurationMs { get; set; }
+    public bool IsAcknowledged { get; set; }
+    public string? ErrorCode { get; set; }
+    public string? ErrorMessage { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

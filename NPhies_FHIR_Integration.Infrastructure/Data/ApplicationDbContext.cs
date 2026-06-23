@@ -179,6 +179,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<CommunicationRequest> CommunicationRequests { get; set; } = null!;
 
     /// <summary>
+    /// PollingRecord entities (polling request/response history and audit trail)
+    /// </summary>
+    public DbSet<PollingRecord> PollingRecords { get; set; } = null!;
+
+    /// <summary>
     /// Task entities (for polling and work items)
     /// </summary>
     // public DbSet<PollTask> Tasks { get; set; } = null!;
@@ -243,9 +248,12 @@ ConfigureClaimDiagnosisEntity(modelBuilder);
 
     // Communication Configuration
     ConfigureCommunicationEntity(modelBuilder);
-    ConfigureCommunicationRequestEntity(modelBuilder);
+ ConfigureCommunicationRequestEntity(modelBuilder);
 
-    // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
+    // Polling Configuration
+    ConfigurePollingRecordEntity(modelBuilder);
+
+// GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
     // This fixes FK column length mismatches systematically
 foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -1809,5 +1817,68 @@ entity.HasOne(c => c.Recipient)
             .WithMany()
     .HasForeignKey(c => c.RecipientId)
           .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Configure PollingRecord entity
+    /// </summary>
+    private void ConfigurePollingRecordEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PollingRecord>();
+
+        // Primary Key
+      entity.HasKey(p => p.Id);
+
+      // Properties
+        entity.Property(p => p.PollingRecordId).IsRequired().HasMaxLength(100);
+   entity.Property(p => p.ProviderId).IsRequired().HasMaxLength(450);
+        entity.Property(p => p.RequestTaskId).HasMaxLength(100);
+        entity.Property(p => p.TaskRequestId).HasMaxLength(100);
+        entity.Property(p => p.RequestedMessageTypes).HasMaxLength(500);
+        entity.Property(p => p.ResponseTaskId).HasMaxLength(100);
+        entity.Property(p => p.TaskResponseId).HasMaxLength(100);
+        entity.Property(p => p.ResponseStatus).HasMaxLength(50);
+        entity.Property(p => p.MessagesReceived);
+        entity.Property(p => p.ReceivedMessageTypes).HasMaxLength(500);
+   entity.Property(p => p.RequestBundleJson).HasColumnType("ntext");
+  entity.Property(p => p.ResponseBundleJson).HasColumnType("ntext");
+        entity.Property(p => p.ProcessingStatus).IsRequired().HasMaxLength(50);
+        entity.Property(p => p.HttpStatusCode);
+ entity.Property(p => p.ErrorMessage).HasMaxLength(1000);
+        entity.Property(p => p.ErrorCode).HasMaxLength(100);
+    entity.Property(p => p.DurationMs);
+     entity.Property(p => p.CycleStatus).IsRequired().HasMaxLength(50);
+        entity.Property(p => p.IsAcknowledged);
+     entity.Property(p => p.RetryCount);
+        entity.Property(p => p.MaxRetries);
+        entity.Property(p => p.SourceIpAddress).HasMaxLength(50);
+   entity.Property(p => p.RequestSourceId).HasMaxLength(100);
+        entity.Property(p => p.Notes).HasMaxLength(1000);
+
+        // Indexes
+        entity.HasIndex(p => p.PollingRecordId);
+  entity.HasIndex(p => p.ProviderId);
+        entity.HasIndex(p => p.ProcessingStatus);
+        entity.HasIndex(p => p.CycleStatus);
+        entity.HasIndex(p => p.ResponseStatus);
+        entity.HasIndex(p => p.RequestSentAt);
+        entity.HasIndex(p => p.ResponseReceivedAt);
+        entity.HasIndex(p => p.IsAcknowledged);
+
+        // Relationships
+        entity.HasOne(p => p.Provider)
+            .WithMany()
+       .HasForeignKey(p => p.ProviderId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(p => p.TaskRequest)
+            .WithMany()
+            .HasForeignKey(p => p.TaskRequestId)
+  .OnDelete(DeleteBehavior.SetNull);
+
+        entity.HasOne(p => p.TaskResponse)
+       .WithMany()
+         .HasForeignKey(p => p.TaskResponseId)
+     .OnDelete(DeleteBehavior.SetNull);
     }
 }
