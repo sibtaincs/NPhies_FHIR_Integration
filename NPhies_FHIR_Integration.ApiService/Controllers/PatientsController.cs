@@ -1,25 +1,26 @@
-using Microsoft.AspNetCore.Mvc;
-using NPhies_FHIR_Integration.Domain.DTOs;
-using NPhies_FHIR_Integration.Infrastructure.Repositories;
 using AutoMapper;
-using NPhies_FHIR_Integration.Common.Models;
+using Microsoft.AspNetCore.Mvc;
+using NPhies_FHIR_Integration.Application.DTOs;
+using NPhies_FHIR_Integration.Domain.Entities;
+using NPhies_FHIR_Integration.Infrastructure.Repositories;
 
 namespace NPhies_FHIR_Integration.ApiService.Controllers;
 
 /// <summary>
-/// Controller for managing patient data
+/// Patients API Controller
+/// Manages patient-related operations
 /// </summary>
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 [Produces("application/json")]
-public class PatientsController : BaseController
+public class PatientsController : ControllerBase
 {
     private readonly IPatientRepository _patientRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<PatientsController> _logger;
 
     /// <summary>
-    /// Constructor with dependency injection
+    /// Constructor
     /// </summary>
     public PatientsController(IPatientRepository patientRepository, IMapper mapper, ILogger<PatientsController> logger)
     {
@@ -29,29 +30,44 @@ public class PatientsController : BaseController
     }
 
     /// <summary>
-    /// Get all patients
+    /// Get all patients with pagination
     /// </summary>
-    /// <returns>List of all patients</returns>
-    /// <response code="200">Patients retrieved successfully</response>
-    /// <response code="500">Internal server error</response>
+    /// <param name="pageNumber">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+    /// <returns>Paginated list of patients</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<PatientDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAllPatients()
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<PatientDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<PatientDto>>>> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
         try
         {
-            _logger.LogInformation("Retrieving all patients");
+            var paginationParams = new PaginationParams { PageNumber = pageNumber, PageSize = pageSize };
+            if (!paginationParams.Validate(out var validationError))
+            {
+                _logger.LogWarning($"Pagination validation failed: {validationError}");
+                return BadRequest(ApiResponse<PaginatedResponse<PatientDto>>.ErrorResponse(validationError, 400));
+            }
 
-            var patients = await _patientRepository.GetAllAsync(p => p.Coverages, p => p.EligibilityRequests);
-            var patientDtos = _mapper.Map<IEnumerable<PatientDto>>(patients);
+            var allPatients = await _patientRepository.FindAsync(p => p.IsActive);
+            var totalCount = allPatients.Count();
+            var patients = allPatients
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            return Ok(patientDtos, "Patients retrieved successfully");
+            var patientDtos = _mapper.Map<List<PatientDto>>(patients);
+            var paginatedResult = PaginatedResponse<PatientDto>.CreatePaginatedResponse(patientDtos, pageNumber, pageSize, totalCount);
+
+            _logger.LogInformation($"Retrieved {patientDtos.Count} patients (Page {pageNumber})");
+            return Ok(ApiResponse<PaginatedResponse<PatientDto>>.SuccessResponse(paginatedResult, "Patients retrieved successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving patients");
-            return InternalServerError("Failed to retrieve patients");
+            return StatusCode(500, ApiResponse<PaginatedResponse<PatientDto>>.ErrorResponse("An error occurred while retrieving patients", 500));
         }
     }
 
@@ -60,209 +76,224 @@ public class PatientsController : BaseController
     /// </summary>
     /// <param name="id">Patient ID</param>
     /// <returns>Patient details</returns>
-    /// <response code="200">Patient found</response>
-    /// <response code="404">Patient not found</response>
-    /// <response code="500">Internal server error</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<PatientDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetPatientById(string id)
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<PatientDto>>> GetById(string id)
     {
         try
         {
-            if (string.IsNullOrEmpty(id))
-                return BadRequest("Patient ID is required");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(ApiResponse<PatientDto>.ErrorResponse("Patient ID is required", 400));
+            }
 
-            _logger.LogInformation("Retrieving patient {PatientId}", id);
-
-            var patient = await _patientRepository.GetWithCoverageAndEligibilityAsync(id);
-
+            var patient = await _patientRepository.GetByIdAsync(id);
             if (patient == null)
-                return NotFound($"Patient with ID {id} not found");
+            {
+                _logger.LogWarning($"Patient not found: {id}");
+                return NotFound(ApiResponse<PatientDto>.ErrorResponse("Patient not found", 404));
+            }
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            return Ok(patientDto, "Patient retrieved successfully");
+            _logger.LogInformation($"Retrieved patient: {id}");
+            return Ok(ApiResponse<PatientDto>.SuccessResponse(patientDto, "Patient retrieved successfully"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving patient {PatientId}", id);
-            return InternalServerError("Failed to retrieve patient");
+            _logger.LogError(ex, $"Error retrieving patient: {id}");
+            return StatusCode(500, ApiResponse<PatientDto>.ErrorResponse("An error occurred while retrieving the patient", 500));
         }
     }
 
     /// <summary>
     /// Get patient by MRN
     /// </summary>
-    /// <param name="mrn">Member Registration Number</param>
+    /// <param name="mrn">Medical Record Number</param>
     /// <returns>Patient details</returns>
-    /// <response code="200">Patient found</response>
-    /// <response code="404">Patient not found</response>
-    /// <response code="500">Internal server error</response>
     [HttpGet("mrn/{mrn}")]
     [ProducesResponseType(typeof(ApiResponse<PatientDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetPatientByMRN(string mrn)
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<PatientDto>>> GetByMRN(string mrn)
     {
         try
         {
-            if (string.IsNullOrEmpty(mrn))
-                return BadRequest("MRN is required");
-
-            _logger.LogInformation("Retrieving patient by MRN {MRN}", mrn);
+            if (string.IsNullOrWhiteSpace(mrn))
+            {
+                return BadRequest(ApiResponse<PatientDto>.ErrorResponse("MRN is required", 400));
+            }
 
             var patient = await _patientRepository.GetByMRNAsync(mrn);
-
             if (patient == null)
-                return NotFound($"Patient with MRN {mrn} not found");
+            {
+                _logger.LogWarning($"Patient not found with MRN: {mrn}");
+                return NotFound(ApiResponse<PatientDto>.ErrorResponse("Patient not found", 404));
+            }
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            return Ok(patientDto, "Patient retrieved successfully");
+            _logger.LogInformation($"Retrieved patient by MRN: {mrn}");
+            return Ok(ApiResponse<PatientDto>.SuccessResponse(patientDto, "Patient retrieved successfully"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving patient by MRN {MRN}", mrn);
-            return InternalServerError("Failed to retrieve patient");
+            _logger.LogError(ex, $"Error retrieving patient by MRN: {mrn}");
+            return StatusCode(500, ApiResponse<PatientDto>.ErrorResponse("An error occurred while retrieving the patient", 500));
         }
     }
 
     /// <summary>
-    /// Create a new patient
+    /// Search patients by name
     /// </summary>
-    /// <param name="patientDto">Patient data</param>
-    /// <returns>Created patient with ID</returns>
-    /// <response code="201">Patient created successfully</response>
-    /// <response code="400">Invalid patient data</response>
-    /// <response code="500">Internal server error</response>
-    [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<PatientDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CreatePatient([FromBody] PatientDto patientDto)
+    /// <param name="firstName">First name (partial match)</param>
+    /// <param name="lastName">Last name (partial match)</param>
+    /// <returns>List of matching patients</returns>
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(ApiResponse<List<PatientDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<List<PatientDto>>>> Search(
+        [FromQuery] string firstName = "",
+        [FromQuery] string lastName = "")
     {
         try
         {
-            if (patientDto == null)
-                return BadRequest("Patient data is required");
+            if (string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(lastName))
+            {
+                return BadRequest(ApiResponse<List<PatientDto>>.ErrorResponse("At least one search parameter (firstName or lastName) is required", 400));
+            }
 
-            if (string.IsNullOrEmpty(patientDto.MRN))
-                return BadRequest("MRN is required");
+            var patients = await _patientRepository.FindAsync(p => 
+      (string.IsNullOrEmpty(firstName) || p.FirstName.Contains(firstName)) &&
+        (string.IsNullOrEmpty(lastName) || p.LastName.Contains(lastName)) &&
+  p.IsActive);
 
-            if (string.IsNullOrEmpty(patientDto.FirstName) || string.IsNullOrEmpty(patientDto.LastName))
-                return BadRequest("Patient first and last names are required");
+            var patientDtos = _mapper.Map<List<PatientDto>>(patients);
 
-            // Check if patient with MRN already exists
-            var existingPatient = await _patientRepository.ExistsByMRNAsync(patientDto.MRN);
-            if (existingPatient)
-                return BadRequest($"Patient with MRN {patientDto.MRN} already exists");
+       _logger.LogInformation($"Found {patientDtos.Count} patients matching: {firstName} {lastName}");
+  return Ok(ApiResponse<List<PatientDto>>.SuccessResponse(patientDtos, "Patients found successfully"));
+        }
+     catch (Exception ex)
+        {
+       _logger.LogError(ex, "Error searching patients");
+        return StatusCode(500, ApiResponse<List<PatientDto>>.ErrorResponse("An error occurred while searching patients", 500));
+        }
+    }
 
-            _logger.LogInformation("Creating new patient with MRN {MRN}", patientDto.MRN);
+    /// <summary>
+    /// Create new patient
+    /// </summary>
+    /// <param name="createPatientDto">Patient creation data</param>
+    /// <returns>Created patient</returns>
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<PatientDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<PatientDto>>> Create([FromBody] CreatePatientDto createPatientDto)
+    {
+        try
+        {
+            if (createPatientDto == null)
+            {
+                return BadRequest(ApiResponse<PatientDto>.ErrorResponse("Patient data is required", 400));
+            }
 
-            var patient = _mapper.Map<Domain.Entities.Patient>(patientDto);
-            var createdPatient = await _patientRepository.AddAsync(patient);
+            // Check if MRN already exists
+            if (await _patientRepository.ExistsByMRNAsync(createPatientDto.MRN))
+            {
+                _logger.LogWarning($"Patient with MRN already exists: {createPatientDto.MRN}");
+                return BadRequest(ApiResponse<PatientDto>.ErrorResponse("A patient with this MRN already exists", 400));
+            }
+
+            var patient = _mapper.Map<Patient>(createPatientDto);
+            await _patientRepository.AddAsync(patient);
             await _patientRepository.SaveChangesAsync();
 
-            var createdPatientDto = _mapper.Map<PatientDto>(createdPatient);
-            return Created($"/api/v1/patients/{createdPatient.Id}", createdPatientDto);
+            var patientDto = _mapper.Map<PatientDto>(patient);
+            _logger.LogInformation($"Created new patient: {patient.Id}");
+
+            return CreatedAtAction(nameof(GetById), new { id = patient.Id }, ApiResponse<PatientDto>.SuccessResponse(patientDto, "Patient created successfully", 201));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating patient");
-            return InternalServerError("Failed to create patient");
+            return StatusCode(500, ApiResponse<PatientDto>.ErrorResponse("An error occurred while creating the patient", 500));
         }
     }
 
     /// <summary>
-    /// Update an existing patient
+    /// Update existing patient
     /// </summary>
     /// <param name="id">Patient ID</param>
-    /// <param name="patientDto">Updated patient data</param>
+    /// <param name="updatePatientDto">Updated patient data</param>
     /// <returns>Updated patient</returns>
-    /// <response code="200">Patient updated successfully</response>
-    /// <response code="400">Invalid patient data</response>
-    /// <response code="404">Patient not found</response>
-    /// <response code="500">Internal server error</response>
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponse<PatientDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdatePatient(string id, [FromBody] PatientDto patientDto)
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<PatientDto>>> Update(string id, [FromBody] UpdatePatientDto updatePatientDto)
     {
         try
         {
-            if (string.IsNullOrEmpty(id))
-                return BadRequest("Patient ID is required");
-
-            if (patientDto == null)
-                return BadRequest("Patient data is required");
-
-            _logger.LogInformation("Updating patient {PatientId}", id);
-
-            var existingPatient = await _patientRepository.GetByIdAsync(id);
-            if (existingPatient == null)
-                return NotFound($"Patient with ID {id} not found");
-
-            // Map only non-null values
-            if (!string.IsNullOrEmpty(patientDto.FirstName))
-                existingPatient.FirstName = patientDto.FirstName;
-            if (!string.IsNullOrEmpty(patientDto.LastName))
-                existingPatient.LastName = patientDto.LastName;
-            if (!string.IsNullOrEmpty(patientDto.Email))
-                existingPatient.Email = patientDto.Email;
-            if (!string.IsNullOrEmpty(patientDto.Phone))
-                existingPatient.Phone = patientDto.Phone;
-            if (!string.IsNullOrEmpty(patientDto.Status))
-                existingPatient.Status = patientDto.Status;
-
-            var updatedPatient = _patientRepository.Update(existingPatient);
-            await _patientRepository.SaveChangesAsync();
-
-            var updatedPatientDto = _mapper.Map<PatientDto>(updatedPatient);
-            return Ok(updatedPatientDto, "Patient updated successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating patient {PatientId}", id);
-            return InternalServerError("Failed to update patient");
-        }
-    }
-
-    /// <summary>
-    /// Delete a patient
-    /// </summary>
-    /// <param name="id">Patient ID</param>
-    /// <returns>No content</returns>
-    /// <response code="204">Patient deleted successfully</response>
-    /// <response code="404">Patient not found</response>
-    /// <response code="500">Internal server error</response>
-    [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeletePatient(string id)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(id))
-                return BadRequest("Patient ID is required");
-
-            _logger.LogInformation("Deleting patient {PatientId}", id);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(ApiResponse<PatientDto>.ErrorResponse("Patient ID is required", 400));
+            }
 
             var patient = await _patientRepository.GetByIdAsync(id);
             if (patient == null)
-                return NotFound($"Patient with ID {id} not found");
+            {
+                _logger.LogWarning($"Patient not found for update: {id}");
+                return NotFound(ApiResponse<PatientDto>.ErrorResponse("Patient not found", 404));
+            }
 
-            _patientRepository.Delete(patient);
+            _mapper.Map(updatePatientDto, patient);
+            _patientRepository.Update(patient);
             await _patientRepository.SaveChangesAsync();
 
-            return NoContent();
+            var patientDto = _mapper.Map<PatientDto>(patient);
+            _logger.LogInformation($"Updated patient: {id}");
+
+            return Ok(ApiResponse<PatientDto>.SuccessResponse(patientDto, "Patient updated successfully"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting patient {PatientId}", id);
-            return InternalServerError("Failed to delete patient");
+            _logger.LogError(ex, $"Error updating patient: {id}");
+            return StatusCode(500, ApiResponse<PatientDto>.ErrorResponse("An error occurred while updating the patient", 500));
+        }
+    }
+
+    /// <summary>
+    /// Delete patient (soft delete)
+    /// </summary>
+    /// <param name="id">Patient ID</param>
+    /// <returns>Deletion status</returns>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse>> Delete(string id)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(ApiResponse.ErrorResponse("Patient ID is required", 400));
+            }
+
+            var patient = await _patientRepository.GetByIdAsync(id);
+            if (patient == null)
+            {
+                _logger.LogWarning($"Patient not found for deletion: {id}");
+                return NotFound(ApiResponse.ErrorResponse("Patient not found", 404));
+            }
+
+            patient.IsActive = false;
+            _patientRepository.Update(patient);
+            await _patientRepository.SaveChangesAsync();
+
+            _logger.LogInformation($"Deleted patient: {id}");
+            return Ok(ApiResponse.SuccessResponse("Patient deleted successfully", 200));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error deleting patient: {id}");
+            return StatusCode(500, ApiResponse.ErrorResponse("An error occurred while deleting the patient", 500));
         }
     }
 }

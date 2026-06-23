@@ -17,4 +17,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NPhies_FHIR_Integration.Infrastructure\" />
+    <Folder Include="NPhies_FHIR_Integration\" />
+  </ItemGroup>
+
 </Project>

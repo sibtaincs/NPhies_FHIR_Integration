@@ -19,10 +19,10 @@ public class ClaimsController : ControllerBase
     /// <summary>
     /// Constructor with dependency injection
     /// </summary>
- public ClaimsController(IClaimService claimService, ILogger<ClaimsController> logger)
+    public ClaimsController(IClaimService claimService, ILogger<ClaimsController> logger)
     {
         _claimService = claimService ?? throw new ArgumentNullException(nameof(claimService));
-  _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -39,35 +39,35 @@ public class ClaimsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateClaim([FromBody] CreateClaimDto dto)
     {
-      try
-   {
-         if (!ModelState.IsValid)
- {
-      _logger.LogWarning("Invalid model state for CreateClaim: {0}", string.Join(",", ModelState.Values.SelectMany(v => v.Errors)));
-       return BadRequest(new { message = "Invalid claim data", errors = ModelState.Values.SelectMany(v => v.Errors) });
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for CreateClaim: {0}", string.Join(",", ModelState.Values.SelectMany(v => v.Errors)));
+                return BadRequest(new { message = "Invalid claim data", errors = ModelState.Values.SelectMany(v => v.Errors) });
             }
 
             if (string.IsNullOrWhiteSpace(dto.ClaimNumber))
-        return BadRequest(new { message = "Claim number is required" });
+                return BadRequest(new { message = "Claim number is required" });
 
- if (string.IsNullOrWhiteSpace(dto.PatientId))
-         return BadRequest(new { message = "Patient ID is required" });
+            if (string.IsNullOrWhiteSpace(dto.PatientId))
+                return BadRequest(new { message = "Patient ID is required" });
 
-        _logger.LogInformation("Creating new claim: {0}", dto.ClaimNumber);
-   var result = await _claimService.CreateClaimAsync(dto);
+            _logger.LogInformation("Creating new claim: {0}", dto.ClaimNumber);
+            var result = await _claimService.CreateClaimAsync(dto);
 
-    return CreatedAtAction(nameof(GetClaim), new { id = result.Id }, result);
+            return CreatedAtAction(nameof(GetClaim), new { id = result.Id }, result);
         }
         catch (InvalidOperationException ex)
         {
-         _logger.LogError(ex, "Operation error while creating claim");
-  return BadRequest(new { message = ex.Message });
+            _logger.LogError(ex, "Operation error while creating claim");
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-         _logger.LogError(ex, "Unexpected error while creating claim");
-  return StatusCode(StatusCodes.Status500InternalServerError, 
-    new { message = "An error occurred while creating the claim" });
+            _logger.LogError(ex, "Unexpected error while creating claim");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+              new { message = "An error occurred while creating the claim" });
         }
     }
 
@@ -81,32 +81,32 @@ public class ClaimsController : ControllerBase
     /// <response code="500">Internal server error</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ClaimDto), StatusCodes.Status200OK)]
- [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetClaim(string id)
     {
         try
         {
-     if (string.IsNullOrWhiteSpace(id))
-       return BadRequest(new { message = "Claim ID is required" });
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest(new { message = "Claim ID is required" });
 
             _logger.LogInformation("Retrieving claim: {0}", id);
-         var result = await _claimService.GetClaimAsync(id);
+            var result = await _claimService.GetClaimAsync(id);
 
             if (result == null)
             {
-   _logger.LogWarning("Claim not found: {0}", id);
-    return NotFound(new { message = $"Claim with ID {id} not found" });
-    }
+                _logger.LogWarning("Claim not found: {0}", id);
+                return NotFound(new { message = $"Claim with ID {id} not found" });
+            }
 
             return Ok(result);
         }
-      catch (Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error while retrieving claim: {0}", id);
-  return StatusCode(StatusCodes.Status500InternalServerError, 
-     new { message = "An error occurred while retrieving the claim" });
-   }
+            return StatusCode(StatusCodes.Status500InternalServerError,
+               new { message = "An error occurred while retrieving the claim" });
+        }
     }
 
     /// <summary>
@@ -124,33 +124,33 @@ public class ClaimsController : ControllerBase
     public async Task<IActionResult> GetClaimWithDetails(string id)
     {
         try
-   {
-  if (string.IsNullOrWhiteSpace(id))
-     return BadRequest(new { message = "Claim ID is required" });
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest(new { message = "Claim ID is required" });
 
-_logger.LogInformation("Retrieving claim with details: {0}", id);
+            _logger.LogInformation("Retrieving claim with details: {0}", id);
             var result = await _claimService.GetClaimWithDetailsAsync(id);
 
-  if (result == null)
+            if (result == null)
             {
-          _logger.LogWarning("Claim not found: {0}", id);
-   return NotFound(new { message = $"Claim with ID {id} not found" });
-       }
+                _logger.LogWarning("Claim not found: {0}", id);
+                return NotFound(new { message = $"Claim with ID {id} not found" });
+            }
 
-    return Ok(result);
+            return Ok(result);
         }
         catch (Exception ex)
-   {
+        {
             _logger.LogError(ex, "Error while retrieving claim details: {0}", id);
-   return StatusCode(StatusCodes.Status500InternalServerError, 
-     new { message = "An error occurred while retrieving the claim details" });
-    }
+            return StatusCode(StatusCodes.Status500InternalServerError,
+              new { message = "An error occurred while retrieving the claim details" });
+        }
     }
 
     /// <summary>
     /// Get all claims for a patient
     /// </summary>
-/// <param name="patientId">Patient ID</param>
+    /// <param name="patientId">Patient ID</param>
     /// <returns>List of patient's claims</returns>
     /// <response code="200">Claims found and returned</response>
     /// <response code="400">Invalid patient ID</response>
@@ -163,23 +163,24 @@ _logger.LogInformation("Retrieving claim with details: {0}", id);
     {
         try
         {
-   if (string.IsNullOrWhiteSpace(patientId))
-return BadRequest(new { message = "Patient ID is required" });
+            if (string.IsNullOrWhiteSpace(patientId))
+                return BadRequest(new { message = "Patient ID is required" });
 
             _logger.LogInformation("Retrieving claims for patient: {0}", patientId);
-       var result = await _claimService.GetPatientClaimsAsync(patientId);
+            var result = await _claimService.GetPatientClaimsAsync(patientId);
 
-      return Ok(new { 
-        patientId = patientId, 
-     count = result.Count(), 
-   claims = result 
+            return Ok(new
+            {
+                patientId = patientId,
+                count = result.Count(),
+                claims = result
             });
-   }
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while retrieving patient claims: {0}", patientId);
-         return StatusCode(StatusCodes.Status500InternalServerError, 
-      new { message = "An error occurred while retrieving patient claims" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+         new { message = "An error occurred while retrieving patient claims" });
         }
     }
 
@@ -193,33 +194,34 @@ return BadRequest(new { message = "Patient ID is required" });
     /// <response code="500">Internal server error</response>
     [HttpGet("status/{status}")]
     [ProducesResponseType(typeof(IEnumerable<ClaimDto>), StatusCodes.Status200OK)]
-[ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetClaimsByStatus(string status)
     {
-     try
-    {
+        try
+        {
             if (string.IsNullOrWhiteSpace(status))
-             return BadRequest(new { message = "Status is required" });
+                return BadRequest(new { message = "Status is required" });
 
             var validStatuses = new[] { "active", "submitted", "processed", "denied", "cancelled" };
             if (!validStatuses.Contains(status.ToLower()))
-      return BadRequest(new { message = $"Invalid status. Valid values: {string.Join(", ", validStatuses)}" });
+                return BadRequest(new { message = $"Invalid status. Valid values: {string.Join(", ", validStatuses)}" });
 
-         _logger.LogInformation("Retrieving claims with status: {0}", status);
-        var result = await _claimService.GetClaimsByStatusAsync(status);
+            _logger.LogInformation("Retrieving claims with status: {0}", status);
+            var result = await _claimService.GetClaimsByStatusAsync(status);
 
-            return Ok(new { 
-             status = status, 
-       count = result.Count(), 
-            claims = result 
-   });
-   }
+            return Ok(new
+            {
+                status = status,
+                count = result.Count(),
+                claims = result
+            });
+        }
         catch (Exception ex)
-  {
+        {
             _logger.LogError(ex, "Error while retrieving claims by status: {0}", status);
-     return StatusCode(StatusCodes.Status500InternalServerError, 
-    new { message = "An error occurred while retrieving claims by status" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+           new { message = "An error occurred while retrieving claims by status" });
         }
     }
 
@@ -241,33 +243,33 @@ return BadRequest(new { message = "Patient ID is required" });
     public async Task<IActionResult> UpdateClaim(string id, [FromBody] UpdateClaimDto dto)
     {
         try
-{
-        if (string.IsNullOrWhiteSpace(id))
-             return BadRequest(new { message = "Claim ID is required" });
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest(new { message = "Claim ID is required" });
 
             if (!ModelState.IsValid)
-   return BadRequest(new { message = "Invalid claim data", errors = ModelState.Values.SelectMany(v => v.Errors) });
+                return BadRequest(new { message = "Invalid claim data", errors = ModelState.Values.SelectMany(v => v.Errors) });
 
-    _logger.LogInformation("Updating claim: {0}", id);
+            _logger.LogInformation("Updating claim: {0}", id);
             var result = await _claimService.UpdateClaimAsync(id, dto);
 
             return Ok(result);
-      }
+        }
         catch (KeyNotFoundException ex)
         {
-     _logger.LogWarning("Claim not found for update: {0}", id);
+            _logger.LogWarning("Claim not found for update: {0}", id);
             return NotFound(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Operation error while updating claim: {0}", id);
-     return BadRequest(new { message = ex.Message });
-      }
+            return BadRequest(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
-       _logger.LogError(ex, "Error while updating claim: {0}", id);
-  return StatusCode(StatusCodes.Status500InternalServerError, 
-         new { message = "An error occurred while updating the claim" });
-    }
+            _logger.LogError(ex, "Error while updating claim: {0}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                   new { message = "An error occurred while updating the claim" });
+        }
     }
 }

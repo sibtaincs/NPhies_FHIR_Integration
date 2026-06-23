@@ -6,6 +6,9 @@ using NPhies_FHIR_Integration.Domain.Interfaces;
 using NPhies_FHIR_Integration.Application.Services;
 using NPhies_FHIR_Integration.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,12 +25,54 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
  "Server=(localdb)\\mssqllocaldb;Database=NPhiesDb;Trusted_Connection=true;"));
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(typeof(EligibilityMappingProfile));
+builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile), typeof(EligibilityMappingProfile));
+
+// ? ADD JWT AUTHENTICATION
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long-for-security");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+      ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+      ValidIssuer = jwtSettings["Issuer"] ?? "NPhiesIssuer",
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"] ?? "NPhiesAudience",
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(10)
+    };
+});
+
+// ? ADD AUTHORIZATION POLICIES
+builder.Services.AddAuthorization(options =>
+{
+    // RCM Processor role - can process claims
+    options.AddPolicy("RCMProcessor", policy =>
+    policy.RequireRole("Admin", "RCMProcessor"));
+    
+    // RCM Viewer role - read-only access
+    options.AddPolicy("RCMViewer", policy =>
+  policy.RequireRole("Admin", "RCMProcessor", "RCMViewer"));
+    
+    // Admin role - full access
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+});
 
 // Enable CORS for Angular frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular", policy =>
+ options.AddPolicy("AllowAngular", policy =>
     {
         policy.AllowAnyOrigin()
          .AllowAnyMethod()
@@ -52,6 +97,10 @@ builder.Services.AddScoped<IClaimItemRepository, ClaimItemRepository>();
 builder.Services.AddScoped<IClaimDiagnosisRepository, ClaimDiagnosisRepository>();
 builder.Services.AddScoped<IClaimResponseRepository, ClaimResponseRepository>();
 
+// Phase 2: Register Adjudication and Rejection repositories
+builder.Services.AddScoped<IAdjudicationDetailRepository, AdjudicationDetailRepository>();
+builder.Services.AddScoped<IRejectionReasonRepository, RejectionReasonRepository>();
+
 // Register services
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFhirToEntityMapper, FhirToEntityMapper>();
@@ -63,6 +112,19 @@ builder.Services.AddScoped<IClaimItemService, ClaimItemService>();
 builder.Services.AddScoped<IClaimDiagnosisService, ClaimDiagnosisService>();
 builder.Services.AddScoped<IClaimResponseService, ClaimResponseService>();
 
+// Phase 2: Register Payment Calculation Engine
+builder.Services.AddScoped<IPaymentCalculationEngine, PaymentCalculationEngine>();
+
+// Phase 2: Register Payment Service
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+// NOTE: Phase 3 RCM Services temporarily commented out - will be implemented later
+// builder.Services.AddScoped<IClaimResponseProcessingService, ClaimResponseProcessingService>();
+// builder.Services.AddScoped<IAdjudicationWorkflowService, AdjudicationWorkflowService>();
+// builder.Services.AddScoped<IAppealWorkflowService, AppealWorkflowService>();
+// builder.Services.AddScoped<IDenialManagementService, DenialManagementService>();
+// builder.Services.AddScoped<IPaymentReconciliationService, PaymentReconciliationService>();
+
 // Add controllers
 builder.Services.AddControllers();
 
@@ -71,13 +133,20 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
+// ? USE AUTHENTICATION & AUTHORIZATION
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ? USE HTTPS REDIRECTION
+app.UseHttpsRedirection();
+
 // Enable CORS
 app.UseCors("AllowAngular");
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    
+app.MapOpenApi();
+  
   // Seed database in development
     using (var scope = app.Services.CreateScope())
     {

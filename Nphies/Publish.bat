@@ -1,0 +1,1 @@
+dotnet publish /p:Configuration=Release /p:EnvironmentName=Production

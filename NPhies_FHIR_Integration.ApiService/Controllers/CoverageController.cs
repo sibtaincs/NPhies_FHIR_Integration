@@ -1,336 +1,339 @@
-using Microsoft.AspNetCore.Mvc;
-using NPhies_FHIR_Integration.Domain.DTOs;
-using NPhies_FHIR_Integration.Infrastructure.Repositories;
 using AutoMapper;
-using NPhies_FHIR_Integration.Common.Models;
+using Microsoft.AspNetCore.Mvc;
+using NPhies_FHIR_Integration.Application.DTOs;
+using NPhies_FHIR_Integration.Domain.Entities;
+using NPhies_FHIR_Integration.Infrastructure.Repositories;
 
 namespace NPhies_FHIR_Integration.ApiService.Controllers;
 
 /// <summary>
-/// Controller for managing insurance coverage
+/// Coverage API Controller
+/// Manages patient insurance coverage operations
 /// </summary>
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 [Produces("application/json")]
-public class CoverageController : BaseController
+public class CoverageController : ControllerBase
 {
     private readonly ICoverageRepository _coverageRepository;
+    private readonly IPatientRepository _patientRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<CoverageController> _logger;
 
     /// <summary>
-    /// Constructor with dependency injection
+    /// Constructor
     /// </summary>
-    public CoverageController(ICoverageRepository coverageRepository, IMapper mapper, ILogger<CoverageController> logger)
+    public CoverageController(
+        ICoverageRepository coverageRepository,
+        IPatientRepository patientRepository,
+ IMapper mapper,
+        ILogger<CoverageController> logger)
     {
         _coverageRepository = coverageRepository ?? throw new ArgumentNullException(nameof(coverageRepository));
-    _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+   _patientRepository = patientRepository ?? throw new ArgumentNullException(nameof(patientRepository));
+_mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>
-    /// Get all active coverages
+ /// <summary>
+  /// Get all active coverages with pagination
     /// </summary>
-    /// <returns>List of active coverages</returns>
-  /// <response code="200">Coverages retrieved successfully</response>
-    /// <response code="500">Internal server error</response>
+    /// <param name="pageNumber">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 10, max: 100)</param>
+    /// <returns>Paginated list of coverages</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<CoverageDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAllCoverages()
+  [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<CoverageDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<CoverageDto>>>> GetAll(
+     [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
-        try
- {
-     _logger.LogInformation("Retrieving all coverages");
-
-       var coverages = await _coverageRepository.GetAllAsync(c => c.Patient, c => c.Insurer);
-            var coverageDtos = _mapper.Map<IEnumerable<CoverageDto>>(coverages);
-
-      return Ok(coverageDtos, "Coverages retrieved successfully");
-      }
-        catch (Exception ex)
+    try
         {
-            _logger.LogError(ex, "Error retrieving coverages");
-  return InternalServerError("Failed to retrieve coverages");
+     var paginationParams = new PaginationParams { PageNumber = pageNumber, PageSize = pageSize };
+    if (!paginationParams.Validate(out var validationError))
+        {
+        _logger.LogWarning($"Pagination validation failed: {validationError}");
+ return BadRequest(ApiResponse<PaginatedResponse<CoverageDto>>.ErrorResponse(validationError, 400));
+       }
+
+      var allCoverages = await _coverageRepository.GetAllAsync();
+       var totalCount = allCoverages.Count();
+     var paginatedCoverages = allCoverages
+    .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .ToList();
+
+         var coverageDtos = _mapper.Map<List<CoverageDto>>(paginatedCoverages);
+         var paginatedResult = PaginatedResponse<CoverageDto>.CreatePaginatedResponse(coverageDtos, pageNumber, pageSize, totalCount);
+
+   _logger.LogInformation($"Retrieved {coverageDtos.Count} coverages (Page {pageNumber})");
+        return Ok(ApiResponse<PaginatedResponse<CoverageDto>>.SuccessResponse(paginatedResult, "Coverages retrieved successfully"));
         }
+  catch (Exception ex)
+      {
+_logger.LogError(ex, "Error retrieving coverages");
+       return StatusCode(500, ApiResponse<PaginatedResponse<CoverageDto>>.ErrorResponse("An error occurred while retrieving coverages", 500));
+   }
     }
 
     /// <summary>
     /// Get coverage by ID
-  /// </summary>
-    /// <param name="id">Coverage ID</param>
+    /// </summary>
+ /// <param name="id">Coverage ID</param>
     /// <returns>Coverage details</returns>
-    /// <response code="200">Coverage found</response>
-    /// <response code="404">Coverage not found</response>
-    /// <response code="500">Internal server error</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCoverageById(string id)
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<CoverageDto>>> GetById(string id)
     {
-        try
+    try
         {
-      if (string.IsNullOrEmpty(id))
-        return BadRequest("Coverage ID is required");
-
-    _logger.LogInformation("Retrieving coverage {CoverageId}", id);
-
-     var coverage = await _coverageRepository.GetWithDetailsAsync(id);
-
-   if (coverage == null)
-   return NotFound($"Coverage with ID {id} not found");
-
-   var coverageDto = _mapper.Map<CoverageDto>(coverage);
-return Ok(coverageDto, "Coverage retrieved successfully");
-    }
-   catch (Exception ex)
-   {
-            _logger.LogError(ex, "Error retrieving coverage {CoverageId}", id);
-     return InternalServerError("Failed to retrieve coverage");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+ return BadRequest(ApiResponse<CoverageDto>.ErrorResponse("Coverage ID is required", 400));
         }
-    }
 
-  /// <summary>
-    /// Get coverage by policy number
-    /// </summary>
-    /// <param name="policyNumber">Insurance policy number</param>
-    /// <returns>Coverage details</returns>
-    /// <response code="200">Coverage found</response>
-    /// <response code="404">Coverage not found</response>
-    /// <response code="500">Internal server error</response>
-    [HttpGet("policy/{policyNumber}")]
-    [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCoverageByPolicyNumber(string policyNumber)
-    {
-   try
-        {
-    if (string.IsNullOrEmpty(policyNumber))
- return BadRequest("Policy number is required");
-
-    _logger.LogInformation("Retrieving coverage by policy number {PolicyNumber}", policyNumber);
-
-            var coverage = await _coverageRepository.GetByPolicyNumberAsync(policyNumber);
-
-    if (coverage == null)
-          return NotFound($"Coverage with policy number {policyNumber} not found");
+      var coverage = await _coverageRepository.GetByIdAsync(id);
+if (coverage == null)
+       {
+                _logger.LogWarning($"Coverage not found: {id}");
+     return NotFound(ApiResponse<CoverageDto>.ErrorResponse("Coverage not found", 404));
+       }
 
             var coverageDto = _mapper.Map<CoverageDto>(coverage);
-  return Ok(coverageDto, "Coverage retrieved successfully");
-  }
-        catch (Exception ex)
+            _logger.LogInformation($"Retrieved coverage: {id}");
+   return Ok(ApiResponse<CoverageDto>.SuccessResponse(coverageDto, "Coverage retrieved successfully"));
+        }
+    catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving coverage by policy number {PolicyNumber}", policyNumber);
-            return InternalServerError("Failed to retrieve coverage");
+        _logger.LogError(ex, $"Error retrieving coverage: {id}");
+  return StatusCode(500, ApiResponse<CoverageDto>.ErrorResponse("An error occurred while retrieving the coverage", 500));
         }
     }
 
     /// <summary>
-    /// Get active coverages for a patient
+    /// Get coverage by policy number
+    /// </summary>
+    /// <param name="policyNumber">Policy number</param>
+    /// <returns>Coverage details</returns>
+    [HttpGet("policy/{policyNumber}")]
+    [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<CoverageDto>>> GetByPolicyNumber(string policyNumber)
+    {
+        try
+   {
+        if (string.IsNullOrWhiteSpace(policyNumber))
+            {
+    return BadRequest(ApiResponse<CoverageDto>.ErrorResponse("Policy number is required", 400));
+        }
+
+     var coverage = await _coverageRepository.GetByPolicyNumberAsync(policyNumber);
+           if (coverage == null)
+            {
+          _logger.LogWarning($"Coverage not found with policy number: {policyNumber}");
+ return NotFound(ApiResponse<CoverageDto>.ErrorResponse("Coverage not found", 404));
+  }
+
+      var coverageDto = _mapper.Map<CoverageDto>(coverage);
+      _logger.LogInformation($"Retrieved coverage by policy: {policyNumber}");
+    return Ok(ApiResponse<CoverageDto>.SuccessResponse(coverageDto, "Coverage retrieved successfully"));
+        }
+        catch (Exception ex)
+     {
+        _logger.LogError(ex, $"Error retrieving coverage by policy: {policyNumber}");
+            return StatusCode(500, ApiResponse<CoverageDto>.ErrorResponse("An error occurred while retrieving the coverage", 500));
+        }
+    }
+
+    /// <summary>
+    /// Get all active coverages for a patient
     /// </summary>
     /// <param name="patientId">Patient ID</param>
-    /// <returns>List of active coverages for patient</returns>
-    /// <response code="200">Coverages retrieved successfully</response>
-/// <response code="404">Patient not found</response>
-    /// <response code="500">Internal server error</response>
+    /// <returns>List of patient's active coverages</returns>
     [HttpGet("patient/{patientId}")]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<CoverageDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetActiveCoveragesForPatient(string patientId)
- {
+    [ProducesResponseType(typeof(ApiResponse<List<CoverageDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<List<CoverageDto>>>> GetByPatient(string patientId)
+    {
         try
-        {
-     if (string.IsNullOrEmpty(patientId))
-         return BadRequest("Patient ID is required");
+{
+           if (string.IsNullOrWhiteSpace(patientId))
+       {
+        return BadRequest(ApiResponse<List<CoverageDto>>.ErrorResponse("Patient ID is required", 400));
+ }
 
-      _logger.LogInformation("Retrieving active coverages for patient {PatientId}", patientId);
+    var patient = await _patientRepository.GetByIdAsync(patientId);
+  if (patient == null)
+  {
+    return NotFound(ApiResponse<List<CoverageDto>>.ErrorResponse("Patient not found", 404));
+       }
 
-            var coverages = await _coverageRepository.GetActiveByPatientIdAsync(patientId);
+       var coverages = await _coverageRepository.GetActiveByPatientIdAsync(patientId);
+    var coverageDtos = _mapper.Map<List<CoverageDto>>(coverages);
 
-      if (!coverages.Any())
-    return NotFound($"No active coverages found for patient {patientId}");
-
-    var coverageDtos = _mapper.Map<IEnumerable<CoverageDto>>(coverages);
-      return Ok(coverageDtos, "Active coverages retrieved successfully");
-        }
+ _logger.LogInformation($"Retrieved {coverageDtos.Count} coverages for patient: {patientId}");
+     return Ok(ApiResponse<List<CoverageDto>>.SuccessResponse(coverageDtos, "Coverages retrieved successfully"));
+      }
         catch (Exception ex)
  {
-       _logger.LogError(ex, "Error retrieving coverages for patient {PatientId}", patientId);
-  return InternalServerError("Failed to retrieve coverages");
+         _logger.LogError(ex, $"Error retrieving coverages for patient: {patientId}");
+        return StatusCode(500, ApiResponse<List<CoverageDto>>.ErrorResponse("An error occurred while retrieving coverages", 500));
         }
     }
 
     /// <summary>
-    /// Create a new coverage
+    /// Get coverages expiring soon
     /// </summary>
-    /// <param name="coverageDto">Coverage data</param>
-    /// <returns>Created coverage with ID</returns>
-    /// <response code="201">Coverage created successfully</response>
-    /// <response code="400">Invalid coverage data</response>
-    /// <response code="500">Internal server error</response>
+    /// <param name="daysFromNow">Number of days to check (default: 30)</param>
+    /// <returns>List of expiring coverages</returns>
+ [HttpGet("expiring")]
+    [ProducesResponseType(typeof(ApiResponse<List<ExpiringCoverageDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<List<ExpiringCoverageDto>>>> GetExpiring(
+        [FromQuery] int daysFromNow = 30)
+{
+    try
+     {
+    var expiryDate = DateTime.UtcNow.AddDays(daysFromNow);
+var allCoverages = await _coverageRepository.GetAllAsync();
+ var expiringCoverages = allCoverages.Where(c => 
+         c.Status == "active" && 
+   c.CoverageEndDate <= expiryDate && 
+               c.CoverageEndDate > DateTime.UtcNow).ToList();
+
+     var expiringDtos = new List<ExpiringCoverageDto>();
+
+     foreach (var coverage in expiringCoverages)
+        {
+  var patient = await _patientRepository.GetByIdAsync(coverage.PatientId);
+     expiringDtos.Add(new ExpiringCoverageDto
+ {
+     Id = coverage.Id,
+   PolicyNumber = coverage.PolicyNumber,
+PatientName = patient != null ? $"{patient.FirstName} {patient.LastName}" : "Unknown",
+  CoverageEndDate = coverage.CoverageEndDate
+    });
+    }
+
+        _logger.LogInformation($"Retrieved {expiringDtos.Count} expiring coverages (within {daysFromNow} days)");
+    return Ok(ApiResponse<List<ExpiringCoverageDto>>.SuccessResponse(expiringDtos, "Expiring coverages retrieved successfully"));
+        }
+  catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving expiring coverages");
+  return StatusCode(500, ApiResponse<List<ExpiringCoverageDto>>.ErrorResponse("An error occurred while retrieving expiring coverages", 500));
+  }
+    }
+
+    /// <summary>
+    /// Create new coverage
+    /// </summary>
+    /// <param name="createCoverageDto">Coverage creation data</param>
+    /// <returns>Created coverage</returns>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
- public async Task<IActionResult> CreateCoverage([FromBody] CoverageDto coverageDto)
-    {
-try
-        {
-            if (coverageDto == null)
-      return BadRequest("Coverage data is required");
-
- if (string.IsNullOrEmpty(coverageDto.PolicyNumber))
-                return BadRequest("Policy number is required");
-
-        if (string.IsNullOrEmpty(coverageDto.MemberID))
-                return BadRequest("Member ID is required");
-
-            if (string.IsNullOrEmpty(coverageDto.PatientId))
-          return BadRequest("Patient ID is required");
-
-       _logger.LogInformation("Creating new coverage with policy number {PolicyNumber}", coverageDto.PolicyNumber);
-
-         var coverage = _mapper.Map<Domain.Entities.Coverage>(coverageDto);
-            var createdCoverage = await _coverageRepository.AddAsync(coverage);
-            await _coverageRepository.SaveChangesAsync();
-
-   var createdCoverageDto = _mapper.Map<CoverageDto>(createdCoverage);
-        return Created($"/api/v1/coverage/{createdCoverage.Id}", createdCoverageDto);
-        }
-        catch (Exception ex)
-        {
-  _logger.LogError(ex, "Error creating coverage");
-          return InternalServerError("Failed to create coverage");
-        }
-    }
-
-    /// <summary>
-    /// Update an existing coverage
-    /// </summary>
-    /// <param name="id">Coverage ID</param>
-    /// <param name="coverageDto">Updated coverage data</param>
-    /// <returns>Updated coverage</returns>
-    /// <response code="200">Coverage updated successfully</response>
-    /// <response code="400">Invalid coverage data</response>
-    /// <response code="404">Coverage not found</response>
-    /// <response code="500">Internal server error</response>
-    [HttpPut("{id}")]
-    [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateCoverage(string id, [FromBody] CoverageDto coverageDto)
- {
-     try
-    {
-    if (string.IsNullOrEmpty(id))
-        return BadRequest("Coverage ID is required");
-
-            if (coverageDto == null)
-        return BadRequest("Coverage data is required");
-
-      _logger.LogInformation("Updating coverage {CoverageId}", id);
-
-            var existingCoverage = await _coverageRepository.GetByIdAsync(id);
-   if (existingCoverage == null)
-    return NotFound($"Coverage with ID {id} not found");
-
-            // Map only non-null values
-         if (!string.IsNullOrEmpty(coverageDto.Status))
-        existingCoverage.Status = coverageDto.Status;
-     if (coverageDto.AnnualDeductible > 0)
-    existingCoverage.AnnualDeductible = coverageDto.AnnualDeductible;
-     if (coverageDto.Copay >= 0)
-             existingCoverage.Copay = coverageDto.Copay;
-       if (coverageDto.CoinsurancePercent >= 0)
-  existingCoverage.CoinsurancePercent = coverageDto.CoinsurancePercent;
-
-    var updatedCoverage = _coverageRepository.Update(existingCoverage);
-      await _coverageRepository.SaveChangesAsync();
-
-        var updatedCoverageDto = _mapper.Map<CoverageDto>(updatedCoverage);
-            return Ok(updatedCoverageDto, "Coverage updated successfully");
-        }
-        catch (Exception ex)
-        {
-      _logger.LogError(ex, "Error updating coverage {CoverageId}", id);
-            return InternalServerError("Failed to update coverage");
-        }
-    }
-
- /// <summary>
-    /// Check if coverage is active on a specific date
-    /// </summary>
-    /// <param name="id">Coverage ID</param>
-    /// <param name="date">Date to check (format: yyyy-MM-dd)</param>
-    /// <returns>Activation status</returns>
-    /// <response code="200">Coverage activation status returned</response>
-    /// <response code="404">Coverage not found</response>
-    /// <response code="500">Internal server error</response>
-    [HttpGet("{id}/active/{date}")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CheckCoverageActive(string id, string date)
-    {
-  try
-        {
-     if (string.IsNullOrEmpty(id))
-       return BadRequest("Coverage ID is required");
-
-            if (!DateTime.TryParse(date, out var checkDate))
-      return BadRequest("Invalid date format. Use yyyy-MM-dd");
-
-   _logger.LogInformation("Checking if coverage {CoverageId} is active on {Date}", id, checkDate);
-
-    var isActive = await _coverageRepository.IsCoverageActiveAsync(id, checkDate);
-
-    return Ok(new { id, date = checkDate.Date, isActive }, "Coverage activation status retrieved");
-        }
-        catch (Exception ex)
-   {
-  _logger.LogError(ex, "Error checking coverage activation for {CoverageId}", id);
-    return InternalServerError("Failed to check coverage activation");
-     }
-    }
-
-    /// <summary>
-    /// Delete a coverage
-    /// </summary>
-    /// <param name="id">Coverage ID</param>
-    /// <returns>No content</returns>
-    /// <response code="204">Coverage deleted successfully</response>
- /// <response code="404">Coverage not found</response>
-    /// <response code="500">Internal server error</response>
-    [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteCoverage(string id)
+    public async Task<ActionResult<ApiResponse<CoverageDto>>> Create([FromBody] CreateCoverageDto createCoverageDto)
     {
         try
-     {
-            if (string.IsNullOrEmpty(id))
-                return BadRequest("Coverage ID is required");
+        {
+     if (createCoverageDto == null)
+            {
+      return BadRequest(ApiResponse<CoverageDto>.ErrorResponse("Coverage data is required", 400));
+  }
 
-      _logger.LogInformation("Deleting coverage {CoverageId}", id);
+    // Verify patient exists
+    var patient = await _patientRepository.GetByIdAsync(createCoverageDto.PatientId);
+      if (patient == null)
+        {
+        return BadRequest(ApiResponse<CoverageDto>.ErrorResponse("Patient not found", 400));
+     }
 
-     var coverage = await _coverageRepository.GetByIdAsync(id);
-            if (coverage == null)
-      return NotFound($"Coverage with ID {id} not found");
-
-     _coverageRepository.Delete(coverage);
+            var coverage = _mapper.Map<Coverage>(createCoverageDto);
+            await _coverageRepository.AddAsync(coverage);
             await _coverageRepository.SaveChangesAsync();
 
-   return NoContent();
+            var coverageDto = _mapper.Map<CoverageDto>(coverage);
+            _logger.LogInformation($"Created new coverage: {coverage.Id}");
+
+         return CreatedAtAction(nameof(GetById), new { id = coverage.Id },
+               ApiResponse<CoverageDto>.SuccessResponse(coverageDto, "Coverage created successfully", 201));
         }
-        catch (Exception ex)
+ catch (Exception ex)
+ {
+            _logger.LogError(ex, "Error creating coverage");
+     return StatusCode(500, ApiResponse<CoverageDto>.ErrorResponse("An error occurred while creating the coverage", 500));
+        }
+    }
+
+    /// <summary>
+    /// Update existing coverage
+    /// </summary>
+    /// <param name="id">Coverage ID</param>
+    /// <param name="updateCoverageDto">Updated coverage data</param>
+    /// <returns>Updated coverage</returns>
+    [HttpPut("{id}")]
+  [ProducesResponseType(typeof(ApiResponse<CoverageDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<CoverageDto>>> Update(string id, [FromBody] UpdateCoverageDto updateCoverageDto)
+    {
+        try
         {
-            _logger.LogError(ex, "Error deleting coverage {CoverageId}", id);
-     return InternalServerError("Failed to delete coverage");
+            if (string.IsNullOrWhiteSpace(id))
+         {
+   return BadRequest(ApiResponse<CoverageDto>.ErrorResponse("Coverage ID is required", 400));
+    }
+
+    var coverage = await _coverageRepository.GetByIdAsync(id);
+            if (coverage == null)
+            {
+      return NotFound(ApiResponse<CoverageDto>.ErrorResponse("Coverage not found", 404));
+            }
+
+    _mapper.Map(updateCoverageDto, coverage);
+            _coverageRepository.Update(coverage);
+         await _coverageRepository.SaveChangesAsync();
+
+            var coverageDto = _mapper.Map<CoverageDto>(coverage);
+   _logger.LogInformation($"Updated coverage: {id}");
+
+  return Ok(ApiResponse<CoverageDto>.SuccessResponse(coverageDto, "Coverage updated successfully"));
         }
+      catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating coverage: {id}");
+      return StatusCode(500, ApiResponse<CoverageDto>.ErrorResponse("An error occurred while updating the coverage", 500));
+        }
+    }
+
+    /// <summary>
+    /// Delete coverage
+    /// </summary>
+    /// <param name="id">Coverage ID</param>
+    /// <returns>Deletion status</returns>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse>> Delete(string id)
+  {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(id))
+     {
+  return BadRequest(ApiResponse.ErrorResponse("Coverage ID is required", 400));
+}
+
+      var coverage = await _coverageRepository.GetByIdAsync(id);
+       if (coverage == null)
+    {
+         return NotFound(ApiResponse.ErrorResponse("Coverage not found", 404));
+       }
+
+ _coverageRepository.Delete(coverage);
+            await _coverageRepository.SaveChangesAsync();
+
+     _logger.LogInformation($"Deleted coverage: {id}");
+        return Ok(ApiResponse.SuccessResponse("Coverage deleted successfully"));
+        }
+  catch (Exception ex)
+      {
+     _logger.LogError(ex, $"Error deleting coverage: {id}");
+return StatusCode(500, ApiResponse.ErrorResponse("An error occurred while deleting the coverage", 500));
+  }
     }
 }
