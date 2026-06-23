@@ -127,47 +127,49 @@ await _context.SaveChangesAsync();
     private List<Location> CreateLocations(Organization provider)
     {
         return new List<Location>
-        {
-       new Location
-  {
+     {
+new Location
+{
  Id = Guid.NewGuid().ToString(),
-           LocationName = "Emergency Department",
+LocationName = "Emergency Department",
       LocationLicense = "LOC-ED-001",
       LicenseSystem = "http://nphies.sa/license/location-license",
-            OrganizationId = provider.Id,
-         FacilityType = "hospital",
+        OrganizationId = provider.Id,
+ FacilityType = "hospital",
     FacilityTypeDescription = "Emergency Department",
-      AddressLine1 = "123 Medical Street, Building A",
-    City = "Riyadh",
+    AddressLine1 = "123 Medical Street, Building A",
+    AddressLine2 = "Emergency Ward",
+  City = "Riyadh",
   State = "Riyadh",
      PostalCode = "11111",
     Country = "SA",
-      Phone = "+966112341234",
+    Phone = "+966112341234",
  Email = "ed@alnoor.med.sa",
  Status = "active",
         CreatedAt = DateTime.UtcNow
-      },
+},
       new Location
-  {
+{
         Id = Guid.NewGuid().ToString(),
-       LocationName = "Outpatient Clinic",
-       LocationLicense = "LOC-OPC-001",
+   LocationName = "Outpatient Clinic",
+ LocationLicense = "LOC-OPC-001",
     LicenseSystem = "http://nphies.sa/license/location-license",
      OrganizationId = provider.Id,
   FacilityType = "clinic",
   FacilityTypeDescription = "Outpatient Clinic",
        AddressLine1 = "123 Medical Street, Building B",
-      City = "Riyadh",
+    AddressLine2 = "Clinic Ward",
+ City = "Riyadh",
   State = "Riyadh",
        PostalCode = "11111",
    Country = "SA",
-         Phone = "+966112341235",
-      Email = "opc@alnoor.med.sa",
-     Status = "active",
+ Phone = "+966112341235",
+  Email = "opc@alnoor.med.sa",
+   Status = "active",
      CreatedAt = DateTime.UtcNow
-   }
-        };
-  }
+}
+    };
+    }
 
     private List<Practitioner> CreatePractitioners(Organization provider)
     {
@@ -283,29 +285,32 @@ LastName = "Al-Qahtani",
         return new List<Coverage>
     {
 new Coverage
-         {
+{
      Id = Guid.NewGuid().ToString(),
      PolicyNumber = "POL-2024-001",
   MemberID = "MEM-2024-001",
-         CoverageType = "employee",
+  SubscriberMRN = patients[0].MRN,
+     CoverageType = "employee",
    Status = "active",
         PatientId = patients[0].Id,
     InsurerId = insurer.Id,
-         CoverageStartDate = new DateTime(2024, 1, 1),
+   CoverageStartDate = new DateTime(2024, 1, 1),
       CoverageEndDate = new DateTime(2024, 12, 31),
-       RelationToSubscriber = "Self",
+RelationToSubscriber = "Self",
  AnnualDeductible = 500,
     DeductibleMet = 0,
        Copay = 50,
        CoinsurancePercent = 20,
     OutOfPocketMax = 2000,
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTime.UtcNow,
+    IsActive = true
     },
-            new Coverage
+     new Coverage
         {
        Id = Guid.NewGuid().ToString(),
         PolicyNumber = "POL-2024-002",
     MemberID = "MEM-2024-002",
+    SubscriberMRN = patients[1].MRN,
             CoverageType = "family",
     Status = "active",
     PatientId = patients[1].Id,
@@ -318,65 +323,78 @@ new Coverage
       Copay = 75,
   CoinsurancePercent = 15,
 OutOfPocketMax = 3000,
-CreatedAt = DateTime.UtcNow
+CreatedAt = DateTime.UtcNow,
+IsActive = true
  },
  new Coverage
       {
        Id = Guid.NewGuid().ToString(),
         PolicyNumber = "POL-2024-003",
-         MemberID = "MEM-2024-003",
+     MemberID = "MEM-2024-003",
+    SubscriberMRN = patients[2].MRN,
        CoverageType = "dependent",
    Status = "active",
-       PatientId = patients[2].Id,
+  PatientId = patients[2].Id,
  InsurerId = insurer.Id,
       CoverageStartDate = new DateTime(2024, 1, 1),
     CoverageEndDate = new DateTime(2024, 12, 31),
    RelationToSubscriber = "Spouse",
-         AnnualDeductible = 500,
+ AnnualDeductible = 500,
      DeductibleMet = 0,
        Copay = 50,
       CoinsurancePercent = 20,
      OutOfPocketMax = 2000,
-     CreatedAt = DateTime.UtcNow
+     CreatedAt = DateTime.UtcNow,
+    IsActive = true
   }
-        };
+      };
     }
 
     private List<MessageHeader> CreateMessageHeaders(Organization provider, Organization insurer)
     {
-        return new List<MessageHeader>
+      return new List<MessageHeader>
  {
      new MessageHeader
 {
      Id = Guid.NewGuid().ToString(),
-     MessageUUID = Guid.NewGuid().ToString(),
+   MessageUUID = Guid.NewGuid().ToString(),
        CorrelationId = Guid.NewGuid().ToString(),
    EventCode = "coverage-eligibility-request",
       EventSystem = "http://nphies.sa/events",
+      SenderOrganizationId = provider.Id,
+      SenderLicenseSystem = "http://nphies.sa/license/provider-license",
+      SenderOrganizationLicense = provider.LicenseNumber,
       DestinationName = insurer.OrganizationName,
+      DestinationOrganizationId = insurer.Id,
+      DestinationLicenseSystem = "http://nphies.sa/license/payer-license",
          DestinationEndpoint = "https://insurance.sa/fhir",
-                FocusResourceType = "CoverageEligibilityRequest",
+     FocusResourceType = "CoverageEligibilityRequest",
         SourceName = provider.OrganizationName,
   SourceEndpoint = "https://alnoor.med.sa/fhir",
 Status = "received",
      MessageTimestamp = DateTime.UtcNow,
  CreatedAt = DateTime.UtcNow,
-                IsActive = true
+      IsActive = true
    },
        new MessageHeader
-            {
-        Id = Guid.NewGuid().ToString(),
-           MessageUUID = Guid.NewGuid().ToString(),
+   {
+     Id = Guid.NewGuid().ToString(),
+MessageUUID = Guid.NewGuid().ToString(),
   CorrelationId = Guid.NewGuid().ToString(),
-                EventCode = "coverage-eligibility-response",
+        EventCode = "coverage-eligibility-response",
     EventSystem = "http://nphies.sa/events",
+    SenderOrganizationId = insurer.Id,
+    SenderLicenseSystem = "http://nphies.sa/license/payer-license",
+    SenderOrganizationLicense = insurer.LicenseNumber,
     DestinationName = provider.OrganizationName,
-       DestinationEndpoint = "https://alnoor.med.sa/fhir",
+    DestinationOrganizationId = provider.Id,
+    DestinationLicenseSystem = "http://nphies.sa/license/provider-license",
+  DestinationEndpoint = "https://alnoor.med.sa/fhir",
          FocusResourceType = "CoverageEligibilityResponse",
-                SourceName = insurer.OrganizationName,
+   SourceName = insurer.OrganizationName,
    SourceEndpoint = "https://insurance.sa/fhir",
            Status = "received",
-                MessageTimestamp = DateTime.UtcNow.AddSeconds(5),
+  MessageTimestamp = DateTime.UtcNow.AddSeconds(5),
       CreatedAt = DateTime.UtcNow.AddSeconds(5),
        IsActive = true
           }
@@ -389,48 +407,58 @@ Status = "received",
         var requests = new List<CoverageEligibilityRequest>();
         var responses = new List<CoverageEligibilityResponse>();
 
-        // Create request 1
+     // Create request 1
  var request1 = new CoverageEligibilityRequest
 {
         Id = Guid.NewGuid().ToString(),
  MessageUUID = Guid.NewGuid().ToString(),
     RequestId = $"REQ-{DateTime.UtcNow:yyyyMMddHHmmss}-001",
+    RequestIdentifierSystem = "http://nphies.sa/identifier/request",
+    RequestIdentifierValue = Guid.NewGuid().ToString(),
     MessageHeaderId = messageHeaders[0].Id,
        RequestType = "eligibility",
         Status = "active",
             Priority = "normal",
+    PurposeJson = "[\"eligibility\"]",
             PatientId = patients[0].Id,
         CoverageId = coverages[0].Id,
   ProviderId = provider.Id,
   InsurerId = insurer.Id,
+       EntererPractitionerId = "SYSTEM",
             ServiceType = "medical",
        ServiceDate = DateTime.UtcNow.AddDays(7),
-        EligibilityStatus = "pending",
+    ServicedPeriodStart = DateTime.UtcNow.AddDays(7),
+     ServicedPeriodEnd = DateTime.UtcNow.AddDays(14),
+     EligibilityStatus = "pending",
   MessageStatus = "sent",
+       FhirRequestBundle = "{}",
+    FhirResponseBundle = "{}",
             RequestCreatedAt = DateTime.UtcNow,
-        SubmittedAt = DateTime.UtcNow,
+  SubmittedAt = DateTime.UtcNow,
    CreatedAt = DateTime.UtcNow,
-     IsActive = true
+    IsActive = true
  };
 
      // Add items to request
         var items1 = new List<EligibilityItem>
         {
       new EligibilityItem
-            {
+  {
       Id = Guid.NewGuid().ToString(),
      EligibilityRequestId = request1.Id,
-                SequenceNumber = 1,
+      SequenceNumber = 1,
    Category = "medical",
-       CategorySystem = "http://nphies.sa/services",
-           CategoryDescription = "Medical Services",
+ CategorySystem = "http://nphies.sa/services",
+      CategoryDescription = "Medical Services",
        ProductOrServiceCode = "99213",
     ProductOrServiceSystem = "http://www.ama-assn.org/go/cpt",
-        ProductOrServiceDescription = "Office/outpatient visit",
+    ProductOrServiceDescription = "Office/outpatient visit",
+    DiagnosisCodes = "[]",
+    Notes = "Standard office visit",
         CreatedAt = DateTime.UtcNow,
-      IsActive = true
+ IsActive = true
             }
-        };
+      };
 
     request1.Items = items1;
   requests.Add(request1);
@@ -438,55 +466,77 @@ Status = "received",
      // Create response 1
       var response1 = new CoverageEligibilityResponse
    {
-          Id = Guid.NewGuid().ToString(),
+Id = Guid.NewGuid().ToString(),
    ResponseUUID = Guid.NewGuid().ToString(),
         RequestId = request1.RequestId,
+    RequestIdentifierSystem = "http://nphies.sa/identifier/request",
+    RequestIdentifierValue = request1.RequestIdentifierValue,
+    ResponseIdentifierSystem = "http://nphies.sa/identifier/response",
+ResponseIdentifierValue = Guid.NewGuid().ToString(),
    EligibilityRequestId = request1.Id,
  MessageHeaderId = messageHeaders[1].Id,
-            Status = "active",
+  Status = "active",
             Outcome = "complete",
        ProcessingStatus = "complete",
-          EligibilityStatus = "active",
+    ResponsePurpose = "[\"eligibility\"]",
+     EligibilityStatus = "active",
   IsInForce = true,
   NetworkStatus = "in-network",
 NetworkName = "National Health Network",
     ResponseCreatedAt = DateTime.UtcNow.AddSeconds(5),
    ResponseReceivedAt = DateTime.UtcNow.AddSeconds(10),
-            CreatedAt = DateTime.UtcNow.AddSeconds(5),
-            IsActive = true
-        };
+  ServicedPeriodStart = DateTime.UtcNow.AddDays(7),
+     ServicedPeriodEnd = DateTime.UtcNow.AddDays(14),
+   InsurerId = insurer.Id,
+   PatientId = patients[0].Id,
+    CoverageId = coverages[0].Id,
+    CoveredServicesJson = "[]",
+   ExcludedServicesJson = "[]",
+    LimitationsJson = "[]",
+    FhirResponseContent = "{}",
+    ExplanationOfBenefits = "All services covered",
+      CreatedAt = DateTime.UtcNow.AddSeconds(5),
+      IsActive = true
+ };
 
-      // Add benefit balances
+   // Add benefit balances
      var benefitBalance1 = new BenefitBalance
         {
       Id = Guid.NewGuid().ToString(),
-         EligibilityResponseId = response1.Id,
+       EligibilityResponseId = response1.Id,
     SequenceNumber = 1,
-        Category = "medical",
+   Category = "medical",
    CategorySystem = "http://nphies.sa/benefits",
      CategoryDescription = "Medical Services",
 CreatedAt = DateTime.UtcNow,
-            Benefits = new List<Benefit>
+    IsActive = true,
+          Benefits = new List<Benefit>
      {
     new Benefit
     {
-          Id = Guid.NewGuid().ToString(),
+     Id = Guid.NewGuid().ToString(),
          BenefitBalanceId = "",  // Will be set after balance is created
     BenefitType = "copay",
       BenefitTypeSystem = "http://nphies.sa/benefit-type",
-          AllowedAmount = 50,
-        AllowedCurrency = "SAR",
+    BenefitTypeDescription = "Co-payment amount",
+      AllowedAmount = 50,
+      AllowedCurrency = "SAR",
+  AllowedUnit = "visit",
   UsedAmount = 0,
-    CreatedAt = DateTime.UtcNow
+    Description = "Patient co-payment per visit",
+    CreatedAt = DateTime.UtcNow,
+    IsActive = true
      },
   new Benefit
  {
     Id = Guid.NewGuid().ToString(),
       BenefitBalanceId = "",  // Will be set after balance is created
    BenefitType = "coinsurance",
-      BenefitTypeSystem = "http://nphies.sa/benefit-type",
+   BenefitTypeSystem = "http://nphies.sa/benefit-type",
+    BenefitTypeDescription = "Coinsurance percentage",
         PercentageAmount = 20,
-       CreatedAt = DateTime.UtcNow
+ CreatedAt = DateTime.UtcNow,
+    IsActive = true
     }
        }
      };
