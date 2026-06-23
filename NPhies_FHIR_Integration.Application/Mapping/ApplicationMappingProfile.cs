@@ -20,6 +20,7 @@ public class ApplicationMappingProfile : Profile
   ApplyPaymentMappings();
     ApplyCommunicationRequestMappings();
         ApplyCommunicationMappings();
+        ApplyTaskMappings();
     }
 
     private void ApplyPatientMappings()
@@ -145,6 +146,31 @@ CreateMap<Organization, ProviderDto>();
         CreateMap<UpdateCommunicationDto, Communication>()
        .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+    }
+
+    private void ApplyTaskMappings()
+    {
+     // TaskRequest Mappings
+        CreateMap<TaskRequest, TaskRequestDto>().ReverseMap();
+      CreateMap<CreateTaskRequestDto, TaskRequest>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
+     .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "requested"))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+        CreateMap<UpdateTaskRequestDto, TaskRequest>()
+   .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        // TaskResponse Mappings
+      CreateMap<TaskResponse, TaskResponseDto>()
+          .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful()))
+       .ForMember(dest => dest.IsError, opt => opt.MapFrom(src => src.IsError()));
+        CreateMap<CreateTaskResponseDto, TaskResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
+      .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "completed"))
+.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+        CreateMap<UpdateTaskResponseDto, TaskResponse>()
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+       .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
 

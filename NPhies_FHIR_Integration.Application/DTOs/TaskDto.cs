@@ -3,94 +3,59 @@ namespace NPhies_FHIR_Integration.Application.DTOs;
 using NPhies_FHIR_Integration.Domain.DTOs;
 
 /// <summary>
-/// DTO for Task entity
+/// DTO for TaskRequest entity
 /// Used for API communication and data transfer
 /// </summary>
-public class TaskDto : BaseDto
+public class TaskRequestDto : BaseDto
 {
     /// <summary>
-    /// Task ID (FHIR resource ID)
+    /// Task ID
     /// </summary>
     public string TaskId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Task identifier system
+    /// Identifier system
     /// </summary>
-    public string? TaskIdentifierSystem { get; set; }
+    public string? IdentifierSystem { get; set; }
 
     /// <summary>
-    /// Task identifier value
+    /// Identifier value
     /// </summary>
-  public string? TaskIdentifierValue { get; set; }
+    public string? IdentifierValue { get; set; }
 
     /// <summary>
-    /// Task status
+    /// Status
     /// </summary>
     public string Status { get; set; } = "requested";
 
     /// <summary>
-    /// Task intent
+    /// Intent
     /// </summary>
     public string Intent { get; set; } = "order";
 
     /// <summary>
-    /// Task priority
+    /// Priority
     /// </summary>
-    public string Priority { get; set; } = "normal";
+    public string? Priority { get; set; }
 
     /// <summary>
-    /// Task code
+    /// Code
     /// </summary>
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
 
     /// <summary>
-    /// Task code system
+    /// Code system
     /// </summary>
     public string? CodeSystem { get; set; }
 
     /// <summary>
-    /// Task code display text
-    /// </summary>
-    public string? CodeDisplay { get; set; }
-
-    /// <summary>
-    /// When the task was authored
-    /// </summary>
-    public DateTime AuthoredOn { get; set; }
-
-    /// <summary>
-    /// When the task was last modified
-    /// </summary>
-    public DateTime LastModified { get; set; }
-
-    /// <summary>
-    /// Requester organization ID
-    /// </summary>
-    public string RequesterId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Owner/Responsible organization ID
-    /// </summary>
-    public string OwnerId { get; set; } = string.Empty;
-
-/// <summary>
-    /// Poll input type
-    /// </summary>
-    public string? PollInputType { get; set; }
-
-    /// <summary>
-    /// Poll input value (message types to retrieve)
-    /// </summary>
-  public string? PollInputValue { get; set; }
-
-    /// <summary>
-    /// Focus resource type (for cancellation)
+    /// Focus resource type
     /// </summary>
     public string? FocusResourceType { get; set; }
 
     /// <summary>
-    /// Focus identifier system
-    /// </summary>
+/// Focus identifier system
+  /// </summary>
     public string? FocusIdentifierSystem { get; set; }
 
     /// <summary>
@@ -99,7 +64,7 @@ public class TaskDto : BaseDto
     public string? FocusIdentifierValue { get; set; }
 
     /// <summary>
-    /// Reason code (cancellation reason)
+    /// Reason code
     /// </summary>
     public string? ReasonCode { get; set; }
 
@@ -109,120 +74,85 @@ public class TaskDto : BaseDto
     public string? ReasonCodeSystem { get; set; }
 
     /// <summary>
-    /// Output type for poll response
+    /// Reason text
     /// </summary>
-    public string? OutputType { get; set; }
+    public string? ReasonText { get; set; }
 
     /// <summary>
-    /// Output type system
+    /// Authored on
     /// </summary>
-    public string? OutputTypeSystem { get; set; }
-
-  /// <summary>
-    /// Output bundle ID (reference to queued messages bundle)
-    /// </summary>
-    public string? OutputBundleId { get; set; }
+    public DateTime? AuthoredOn { get; set; }
 
     /// <summary>
-    /// Output bundle reference URL
+    /// Last modified
     /// </summary>
-    public string? OutputBundleReference { get; set; }
+    public DateTime? LastModified { get; set; }
 
     /// <summary>
-    /// Response code from poll completion
+    /// Requester ID
     /// </summary>
-    public string? ResponseCode { get; set; }
+    public string? RequesterId { get; set; }
 
     /// <summary>
-    /// Response identifier (acknowledgment ID)
-  /// </summary>
-    public string? ResponseIdentifier { get; set; }
+    /// Owner ID
+    /// </summary>
+    public string? OwnerId { get; set; }
 
     /// <summary>
- /// Meta tag indicating queue status
+    /// Description
     /// </summary>
-    public string? MetaTag { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
-    /// Task notes
+    /// Processing status
     /// </summary>
-    public string? Notes { get; set; }
-
-  /// <summary>
-    /// Related MessageHeader ID
-    /// </summary>
-    public string? MessageHeaderId { get; set; }
+    public string ProcessingStatus { get; set; } = "pending";
 }
 
 /// <summary>
-/// DTO for creating a Task
+/// DTO for creating a TaskRequest
 /// </summary>
-public class CreateTaskDto
+public class CreateTaskRequestDto
 {
     /// <summary>
     /// Task ID
     /// </summary>
     public string TaskId { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Task identifier system
+  /// <summary>
+    /// Identifier system
     /// </summary>
-    public string? TaskIdentifierSystem { get; set; }
+  public string? IdentifierSystem { get; set; }
 
     /// <summary>
-    /// Task identifier value
+    /// Identifier value
     /// </summary>
-    public string? TaskIdentifierValue { get; set; }
+    public string? IdentifierValue { get; set; }
 
     /// <summary>
-    /// Task status
-    /// </summary>
-    public string Status { get; set; } = "requested";
+    /// Status
+ /// </summary>
+  public string Status { get; set; } = "requested";
 
     /// <summary>
-    /// Task intent
+  /// Intent
     /// </summary>
     public string Intent { get; set; } = "order";
 
     /// <summary>
-    /// Task priority
+    /// Priority
     /// </summary>
-    public string Priority { get; set; } = "normal";
+  public string? Priority { get; set; }
 
     /// <summary>
-    /// Task code
- /// </summary>
-    public string Code { get; set; } = string.Empty;
+    /// Code
+    /// </summary>
+    public string? Code { get; set; }
 
     /// <summary>
-    /// Task code system
+    /// Code system
     /// </summary>
     public string? CodeSystem { get; set; }
-
-    /// <summary>
-    /// Task code display text
- /// </summary>
-    public string? CodeDisplay { get; set; }
-
-  /// <summary>
-/// Requester organization ID
-    /// </summary>
-    public string RequesterId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Owner/Responsible organization ID
-    /// </summary>
-    public string OwnerId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Poll input type
-    /// </summary>
-    public string? PollInputType { get; set; }
-
-    /// <summary>
-    /// Poll input value
-    /// </summary>
- public string? PollInputValue { get; set; }
 
     /// <summary>
     /// Focus resource type
@@ -234,121 +164,367 @@ public class CreateTaskDto
     /// </summary>
     public string? FocusIdentifierSystem { get; set; }
 
+    /// <summary>
+    /// Focus identifier value
+    /// </summary>
+ public string? FocusIdentifierValue { get; set; }
+
+    /// <summary>
+    /// Reason code
+    /// </summary>
+  public string? ReasonCode { get; set; }
+
+    /// <summary>
+    /// Reason code system
+    /// </summary>
+    public string? ReasonCodeSystem { get; set; }
+
+    /// <summary>
+    /// Reason text
+    /// </summary>
+    public string? ReasonText { get; set; }
+
+    /// <summary>
+    /// Authored on
+    /// </summary>
+    public DateTime? AuthoredOn { get; set; }
+
+    /// <summary>
+    /// Last modified
+    /// </summary>
+    public DateTime? LastModified { get; set; }
+
+    /// <summary>
+    /// Requester ID
+    /// </summary>
+    public string? RequesterId { get; set; }
+
+    /// <summary>
+    /// Owner ID
+    /// </summary>
+    public string? OwnerId { get; set; }
+
+    /// <summary>
+    /// Description
+    /// </summary>
+    public string? Description { get; set; }
+}
+
 /// <summary>
+/// DTO for updating a TaskRequest
+/// </summary>
+public class UpdateTaskRequestDto
+{
+    /// <summary>
+    /// Status
+    /// </summary>
+    public string? Status { get; set; }
+
+    /// <summary>
+    /// Last modified
+    /// </summary>
+    public DateTime? LastModified { get; set; }
+
+    /// <summary>
+    /// Description
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Reason text
+/// </summary>
+    public string? ReasonText { get; set; }
+
+ /// <summary>
+    /// Processing status
+    /// </summary>
+    public string? ProcessingStatus { get; set; }
+}
+
+/// <summary>
+/// DTO for TaskResponse entity
+/// </summary>
+public class TaskResponseDto : BaseDto
+{
+    /// <summary>
+    /// Task ID
+ /// </summary>
+    public string TaskId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Identifier system
+  /// </summary>
+    public string? IdentifierSystem { get; set; }
+
+    /// <summary>
+    /// Identifier value
+    /// </summary>
+    public string? IdentifierValue { get; set; }
+
+    /// <summary>
+    /// Referenced request ID
+    /// </summary>
+    public string? ReferencedRequestId { get; set; }
+
+    /// <summary>
+    /// Task request ID
+    /// </summary>
+    public string? TaskRequestId { get; set; }
+
+/// <summary>
+    /// Status
+    /// </summary>
+    public string Status { get; set; } = "completed";
+
+/// <summary>
+    /// Intent
+    /// </summary>
+    public string Intent { get; set; } = "order";
+
+    /// <summary>
+    /// Priority
+    /// </summary>
+    public string? Priority { get; set; }
+
+  /// <summary>
+    /// Code
+    /// </summary>
+    public string? Code { get; set; }
+
+    /// <summary>
+    /// Code system
+    /// </summary>
+    public string? CodeSystem { get; set; }
+
+ /// <summary>
+/// Focus resource type
+    /// </summary>
+    public string? FocusResourceType { get; set; }
+
+    /// <summary>
+    /// Focus identifier system
+    /// </summary>
+    public string? FocusIdentifierSystem { get; set; }
+
+    /// <summary>
+    /// Focus identifier value
+    /// </summary>
+    public string? FocusIdentifierValue { get; set; }
+
+    /// <summary>
+    /// Response code
+    /// </summary>
+    public string? ResponseCode { get; set; } = "ok";
+
+    /// <summary>
+    /// Response message
+    /// </summary>
+    public string? ResponseMessage { get; set; }
+
+    /// <summary>
+    /// Response status code
+    /// </summary>
+    public int? ResponseStatusCode { get; set; }
+
+    /// <summary>
+    /// Authored on
+    /// </summary>
+    public DateTime? AuthoredOn { get; set; }
+
+    /// <summary>
+    /// Last modified
+    /// </summary>
+    public DateTime? LastModified { get; set; }
+
+    /// <summary>
+    /// Requester ID
+    /// </summary>
+    public string? RequesterId { get; set; }
+
+    /// <summary>
+    /// Owner ID
+    /// </summary>
+    public string? OwnerId { get; set; }
+
+    /// <summary>
+    /// Description
+    /// </summary>
+    public string? Description { get; set; }
+
+/// <summary>
+  /// Result text
+    /// </summary>
+    public string? ResultText { get; set; }
+
+    /// <summary>
+    /// Processing status
+    /// </summary>
+    public string ProcessingStatus { get; set; } = "received";
+
+    /// <summary>
+    /// Is successful flag
+    /// </summary>
+    public bool IsSuccessful { get; set; }
+
+    /// <summary>
+    /// Is error flag
+    /// </summary>
+    public bool IsError { get; set; }
+}
+
+/// <summary>
+/// DTO for creating a TaskResponse
+/// </summary>
+public class CreateTaskResponseDto
+{
+    /// <summary>
+    /// Task ID
+    /// </summary>
+    public string TaskId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Identifier system
+    /// </summary>
+ public string? IdentifierSystem { get; set; }
+
+    /// <summary>
+    /// Identifier value
+    /// </summary>
+    public string? IdentifierValue { get; set; }
+
+    /// <summary>
+    /// Referenced request ID
+    /// </summary>
+    public string? ReferencedRequestId { get; set; }
+
+    /// <summary>
+    /// Task request ID
+    /// </summary>
+    public string? TaskRequestId { get; set; }
+
+    /// <summary>
+    /// Status
+    /// </summary>
+    public string Status { get; set; } = "completed";
+
+    /// <summary>
+    /// Intent
+    /// </summary>
+    public string Intent { get; set; } = "order";
+
+    /// <summary>
+    /// Priority
+    /// </summary>
+    public string? Priority { get; set; }
+
+    /// <summary>
+    /// Code
+ /// </summary>
+    public string? Code { get; set; }
+
+    /// <summary>
+  /// Code system
+    /// </summary>
+    public string? CodeSystem { get; set; }
+
+  /// <summary>
+    /// Focus resource type
+    /// </summary>
+    public string? FocusResourceType { get; set; }
+
+    /// <summary>
+    /// Focus identifier system
+    /// </summary>
+    public string? FocusIdentifierSystem { get; set; }
+
+    /// <summary>
     /// Focus identifier value
     /// </summary>
     public string? FocusIdentifierValue { get; set; }
 
   /// <summary>
-    /// Reason code
+    /// Response code
     /// </summary>
-    public string? ReasonCode { get; set; }
+    public string? ResponseCode { get; set; } = "ok";
 
     /// <summary>
-    /// Reason code system
-    /// </summary>
-  public string? ReasonCodeSystem { get; set; }
+    /// Response message
+  /// </summary>
+    public string? ResponseMessage { get; set; }
 
     /// <summary>
-    /// Output type
+    /// Response status code
     /// </summary>
-    public string? OutputType { get; set; }
+    public int? ResponseStatusCode { get; set; }
 
     /// <summary>
-    /// Output type system
+    /// Authored on
     /// </summary>
-    public string? OutputTypeSystem { get; set; }
+    public DateTime? AuthoredOn { get; set; }
+
+    /// <summary>
+    /// Last modified
+ /// </summary>
+    public DateTime? LastModified { get; set; }
+
+    /// <summary>
+    /// Requester ID
+/// </summary>
+    public string? RequesterId { get; set; }
+
+    /// <summary>
+    /// Owner ID
+    /// </summary>
+    public string? OwnerId { get; set; }
+
+    /// <summary>
+    /// Description
+    /// </summary>
+    public string? Description { get; set; }
 
   /// <summary>
-    /// Output bundle ID
-  /// </summary>
-  public string? OutputBundleId { get; set; }
-
-    /// <summary>
-    /// Output bundle reference URL
+    /// Result text
     /// </summary>
-    public string? OutputBundleReference { get; set; }
+    public string? ResultText { get; set; }
+}
+
+/// <summary>
+/// DTO for updating a TaskResponse
+/// </summary>
+public class UpdateTaskResponseDto
+{
+    /// <summary>
+    /// Status
+    /// </summary>
+    public string? Status { get; set; }
 
     /// <summary>
     /// Response code
- /// </summary>
+    /// </summary>
     public string? ResponseCode { get; set; }
 
     /// <summary>
-    /// Response identifier
+    /// Response message
     /// </summary>
-    public string? ResponseIdentifier { get; set; }
-
-    /// <summary>
-    /// Meta tag
-    /// </summary>
-public string? MetaTag { get; set; }
-
-    /// <summary>
-    /// Task notes
-    /// </summary>
-    public string? Notes { get; set; }
-
-    /// <summary>
-    /// Related MessageHeader ID
-    /// </summary>
-    public string? MessageHeaderId { get; set; }
-}
+    public string? ResponseMessage { get; set; }
 
 /// <summary>
-/// DTO for updating a Task
-/// </summary>
-public class UpdateTaskDto
-{
-    /// <summary>
-    /// Task status
+    /// Last modified
     /// </summary>
-  public string? Status { get; set; }
+    public DateTime? LastModified { get; set; }
 
     /// <summary>
-  /// Task priority
+    /// Description
     /// </summary>
-  public string? Priority { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
-    /// Poll input type
-    /// </summary>
-    public string? PollInputType { get; set; }
+    /// Result text
+ /// </summary>
+    public string? ResultText { get; set; }
 
     /// <summary>
-    /// Poll input value
+    /// Processing status
     /// </summary>
-    public string? PollInputValue { get; set; }
-
-    /// <summary>
-    /// Task notes
-    /// </summary>
-    public string? Notes { get; set; }
-}
-
-/// <summary>
-/// DTO for poll requests
-/// </summary>
-public class PollRequestDto
-{
-    /// <summary>
-    /// Requester organization ID
-    /// </summary>
-    public string RequesterId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Message types to poll for (comma-separated)
-    /// Example: "claim-response", "eligibility-response"
-    /// </summary>
-    public string? MessageTypes { get; set; }
-
-    /// <summary>
-    /// Task priority
-    /// </summary>
-    public string Priority { get; set; } = "normal";
-
-    /// <summary>
-    /// Task notes
-    /// </summary>
-    public string? Notes { get; set; }
+    public string? ProcessingStatus { get; set; }
 }
