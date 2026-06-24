@@ -188,25 +188,77 @@ public class ApplicationDbContext : DbContext
     /// </summary>
     // public DbSet<PollTask> Tasks { get; set; } = null!;
 
-    /// <summary>
-    /// PaymentReconciliation entities (for payment tracking)
-    /// </summary>
-    // public DbSet<PaymentReconciliation> PaymentReconciliations { get; set; } = null!;
+    // MASTER DATA TABLES
 
     /// <summary>
-    /// PaymentReconciliationDetail entities (payment detail line items)
+    /// ServiceCodeMaster - Medical services/procedures with NPHIES mappings
     /// </summary>
-    // public DbSet<PaymentReconciliationDetail> PaymentReconciliationDetails { get; set; } = null!;
+    public DbSet<ServiceCodeMaster> ServiceCodeMasters { get; set; } = null!;
 
     /// <summary>
-    /// PaymentNotice entities (payment acknowledgments)
-    /// </summary>
-    // public DbSet<PaymentNotice> PaymentNotices { get; set; } = null!;
+    /// MedicationCodeMaster - Medications with NPHIES mappings
+ /// </summary>
+    public DbSet<MedicationCodeMaster> MedicationCodeMasters { get; set; } = null!;
 
     /// <summary>
-    /// CommunicationRequest entities (insurer-provider communications)
+    /// MedicalDeviceCodeMaster - Medical devices with NPHIES mappings
+/// </summary>
+    public DbSet<MedicalDeviceCodeMaster> MedicalDeviceCodeMasters { get; set; } = null!;
+
+    /// <summary>
+    /// DiagnosisCodeMaster - ICD diagnosis codes with NPHIES mappings
     /// </summary>
-    // public DbSet<CommunicationRequest> CommunicationRequests { get; set; } = null!;
+    public DbSet<DiagnosisCodeMaster> DiagnosisCodeMasters { get; set; } = null!;
+
+    /// <summary>
+    /// ModifierCodeMaster - Procedure modifiers
+    /// </summary>
+    public DbSet<ModifierCodeMaster> ModifierCodeMasters { get; set; } = null!;
+
+    /// <summary>
+    /// BenefitCodeMaster - Benefit category codes
+    /// </summary>
+    public DbSet<BenefitCodeMaster> BenefitCodeMasters { get; set; } = null!;
+
+    /// <summary>
+    /// PayerMaster - Insurance companies/payers
+    /// </summary>
+    public DbSet<PayerMaster> PayerMasters { get; set; } = null!;
+
+    /// <summary>
+    /// PayerPolicyMaster - Insurance policies
+    /// </summary>
+    public DbSet<PayerPolicyMaster> PayerPolicyMasters { get; set; } = null!;
+
+    /// <summary>
+    /// PolicyBenefitCoverage - Benefits covered under each policy
+    /// </summary>
+    public DbSet<PolicyBenefitCoverage> PolicyBenefitCoverages { get; set; } = null!;
+
+    /// <summary>
+    /// ClaimSubmissionRules - Validation rules for claims
+  /// </summary>
+    public DbSet<ClaimSubmissionRules> ClaimSubmissionRules { get; set; } = null!;
+
+    /// <summary>
+    /// NphiesCodeMapping - Centralized code mappings
+    /// </summary>
+    public DbSet<NphiesCodeMapping> NphiesCodeMappings { get; set; } = null!;
+
+    /// <summary>
+    /// ClinicMaster - Extended clinic information
+    /// </summary>
+    public DbSet<ClinicMaster> ClinicMasters { get; set; } = null!;
+
+    /// <summary>
+    /// DoctorMaster - Extended doctor information
+    /// </summary>
+    public DbSet<DoctorMaster> DoctorMasters { get; set; } = null!;
+
+    /// <summary>
+    /// DoctorQualification - Doctor qualifications
+    /// </summary>
+ public DbSet<DoctorQualification> DoctorQualifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -252,6 +304,22 @@ ConfigureClaimDiagnosisEntity(modelBuilder);
 
     // Polling Configuration
     ConfigurePollingRecordEntity(modelBuilder);
+
+    // MASTER DATA CONFIGURATION
+    ConfigureServiceCodeMasterEntity(modelBuilder);
+    ConfigureMedicationCodeMasterEntity(modelBuilder);
+    ConfigureMedicalDeviceCodeMasterEntity(modelBuilder);
+    ConfigureDiagnosisCodeMasterEntity(modelBuilder);
+    ConfigureModifierCodeMasterEntity(modelBuilder);
+    ConfigureBenefitCodeMasterEntity(modelBuilder);
+  ConfigurePayerMasterEntity(modelBuilder);
+    ConfigurePayerPolicyMasterEntity(modelBuilder);
+    ConfigurePolicyBenefitCoverageEntity(modelBuilder);
+    ConfigureClaimSubmissionRulesEntity(modelBuilder);
+    ConfigureNphiesCodeMappingEntity(modelBuilder);
+    ConfigureClinicMasterEntity(modelBuilder);
+    ConfigureDoctorMasterEntity(modelBuilder);
+ ConfigureDoctorQualificationEntity(modelBuilder);
 
 // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
     // This fixes FK column length mismatches systematically
@@ -1692,7 +1760,7 @@ entity.HasIndex(t => t.TaskId);
         entity.HasIndex(t => t.TaskId);
         entity.HasIndex(t => t.Status);
      entity.HasIndex(t => t.Code);
-    entity.HasIndex(t => t.ResponseCode);
+        entity.HasIndex(t => t.ResponseCode);
         entity.HasIndex(t => t.RequesterId);
         entity.HasIndex(t => t.OwnerId);
         entity.HasIndex(t => t.FocusIdentifierValue);
@@ -1878,7 +1946,221 @@ entity.HasOne(c => c.Recipient)
 
         entity.HasOne(p => p.TaskResponse)
        .WithMany()
-         .HasForeignKey(p => p.TaskResponseId)
+   .HasForeignKey(p => p.TaskResponseId)
      .OnDelete(DeleteBehavior.SetNull);
+    }
+
+    // ???????????????????????????????????????????????????????????????????????????
+    // MASTER DATA CONFIGURATION METHODS
+    // ???????????????????????????????????????????????????????????????????????????
+
+    /// <summary>
+    /// Configure ServiceCodeMaster entity
+/// </summary>
+    private void ConfigureServiceCodeMasterEntity(ModelBuilder modelBuilder)
+    {
+   var entity = modelBuilder.Entity<ServiceCodeMaster>();
+        entity.HasKey(s => s.Id);
+      entity.Property(s => s.ServiceCode).IsRequired().HasMaxLength(50);
+        entity.Property(s => s.ServiceName).IsRequired().HasMaxLength(255);
+        entity.Property(s => s.ServiceCategory).IsRequired().HasMaxLength(100);
+     entity.Property(s => s.DefaultPrice).HasPrecision(18, 2);
+        entity.HasIndex(s => s.ServiceCode).IsUnique();
+        entity.HasIndex(s => s.ServiceCategory);
+        entity.HasIndex(s => s.IsNphiesMapped);
+        entity.HasIndex(s => s.IsActive);
+    }
+
+    /// <summary>
+    /// Configure MedicationCodeMaster entity
+    /// </summary>
+    private void ConfigureMedicationCodeMasterEntity(ModelBuilder modelBuilder)
+  {
+        var entity = modelBuilder.Entity<MedicationCodeMaster>();
+    entity.HasKey(m => m.Id);
+        entity.Property(m => m.MedicationCode).IsRequired().HasMaxLength(50);
+        entity.Property(m => m.MedicationName).IsRequired().HasMaxLength(255);
+        entity.Property(m => m.UnitPrice).HasPrecision(18, 2);
+        entity.HasIndex(m => m.MedicationCode).IsUnique();
+     entity.HasIndex(m => m.IsActive);
+    }
+
+    /// <summary>
+    /// Configure MedicalDeviceCodeMaster entity
+    /// </summary>
+    private void ConfigureMedicalDeviceCodeMasterEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<MedicalDeviceCodeMaster>();
+        entity.HasKey(d => d.Id);
+        entity.Property(d => d.DeviceCode).IsRequired().HasMaxLength(50);
+        entity.Property(d => d.DeviceName).IsRequired().HasMaxLength(255);
+        entity.Property(d => d.UnitPrice).HasPrecision(18, 2);
+ entity.HasIndex(d => d.DeviceCode).IsUnique();
+        entity.HasIndex(d => d.IsActive);
+    }
+
+    /// <summary>
+    /// Configure DiagnosisCodeMaster entity
+    /// </summary>
+    private void ConfigureDiagnosisCodeMasterEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<DiagnosisCodeMaster>();
+        entity.HasKey(d => d.Id);
+        entity.Property(d => d.DiagnosisCode).IsRequired().HasMaxLength(20);
+        entity.Property(d => d.DiagnosisName).IsRequired().HasMaxLength(255);
+        entity.HasIndex(d => d.DiagnosisCode).IsUnique();
+        entity.HasIndex(d => d.DiagnosisCategory);
+        entity.HasIndex(d => d.IsActive);
+    }
+
+    /// <summary>
+    /// Configure ModifierCodeMaster entity
+    /// </summary>
+    private void ConfigureModifierCodeMasterEntity(ModelBuilder modelBuilder)
+    {
+     var entity = modelBuilder.Entity<ModifierCodeMaster>();
+        entity.HasKey(m => m.Id);
+   entity.Property(m => m.ModifierCode).IsRequired().HasMaxLength(10);
+        entity.Property(m => m.ModifierName).IsRequired().HasMaxLength(255);
+ entity.HasIndex(m => m.ModifierCode).IsUnique();
+        entity.HasIndex(m => m.IsActive);
+    }
+
+    /// <summary>
+    /// Configure BenefitCodeMaster entity
+    /// </summary>
+    private void ConfigureBenefitCodeMasterEntity(ModelBuilder modelBuilder)
+    {
+   var entity = modelBuilder.Entity<BenefitCodeMaster>();
+        entity.HasKey(b => b.Id);
+        entity.Property(b => b.BenefitCode).IsRequired().HasMaxLength(50);
+        entity.Property(b => b.BenefitName).IsRequired().HasMaxLength(255);
+        entity.HasIndex(b => b.BenefitCode).IsUnique();
+        entity.HasIndex(b => b.IsActive);
+    }
+
+    /// <summary>
+    /// Configure PayerMaster entity
+    /// </summary>
+    private void ConfigurePayerMasterEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PayerMaster>();
+        entity.HasKey(p => p.Id);
+        entity.Property(p => p.PayerId).IsRequired().HasMaxLength(100);
+        entity.Property(p => p.PayerName).IsRequired().HasMaxLength(255);
+        entity.HasIndex(p => p.PayerId).IsUnique();
+   entity.HasIndex(p => p.IsActive);
+        entity.HasMany(p => p.Policies)
+            .WithOne(pp => pp.Payer)
+            .HasForeignKey(pp => pp.PayerMasterId)
+        .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    /// <summary>
+    /// Configure PayerPolicyMaster entity
+    /// </summary>
+    private void ConfigurePayerPolicyMasterEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PayerPolicyMaster>();
+        entity.HasKey(p => p.Id);
+        entity.Property(p => p.PolicyCode).IsRequired().HasMaxLength(100);
+  entity.Property(p => p.PolicyName).IsRequired().HasMaxLength(255);
+        entity.Property(p => p.AnnualDeductible).HasPrecision(18, 2);
+        entity.HasIndex(p => p.PolicyCode).IsUnique();
+        entity.HasIndex(p => p.IsPolicyActive);
+        entity.HasMany(p => p.BenefitCoverages)
+      .WithOne(pbc => pbc.Policy)
+  .HasForeignKey(pbc => pbc.PolicyMasterId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    /// <summary>
+    /// Configure PolicyBenefitCoverage entity
+  /// </summary>
+    private void ConfigurePolicyBenefitCoverageEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PolicyBenefitCoverage>();
+      entity.HasKey(pbc => pbc.Id);
+        entity.Property(pbc => pbc.CoveragePercentage).HasPrecision(5, 2);
+        entity.Property(pbc => pbc.MaxCoverageAmount).HasPrecision(18, 2);
+        entity.HasIndex(pbc => pbc.PolicyMasterId);
+    }
+
+    /// <summary>
+  /// Configure ClaimSubmissionRules entity
+    /// </summary>
+    private void ConfigureClaimSubmissionRulesEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<ClaimSubmissionRules>();
+        entity.HasKey(csr => csr.Id);
+        entity.Property(csr => csr.RuleName).IsRequired().HasMaxLength(255);
+        entity.Property(csr => csr.MaxClaimAmount).HasPrecision(18, 2);
+        entity.HasIndex(csr => csr.IsActive);
+    }
+
+    /// <summary>
+    /// Configure NphiesCodeMapping entity
+    /// </summary>
+    private void ConfigureNphiesCodeMappingEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<NphiesCodeMapping>();
+        entity.HasKey(ncm => ncm.Id);
+  entity.Property(ncm => ncm.LocalCode).IsRequired().HasMaxLength(50);
+        entity.Property(ncm => ncm.NphiesCode).IsRequired().HasMaxLength(50);
+        entity.Property(ncm => ncm.CodeType).IsRequired().HasMaxLength(50);
+        entity.HasIndex(ncm => new { ncm.LocalCode, ncm.LocalCodeSystem }).IsUnique();
+        entity.HasIndex(ncm => ncm.NphiesCode);
+        entity.HasIndex(ncm => ncm.CodeType);
+        entity.HasIndex(ncm => ncm.IsMappingValid);
+    }
+
+    /// <summary>
+    /// Configure ClinicMaster entity
+    /// </summary>
+    private void ConfigureClinicMasterEntity(ModelBuilder modelBuilder)
+ {
+     var entity = modelBuilder.Entity<ClinicMaster>();
+  entity.HasKey(cm => cm.Id);
+    entity.Property(cm => cm.ClinicCode).IsRequired().HasMaxLength(50);
+ entity.Property(cm => cm.ClinicName).IsRequired().HasMaxLength(255);
+        entity.HasIndex(cm => cm.ClinicCode).IsUnique();
+    entity.HasIndex(cm => cm.IsActive);
+        entity.HasMany(cm => cm.Doctors)
+            .WithOne(dm => dm.Clinic)
+            .HasForeignKey(dm => dm.ClinicMasterId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Configure DoctorMaster entity
+    /// </summary>
+    private void ConfigureDoctorMasterEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<DoctorMaster>();
+        entity.HasKey(dm => dm.Id);
+    entity.Property(dm => dm.DoctorCode).IsRequired().HasMaxLength(50);
+        entity.Property(dm => dm.DoctorName).IsRequired().HasMaxLength(255);
+      entity.Property(dm => dm.ConsultationFee).HasPrecision(18, 2);
+        entity.Property(dm => dm.FollowupFee).HasPrecision(18, 2);
+        entity.HasIndex(dm => dm.DoctorCode).IsUnique();
+        entity.HasIndex(dm => dm.BoardLicenseNumber);
+        entity.HasIndex(dm => dm.IsActive);
+    entity.HasMany(dm => dm.Qualifications)
+            .WithOne(dq => dq.Doctor)
+ .HasForeignKey(dq => dq.DoctorMasterId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    /// <summary>
+    /// Configure DoctorQualification entity
+    /// </summary>
+    private void ConfigureDoctorQualificationEntity(ModelBuilder modelBuilder)
+ {
+        var entity = modelBuilder.Entity<DoctorQualification>();
+        entity.HasKey(dq => dq.Id);
+        entity.Property(dq => dq.QualificationType).IsRequired().HasMaxLength(100);
+        entity.Property(dq => dq.QualificationName).IsRequired().HasMaxLength(255);
+      entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
+        entity.HasIndex(dq => dq.DoctorMasterId);
     }
 }
