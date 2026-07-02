@@ -159,14 +159,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<ClaimResponseSupportingInfoExt> ClaimResponseSupportingInfosExt { get; set; } = null!;
 
     /// <summary>
-    /// TaskRequest entities (for cancellation and other task requests)
+    /// CancellationRequest entities (for claim cancellation requests)
     /// </summary>
-    public DbSet<TaskRequest> TaskRequests { get; set; } = null!;
+    public DbSet<CancellationRequest> CancellationRequests { get; set; } = null!;
 
     /// <summary>
-    /// TaskResponse entities (for cancellation and other task responses)
+    /// CancellationResponse entities (for claim cancellation responses)
     /// </summary>
-    public DbSet<TaskResponse> TaskResponses { get; set; } = null!;
+    public DbSet<CancellationResponse> CancellationResponses { get; set; } = null!;
 
     /// <summary>
     /// Communication entities (for insurer-provider communications)
@@ -197,12 +197,12 @@ public class ApplicationDbContext : DbContext
 
     /// <summary>
     /// MedicationCodeMaster - Medications with NPHIES mappings
- /// </summary>
+    /// </summary>
     public DbSet<MedicationCodeMaster> MedicationCodeMasters { get; set; } = null!;
 
     /// <summary>
     /// MedicalDeviceCodeMaster - Medical devices with NPHIES mappings
-/// </summary>
+    /// </summary>
     public DbSet<MedicalDeviceCodeMaster> MedicalDeviceCodeMasters { get; set; } = null!;
 
     /// <summary>
@@ -237,7 +237,7 @@ public class ApplicationDbContext : DbContext
 
     /// <summary>
     /// ClaimSubmissionRules - Validation rules for claims
-  /// </summary>
+    /// </summary>
     public DbSet<ClaimSubmissionRules> ClaimSubmissionRules { get; set; } = null!;
 
     /// <summary>
@@ -258,87 +258,112 @@ public class ApplicationDbContext : DbContext
     /// <summary>
     /// DoctorQualification - Doctor qualifications
     /// </summary>
- public DbSet<DoctorQualification> DoctorQualifications { get; set; } = null!;
+    public DbSet<DoctorQualification> DoctorQualifications { get; set; } = null!;
+
+    /// <summary>
+    /// User entities
+    /// </summary>
+    public DbSet<User> Users { get; set; } = null!;
+
+    /// <summary>
+    /// Refresh token entities
+    /// </summary>
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
+    /// <summary>
+    /// Login attempt tracking
+    /// </summary>
+    public DbSet<LoginAttempt> LoginAttempts { get; set; } = null!;
+
+    /// <summary>
+    /// Audit logs
+    /// </summary>
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+
+    /// <summary>
+    /// API rate limit logs
+    /// </summary>
+    public DbSet<ApiRateLimitLog> RateLimitLogs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         // Configure all entity relationships and constraints
-    ConfigurePatientEntity(modelBuilder);
-ConfigureCoverageEntity(modelBuilder);
-  ConfigureOrganizationEntity(modelBuilder);
-      ConfigureLocationEntity(modelBuilder);
- ConfigurePractitionerEntity(modelBuilder);
-    ConfigureMessageHeaderEntity(modelBuilder);
-    ConfigureCoverageEligibilityRequestEntity(modelBuilder);
-    ConfigureEligibilityItemEntity(modelBuilder);
-    ConfigureEligibilityItemModifierEntity(modelBuilder);
-ConfigureCoverageEligibilityResponseEntity(modelBuilder);
-   ConfigureBenefitBalanceEntity(modelBuilder);
+        ConfigurePatientEntity(modelBuilder);
+        ConfigureCoverageEntity(modelBuilder);
+        ConfigureOrganizationEntity(modelBuilder);
+        ConfigureLocationEntity(modelBuilder);
+        ConfigurePractitionerEntity(modelBuilder);
+        ConfigureMessageHeaderEntity(modelBuilder);
+        ConfigureCoverageEligibilityRequestEntity(modelBuilder);
+        ConfigureEligibilityItemEntity(modelBuilder);
+        ConfigureEligibilityItemModifierEntity(modelBuilder);
+        ConfigureCoverageEligibilityResponseEntity(modelBuilder);
+        ConfigureBenefitBalanceEntity(modelBuilder);
         ConfigureBenefitEntity(modelBuilder);
-    ConfigureEligibilityErrorEntity(modelBuilder);
-    ConfigureEncounterEntity(modelBuilder);
-ConfigureClaimEntity(modelBuilder);
-   ConfigureClaimItemEntity(modelBuilder);
-   ConfigureClaimItemDetailEntity(modelBuilder);
-ConfigureClaimDiagnosisEntity(modelBuilder);
-    ConfigureClaimCareTeamEntity(modelBuilder);
-    ConfigureClaimSupportingInfoEntity(modelBuilder);
- ConfigureClaimRelatedEntity(modelBuilder);
+        ConfigureEligibilityErrorEntity(modelBuilder);
+        ConfigureEncounterEntity(modelBuilder);
+        ConfigureClaimEntity(modelBuilder);
+        ConfigureClaimItemEntity(modelBuilder);
+        ConfigureClaimItemDetailEntity(modelBuilder);
+        ConfigureClaimDiagnosisEntity(modelBuilder);
+        ConfigureClaimCareTeamEntity(modelBuilder);
+        ConfigureClaimSupportingInfoEntity(modelBuilder);
+        ConfigureClaimRelatedEntity(modelBuilder);
         ConfigureClaimResponseEntity(modelBuilder);
-  ConfigureClaimResponseInsuranceEntity(modelBuilder);
-   ConfigureClaimResponseAddItemEntity(modelBuilder);
-  ConfigureClaimResponseAdjudicationEntity(modelBuilder);
- ConfigureClaimResponseTotalEntity(modelBuilder);
- ConfigureClaimResponseDiagnosisExtEntity(modelBuilder);
-    ConfigureClaimResponseSupportingInfoExtEntity(modelBuilder);
+        ConfigureClaimResponseInsuranceEntity(modelBuilder);
+        ConfigureClaimResponseAddItemEntity(modelBuilder);
+        ConfigureClaimResponseAdjudicationEntity(modelBuilder);
+        ConfigureClaimResponseTotalEntity(modelBuilder);
+        ConfigureClaimResponseDiagnosisExtEntity(modelBuilder);
+        ConfigureClaimResponseSupportingInfoExtEntity(modelBuilder);
 
-    // Task Management Configuration
-    ConfigureTaskRequestEntity(modelBuilder);
-    ConfigureTaskResponseEntity(modelBuilder);
+        // Task Management Configuration (Renamed to Cancellation)
+     ConfigureCancellationRequestEntity(modelBuilder);
+        ConfigureCancellationResponseEntity(modelBuilder);
 
-    // Communication Configuration
-    ConfigureCommunicationEntity(modelBuilder);
- ConfigureCommunicationRequestEntity(modelBuilder);
+        // Communication Configuration
+        ConfigureCommunicationEntity(modelBuilder);
+        ConfigureCommunicationRequestEntity(modelBuilder);
 
-    // Polling Configuration
-    ConfigurePollingRecordEntity(modelBuilder);
+        // Polling Configuration
+        ConfigurePollingRecordEntity(modelBuilder);
 
-    // MASTER DATA CONFIGURATION
-    ConfigureServiceCodeMasterEntity(modelBuilder);
-    ConfigureMedicationCodeMasterEntity(modelBuilder);
-    ConfigureMedicalDeviceCodeMasterEntity(modelBuilder);
-    ConfigureDiagnosisCodeMasterEntity(modelBuilder);
-    ConfigureModifierCodeMasterEntity(modelBuilder);
-    ConfigureBenefitCodeMasterEntity(modelBuilder);
-  ConfigurePayerMasterEntity(modelBuilder);
-    ConfigurePayerPolicyMasterEntity(modelBuilder);
-    ConfigurePolicyBenefitCoverageEntity(modelBuilder);
-    ConfigureClaimSubmissionRulesEntity(modelBuilder);
-    ConfigureNphiesCodeMappingEntity(modelBuilder);
-    ConfigureClinicMasterEntity(modelBuilder);
-    ConfigureDoctorMasterEntity(modelBuilder);
- ConfigureDoctorQualificationEntity(modelBuilder);
+        // MASTER DATA CONFIGURATION
+        ConfigureServiceCodeMasterEntity(modelBuilder);
+        ConfigureMedicationCodeMasterEntity(modelBuilder);
+        ConfigureMedicalDeviceCodeMasterEntity(modelBuilder);
+        ConfigureDiagnosisCodeMasterEntity(modelBuilder);
+        ConfigureModifierCodeMasterEntity(modelBuilder);
+        ConfigureBenefitCodeMasterEntity(modelBuilder);
+        ConfigurePayerMasterEntity(modelBuilder);
+        ConfigurePayerPolicyMasterEntity(modelBuilder);
+        ConfigurePolicyBenefitCoverageEntity(modelBuilder);
+        ConfigureClaimSubmissionRulesEntity(modelBuilder);
+        ConfigureNphiesCodeMappingEntity(modelBuilder);
+        ConfigureClinicMasterEntity(modelBuilder);
+        ConfigureDoctorMasterEntity(modelBuilder);
+        ConfigureDoctorQualificationEntity(modelBuilder);
 
-// GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
-    // This fixes FK column length mismatches systematically
-foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
+        // This fixes FK column length mismatches systematically
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             var idProperty = entity.FindProperty("Id");
-   if (idProperty?.GetMaxLength() == null && idProperty?.ClrType == typeof(string))
+            if (idProperty?.GetMaxLength() == null && idProperty?.ClrType == typeof(string))
             {
-          idProperty.SetMaxLength(100);
+                idProperty.SetMaxLength(100);
             }
-     }
+        }
 
-// NOTE: Problematic entities temporarily removed to prevent cascade FK and column length mismatch issues
-  // TODO: Re-enable these entities after fixing schema design and ID column lengths
-  // ConfigureTaskEntity(modelBuilder);
-  // ConfigurePaymentReconciliationEntity(modelBuilder);
-  // ConfigurePaymentReconciliationDetailEntity(modelBuilder);
-  // ConfigurePaymentNoticeEntity(modelBuilder);
-  // ConfigureCommunicationRequestEntity(modelBuilder);
+        // NOTE: Problematic entities temporarily removed to prevent cascade FK and column length mismatch issues
+        // TODO: Re-enable these entities after fixing schema design and ID column lengths
+        // ConfigureTaskEntity(modelBuilder);
+        // ConfigurePaymentReconciliationEntity(modelBuilder);
+        // ConfigurePaymentReconciliationDetailEntity(modelBuilder);
+        // ConfigurePaymentNoticeEntity(modelBuilder);
+        // ConfigureCommunicationRequestEntity(modelBuilder);
     }
 
     /// <summary>
@@ -454,30 +479,28 @@ foreach (var entity in modelBuilder.Model.GetEntityTypes())
         // Primary Key
         entity.HasKey(o => o.Id);
 
-        // Properties - Explicitly set Id max length
-        entity.Property(o => o.Id).HasMaxLength(450); // Use explicit max length for primary key
-
+        // Properties
         entity.Property(o => o.OrganizationName).IsRequired().HasMaxLength(255);
         entity.Property(o => o.LicenseNumber).IsRequired().HasMaxLength(100);
-    entity.Property(o => o.LicenseSystem).HasMaxLength(500);
+        entity.Property(o => o.LicenseSystem).HasMaxLength(500);
         entity.Property(o => o.OrganizationType).IsRequired().HasMaxLength(50);
         entity.Property(o => o.SpecializationType).HasMaxLength(100);
         entity.Property(o => o.Website).HasMaxLength(500);
         entity.Property(o => o.Email).HasMaxLength(255);
-    entity.Property(o => o.PhoneNumber).HasMaxLength(20);
+        entity.Property(o => o.PhoneNumber).HasMaxLength(20);
         entity.Property(o => o.AddressLine1).HasMaxLength(255);
         entity.Property(o => o.AddressLine2).HasMaxLength(255);
         entity.Property(o => o.City).HasMaxLength(100);
         entity.Property(o => o.State).HasMaxLength(100);
         entity.Property(o => o.PostalCode).HasMaxLength(20);
-     entity.Property(o => o.Status).IsRequired().HasMaxLength(50);
+        entity.Property(o => o.Status).IsRequired().HasMaxLength(50);
 
-    // Indexes
-     entity.HasIndex(o => o.LicenseNumber).IsUnique();
+        // Indexes
+        entity.HasIndex(o => o.LicenseNumber).IsUnique();
         entity.HasIndex(o => o.OrganizationType);
         entity.HasIndex(o => o.Status);
 
-    // Relationships
+        // Relationships
         entity.HasMany(o => o.Locations)
      .WithOne(l => l.Organization)
 .HasForeignKey(l => l.OrganizationId)
@@ -488,15 +511,15 @@ foreach (var entity in modelBuilder.Model.GetEntityTypes())
  .HasForeignKey(p => p.OrganizationId)
            .OnDelete(DeleteBehavior.Restrict);
 
-     entity.HasMany(o => o.SubmittedClaims)
-  .WithOne(c => c.Provider)
-     .HasForeignKey(c => c.ProviderId)
-  .OnDelete(DeleteBehavior.Restrict);
+        entity.HasMany(o => o.SubmittedClaims)
+     .WithOne(c => c.Provider)
+        .HasForeignKey(c => c.ProviderId)
+     .OnDelete(DeleteBehavior.Restrict);
 
- entity.HasMany(o => o.ProcessedClaims)
-         .WithOne(c => c.Insurer)
-    .HasForeignKey(c => c.InsurerId)
-        .OnDelete(DeleteBehavior.Restrict);
+        entity.HasMany(o => o.ProcessedClaims)
+                .WithOne(c => c.Insurer)
+           .HasForeignKey(c => c.InsurerId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(o => o.EligibilityRequests)
  .WithOne(e => e.Provider)
@@ -586,7 +609,7 @@ foreach (var entity in modelBuilder.Model.GetEntityTypes())
      .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(p => p.Claims)
-            .WithOne(c => c.Practitioner)
+         .WithOne(c => c.Practitioner)
 .HasForeignKey(c => c.PractitionerId)
    .OnDelete(DeleteBehavior.Restrict);
     }
@@ -596,46 +619,46 @@ foreach (var entity in modelBuilder.Model.GetEntityTypes())
     /// </summary>
     private void ConfigureMessageHeaderEntity(ModelBuilder modelBuilder)
     {
-var entity = modelBuilder.Entity<MessageHeader>();
+        var entity = modelBuilder.Entity<MessageHeader>();
 
         // Primary Key
         entity.HasKey(m => m.Id);
 
-// Properties - Explicitly set Id to match FK column lengths
+        // Properties - Explicitly set Id to match FK column lengths
         entity.Property(m => m.Id).HasMaxLength(50); // Match the MessageHeaderId length in other entities
 
         entity.Property(m => m.MessageUUID).IsRequired().HasMaxLength(50);
-    entity.Property(m => m.CorrelationId).HasMaxLength(50);
-    entity.Property(m => m.EventCode).IsRequired().HasMaxLength(100);
+        entity.Property(m => m.CorrelationId).HasMaxLength(50);
+        entity.Property(m => m.EventCode).IsRequired().HasMaxLength(100);
         entity.Property(m => m.EventSystem).HasMaxLength(500);
         entity.Property(m => m.DestinationName).HasMaxLength(255);
         entity.Property(m => m.DestinationEndpoint).HasMaxLength(500);
         entity.Property(m => m.FocusResourceType).HasMaxLength(100);
         entity.Property(m => m.FocusResourceId).HasMaxLength(100);
         entity.Property(m => m.SourceName).HasMaxLength(255);
-    entity.Property(m => m.SourceEndpoint).HasMaxLength(500);
+        entity.Property(m => m.SourceEndpoint).HasMaxLength(500);
         entity.Property(m => m.Status).IsRequired().HasMaxLength(50);
         entity.Property(m => m.ResponseStatus).HasMaxLength(50);
         entity.Property(m => m.ErrorCode).HasMaxLength(100);
-entity.Property(m => m.ErrorMessage).HasMaxLength(1000);
+        entity.Property(m => m.ErrorMessage).HasMaxLength(1000);
         entity.Property(m => m.BundleContent).HasColumnType("ntext");
         entity.Property(m => m.ResponseBundleContent).HasColumnType("ntext");
 
-   // Indexes
+        // Indexes
         entity.HasIndex(m => m.MessageUUID).IsUnique();
         entity.HasIndex(m => m.Status);
         entity.HasIndex(m => m.EventCode);
 
         // Relationships
-  entity.HasMany(m => m.EligibilityRequests)
-       .WithOne(e => e.MessageHeader)
-.HasForeignKey(e => e.MessageHeaderId)
-   .OnDelete(DeleteBehavior.Restrict);
-
-     entity.HasMany(m => m.EligibilityResponses)
-         .WithOne(e => e.MessageHeader)
+        entity.HasMany(m => m.EligibilityRequests)
+             .WithOne(e => e.MessageHeader)
       .HasForeignKey(e => e.MessageHeaderId)
-            .OnDelete(DeleteBehavior.Restrict);
+         .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasMany(m => m.EligibilityResponses)
+            .WithOne(e => e.MessageHeader)
+         .HasForeignKey(e => e.MessageHeaderId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(m => m.Claims)
    .WithOne(c => c.MessageHeader)
@@ -1005,47 +1028,47 @@ entity.Property(m => m.ErrorMessage).HasMaxLength(1000);
 
         // Properties
         entity.Property(c => c.ClaimNumber).IsRequired().HasMaxLength(100);
-entity.Property(c => c.ClaimIdentifierSystem).HasMaxLength(500);
+        entity.Property(c => c.ClaimIdentifierSystem).HasMaxLength(500);
         entity.Property(c => c.ClaimIdentifierValue).HasMaxLength(100);
         entity.Property(c => c.Status).IsRequired().HasMaxLength(50);
         entity.Property(c => c.ClaimType).IsRequired().HasMaxLength(50);
-  entity.Property(c => c.ClaimTypeSystem).HasMaxLength(500);
-      entity.Property(c => c.ClaimSubType).HasMaxLength(50);
+        entity.Property(c => c.ClaimTypeSystem).HasMaxLength(500);
+        entity.Property(c => c.ClaimSubType).HasMaxLength(50);
         entity.Property(c => c.Use).IsRequired().HasMaxLength(50);
         entity.Property(c => c.Priority).HasMaxLength(50);
         entity.Property(c => c.PrioritySystem).HasMaxLength(500);
         entity.Property(c => c.PayeeType).HasMaxLength(50);
-   entity.Property(c => c.PayeeTypeSystem).HasMaxLength(500);
+        entity.Property(c => c.PayeeTypeSystem).HasMaxLength(500);
         entity.Property(c => c.Total).HasPrecision(18, 2);
         entity.Property(c => c.TotalCurrency).HasMaxLength(3);
         entity.Property(c => c.FhirClaimBundle).HasColumnType("ntext");
 
- // NEW: Episode and Offline Fields
+        // NEW: Episode and Offline Fields
         entity.Property(c => c.EpisodeIdentifierSystem).HasMaxLength(500);
         entity.Property(c => c.EpisodeIdentifierValue).HasMaxLength(100);
         entity.Property(c => c.EligibilityOfflineReference).HasMaxLength(100);
         entity.Property(c => c.AuthorizationOfflineDate);
 
         // Indexes
-   entity.HasIndex(c => c.ClaimNumber).IsUnique();
+        entity.HasIndex(c => c.ClaimNumber).IsUnique();
         entity.HasIndex(c => c.Status);
-      entity.HasIndex(c => c.Use);
+        entity.HasIndex(c => c.Use);
         entity.HasIndex(c => c.PatientId);
 
         // NEW: Indexes for episode and offline fields
         entity.HasIndex(c => c.EpisodeIdentifierValue);
         entity.HasIndex(c => c.EligibilityOfflineReference);
 
-      // Relationships
+        // Relationships
         entity.HasOne(c => c.Patient)
             .WithMany(p => p.Claims)
       .HasForeignKey(c => c.PatientId)
             .OnDelete(DeleteBehavior.Restrict);
 
-     entity.HasOne(c => c.Coverage)
-            .WithMany(c => c.Claims)
-    .HasForeignKey(c => c.CoverageId)
-        .OnDelete(DeleteBehavior.Restrict);
+        entity.HasOne(c => c.Coverage)
+               .WithMany(c => c.Claims)
+       .HasForeignKey(c => c.CoverageId)
+           .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(c => c.Provider)
         .WithMany(o => o.SubmittedClaims)
@@ -1057,10 +1080,10 @@ entity.Property(c => c.ClaimIdentifierSystem).HasMaxLength(500);
     .HasForeignKey(c => c.InsurerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-     entity.HasOne(c => c.Practitioner)
-     .WithMany(p => p.Claims)
-            .HasForeignKey(c => c.PractitionerId)
-  .OnDelete(DeleteBehavior.Restrict);
+        entity.HasOne(c => c.Practitioner)
+        .WithMany(p => p.Claims)
+               .HasForeignKey(c => c.PractitionerId)
+     .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(c => c.ServiceLocation)
             .WithMany(l => l.Claims)
@@ -1092,10 +1115,10 @@ entity.Property(c => c.ClaimIdentifierSystem).HasMaxLength(500);
   .HasForeignKey(si => si.ClaimId)
       .OnDelete(DeleteBehavior.Cascade);
 
-      entity.HasMany(c => c.RelatedClaims)
- .WithOne(rc => rc.Claim)
-   .HasForeignKey(rc => rc.ClaimId)
-       .OnDelete(DeleteBehavior.Cascade);
+        entity.HasMany(c => c.RelatedClaims)
+   .WithOne(rc => rc.Claim)
+     .HasForeignKey(rc => rc.ClaimId)
+         .OnDelete(DeleteBehavior.Cascade);
     }
 
     /// <summary>
@@ -1535,45 +1558,45 @@ entity.Property(c => c.ClaimIdentifierSystem).HasMaxLength(500);
         // Primary Key
         entity.HasKey(t => t.Id);
 
-     // Properties
+        // Properties
         entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
-    entity.Property(t => t.TaskIdentifierSystem).HasMaxLength(500);
+        entity.Property(t => t.TaskIdentifierSystem).HasMaxLength(500);
         entity.Property(t => t.TaskIdentifierValue).HasMaxLength(100);
         entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
         entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
         entity.Property(t => t.Priority).IsRequired().HasMaxLength(50);
- entity.Property(t => t.Code).IsRequired().HasMaxLength(100);
+        entity.Property(t => t.Code).IsRequired().HasMaxLength(100);
         entity.Property(t => t.CodeSystem).HasMaxLength(500);
-     entity.Property(t => t.CodeDisplay).HasMaxLength(255);
+        entity.Property(t => t.CodeDisplay).HasMaxLength(255);
         entity.Property(t => t.AuthoredOn).IsRequired();
         entity.Property(t => t.LastModified).IsRequired();
-entity.Property(t => t.RequesterId).IsRequired().HasMaxLength(100);
+        entity.Property(t => t.RequesterId).IsRequired().HasMaxLength(100);
         entity.Property(t => t.OwnerId).IsRequired().HasMaxLength(100);
-      entity.Property(t => t.PollInputType).HasMaxLength(100);
+        entity.Property(t => t.PollInputType).HasMaxLength(100);
         entity.Property(t => t.PollInputValue).HasMaxLength(100);
 
         // NEW CANCELLATION/FOCUS FIELDS
         entity.Property(t => t.FocusResourceType).HasMaxLength(100);
-  entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
-    entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
+        entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
+        entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
         entity.Property(t => t.ReasonCode).HasMaxLength(50);
-      entity.Property(t => t.ReasonCodeSystem).HasMaxLength(500);
+        entity.Property(t => t.ReasonCodeSystem).HasMaxLength(500);
 
         // OUTPUT/RESPONSE FIELDS
-    entity.Property(t => t.OutputType).HasMaxLength(100);
-    entity.Property(t => t.OutputTypeSystem).HasMaxLength(500);
-    entity.Property(t => t.OutputBundleId).HasMaxLength(100);
+        entity.Property(t => t.OutputType).HasMaxLength(100);
+        entity.Property(t => t.OutputTypeSystem).HasMaxLength(500);
+        entity.Property(t => t.OutputBundleId).HasMaxLength(100);
         entity.Property(t => t.OutputBundleReference).HasMaxLength(500);
         entity.Property(t => t.ResponseCode).HasMaxLength(50);
         entity.Property(t => t.ResponseIdentifier).HasMaxLength(100);
-      entity.Property(t => t.MetaTag).HasMaxLength(100);
+        entity.Property(t => t.MetaTag).HasMaxLength(100);
 
         entity.Property(t => t.Notes).HasMaxLength(1000);
         entity.Property(t => t.MessageHeaderId).HasMaxLength(100);
         entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
 
         // Indexes
-    entity.HasIndex(t => t.TaskId).IsUnique();
+        entity.HasIndex(t => t.TaskId).IsUnique();
         entity.HasIndex(t => t.Status);
         entity.HasIndex(t => t.Code);
         entity.HasIndex(t => t.RequesterId);
@@ -1582,15 +1605,15 @@ entity.Property(t => t.RequesterId).IsRequired().HasMaxLength(100);
 
         // NEW INDEXES FOR OUTPUT/RESPONSE
         entity.HasIndex(t => t.OutputBundleId);
-   entity.HasIndex(t => t.ResponseCode);
+        entity.HasIndex(t => t.ResponseCode);
         entity.HasIndex(t => t.MetaTag);
 
         // NEW INDEXES FOR CANCELLATION
         entity.HasIndex(t => t.FocusIdentifierValue);
-    entity.HasIndex(t => t.ReasonCode);
+        entity.HasIndex(t => t.ReasonCode);
 
-  // NOTE: No FK relationships configured due to ID column length mismatches
-      // TODO: Add FK constraints in a separate migration after standardizing ID column lengths
+        // NOTE: No FK relationships configured due to ID column length mismatches
+        // TODO: Add FK constraints in a separate migration after standardizing ID column lengths
     }
 
     /// <summary>
@@ -1598,19 +1621,19 @@ entity.Property(t => t.RequesterId).IsRequired().HasMaxLength(100);
     /// </summary>
     private void ConfigurePaymentReconciliationEntity(ModelBuilder modelBuilder)
     {
-var entity = modelBuilder.Entity<PaymentReconciliation>();
+        var entity = modelBuilder.Entity<PaymentReconciliation>();
 
         // Primary Key
         entity.HasKey(p => p.Id);
 
         // Properties
         entity.Property(p => p.PaymentReconciliationId).IsRequired().HasMaxLength(100);
-   entity.Property(p => p.IdentifierSystem).HasMaxLength(500);
+        entity.Property(p => p.IdentifierSystem).HasMaxLength(500);
         entity.Property(p => p.IdentifierValue).HasMaxLength(100);
         entity.Property(p => p.Status).IsRequired().HasMaxLength(50);
-  entity.Property(p => p.Outcome).HasMaxLength(50);
+        entity.Property(p => p.Outcome).HasMaxLength(50);
         entity.Property(p => p.Disposition).HasMaxLength(1000);
- entity.Property(p => p.PeriodStart).IsRequired();
+        entity.Property(p => p.PeriodStart).IsRequired();
         entity.Property(p => p.PeriodEnd).IsRequired();
         entity.Property(p => p.CreatedDate).IsRequired();
         entity.Property(p => p.PaymentDate);
@@ -1618,20 +1641,20 @@ var entity = modelBuilder.Entity<PaymentReconciliation>();
         entity.Property(p => p.PaymentCurrency).HasMaxLength(3);
         entity.Property(p => p.PaymentMethodType).HasMaxLength(50);
         entity.Property(p => p.PaymentMethodSystem).HasMaxLength(500);
-  entity.Property(p => p.PaymentIdentifierSystem).HasMaxLength(500);
+        entity.Property(p => p.PaymentIdentifierSystem).HasMaxLength(500);
         entity.Property(p => p.PaymentIdentifierValue).HasMaxLength(100);
-   entity.Property(p => p.PaymentIssuerId).IsRequired().HasMaxLength(450);
-     entity.Property(p => p.RequestorId).IsRequired().HasMaxLength(450);
+        entity.Property(p => p.PaymentIssuerId).IsRequired().HasMaxLength(450);
+        entity.Property(p => p.RequestorId).IsRequired().HasMaxLength(450);
         entity.Property(p => p.FhirPaymentReconciliationJson).HasColumnType("ntext");
 
-     // Indexes
-    entity.HasIndex(p => p.PaymentReconciliationId).IsUnique();
- entity.HasIndex(p => p.Status);
+        // Indexes
+        entity.HasIndex(p => p.PaymentReconciliationId).IsUnique();
+        entity.HasIndex(p => p.Status);
         entity.HasIndex(p => p.Outcome);
-    entity.HasIndex(p => p.PaymentDate);
+        entity.HasIndex(p => p.PaymentDate);
         entity.HasIndex(p => p.PaymentIssuerId);
-   entity.HasIndex(p => p.RequestorId);
-  entity.HasIndex(p => p.PeriodStart);
+        entity.HasIndex(p => p.RequestorId);
+        entity.HasIndex(p => p.PeriodStart);
         entity.HasIndex(p => p.PeriodEnd);
 
     }
@@ -1641,330 +1664,229 @@ var entity = modelBuilder.Entity<PaymentReconciliation>();
     /// </summary>
     private void ConfigurePaymentReconciliationDetailEntity(ModelBuilder modelBuilder)
     {
-    var entity = modelBuilder.Entity<PaymentReconciliationDetail>();
-
-    // Primary Key
-  entity.HasKey(d => d.Id);
-
-   // Properties
-    entity.Property(d => d.PaymentReconciliationId).IsRequired().HasMaxLength(100);
-entity.Property(d => d.DetailType).IsRequired().HasMaxLength(50);
-    entity.Property(d => d.RequestIdentifierSystem).HasMaxLength(500);
-        entity.Property(d => d.RequestIdentifierValue).HasMaxLength(100);
-      entity.Property(d => d.RequestReference).HasMaxLength(500);
-        entity.Property(d => d.ResponseIdentifierSystem).HasMaxLength(500);
-   entity.Property(d => d.ResponseIdentifierValue).HasMaxLength(100);
-    entity.Property(d => d.ResponseReference).HasMaxLength(500);
-      entity.Property(d => d.DetailDate);
-     entity.Property(d => d.Amount).IsRequired().HasPrecision(18, 2);
-   entity.Property(d => d.AmountCurrency).HasMaxLength(3);
- entity.Property(d => d.SubmitterId).HasMaxLength(450);
-   entity.Property(d => d.PayeeId).HasMaxLength(450);
-   entity.Property(d => d.ComponentPayment).HasPrecision(18, 2);
- entity.Property(d => d.EarlyFee).HasPrecision(18, 2);
-  entity.Property(d => d.NphiesFee).HasPrecision(18, 2);
-        entity.Property(d => d.Notes).HasMaxLength(1000);
-
-     // Indexes
- entity.HasIndex(d => d.PaymentReconciliationId);
-        entity.HasIndex(d => d.DetailType);
-      entity.HasIndex(d => d.DetailDate);
-      entity.HasIndex(d => d.SubmitterId);
-  entity.HasIndex(d => d.PayeeId);
-        entity.HasIndex(d => d.Amount);
-
- }
-
-    /// <summary>
-    /// Configure TaskRequest entity
-    /// </summary>
-    private void ConfigureTaskRequestEntity(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<TaskRequest>();
+        var entity = modelBuilder.Entity<PaymentReconciliationDetail>();
 
         // Primary Key
+        entity.HasKey(d => d.Id);
+
+        // Properties
+        entity.Property(d => d.PaymentReconciliationId).IsRequired().HasMaxLength(100);
+        entity.Property(d => d.DetailType).IsRequired().HasMaxLength(50);
+        entity.Property(d => d.RequestIdentifierSystem).HasMaxLength(500);
+        entity.Property(d => d.RequestIdentifierValue).HasMaxLength(100);
+        entity.Property(d => d.RequestReference).HasMaxLength(500);
+        entity.Property(d => d.ResponseIdentifierSystem).HasMaxLength(500);
+        entity.Property(d => d.ResponseIdentifierValue).HasMaxLength(100);
+        entity.Property(d => d.ResponseReference).HasMaxLength(500);
+        entity.Property(d => d.DetailDate);
+        entity.Property(d => d.Amount).IsRequired().HasPrecision(18, 2);
+        entity.Property(d => d.AmountCurrency).HasMaxLength(3);
+        entity.Property(d => d.SubmitterId).HasMaxLength(450);
+        entity.Property(d => d.PayeeId).HasMaxLength(450);
+        entity.Property(d => d.ComponentPayment).HasPrecision(18, 2);
+        entity.Property(d => d.EarlyFee).HasPrecision(18, 2);
+        entity.Property(d => d.NphiesFee).HasPrecision(18, 2);
+        entity.Property(d => d.Notes).HasMaxLength(1000);
+
+        // Indexes
+        entity.HasIndex(d => d.PaymentReconciliationId);
+        entity.HasIndex(d => d.DetailType);
+        entity.HasIndex(d => d.DetailDate);
+        entity.HasIndex(d => d.SubmitterId);
+        entity.HasIndex(d => d.PayeeId);
+        entity.HasIndex(d => d.Amount);
+
+    }
+
+    /// <summary>
+    /// Configure CancellationRequest entity
+    /// </summary>
+    private void ConfigureCancellationRequestEntity(ModelBuilder modelBuilder)
+    {
+  var entity = modelBuilder.Entity<CancellationRequest>();
+
+  // Primary Key
         entity.HasKey(t => t.Id);
 
         // Properties
-        entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
- entity.Property(t => t.IdentifierSystem).HasMaxLength(500);
+      entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
+        entity.Property(t => t.IdentifierSystem).HasMaxLength(500);
         entity.Property(t => t.IdentifierValue).HasMaxLength(100);
         entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
-      entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
-        entity.Property(t => t.Priority).HasMaxLength(50);
+        entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
+   entity.Property(t => t.Priority).HasMaxLength(50);
         entity.Property(t => t.Code).HasMaxLength(50);
-        entity.Property(t => t.CodeSystem).HasMaxLength(500);
-      entity.Property(t => t.FocusResourceType).HasMaxLength(100);
-        entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
-        entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
+     entity.Property(t => t.CodeSystem).HasMaxLength(500);
+    entity.Property(t => t.FocusResourceType).HasMaxLength(100);
+      entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
+   entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
         entity.Property(t => t.ReasonCode).HasMaxLength(50);
         entity.Property(t => t.ReasonCodeSystem).HasMaxLength(500);
-        entity.Property(t => t.ReasonText).HasMaxLength(1000);
-     entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
-        entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
-        entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
+    entity.Property(t => t.ReasonText).HasMaxLength(1000);
+    entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
+     entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
+entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
 
         // Indexes
-entity.HasIndex(t => t.TaskId);
+    entity.HasIndex(t => t.TaskId);
         entity.HasIndex(t => t.Status);
-     entity.HasIndex(t => t.Code);
+        entity.HasIndex(t => t.Code);
         entity.HasIndex(t => t.RequesterId);
         entity.HasIndex(t => t.OwnerId);
         entity.HasIndex(t => t.FocusIdentifierValue);
-     entity.HasIndex(t => t.ReasonCode);
+        entity.HasIndex(t => t.ReasonCode);
 
-    // Relationships
-        entity.HasOne(t => t.Requester)
+        // Relationships
+     entity.HasOne(t => t.Requester)
             .WithMany()
         .HasForeignKey(t => t.RequesterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(t => t.Owner)
-          .WithMany()
+ entity.HasOne(t => t.Owner)
+    .WithMany()
             .HasForeignKey(t => t.OwnerId)
     .OnDelete(DeleteBehavior.Restrict);
     }
 
     /// <summary>
-    /// Configure TaskResponse entity
+    /// Configure CancellationResponse entity
     /// </summary>
-    private void ConfigureTaskResponseEntity(ModelBuilder modelBuilder)
+    private void ConfigureCancellationResponseEntity(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<TaskResponse>();
+        var entity = modelBuilder.Entity<CancellationResponse>();
 
-   // Primary Key
-        entity.HasKey(t => t.Id);
+ // Primary Key
+    entity.HasKey(t => t.Id);
 
-        // Properties
+   // Properties
         entity.Property(t => t.TaskId).IsRequired().HasMaxLength(100);
         entity.Property(t => t.IdentifierSystem).HasMaxLength(500);
         entity.Property(t => t.IdentifierValue).HasMaxLength(100);
-        entity.Property(t => t.ReferencedRequestId).HasMaxLength(100);
-     entity.Property(t => t.TaskRequestId).HasMaxLength(100);
-    entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
+   entity.Property(t => t.ReferencedRequestId).HasMaxLength(100);
+ entity.Property(t => t.CancellationRequestId).HasMaxLength(100);
+  entity.Property(t => t.Status).IsRequired().HasMaxLength(50);
         entity.Property(t => t.Intent).IsRequired().HasMaxLength(50);
-   entity.Property(t => t.Priority).HasMaxLength(50);
-  entity.Property(t => t.Code).HasMaxLength(50);
+ entity.Property(t => t.Priority).HasMaxLength(50);
+        entity.Property(t => t.Code).HasMaxLength(50);
         entity.Property(t => t.CodeSystem).HasMaxLength(500);
-   entity.Property(t => t.FocusResourceType).HasMaxLength(100);
+        entity.Property(t => t.FocusResourceType).HasMaxLength(100);
         entity.Property(t => t.FocusIdentifierSystem).HasMaxLength(500);
-    entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
-        entity.Property(t => t.ResponseCode).HasMaxLength(50);
-     entity.Property(t => t.ResponseMessage).HasMaxLength(1000);
- entity.Property(t => t.ResultText).HasMaxLength(1000);
-    entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
-     entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
+        entity.Property(t => t.FocusIdentifierValue).HasMaxLength(100);
+    entity.Property(t => t.ResponseCode).HasMaxLength(50);
+ entity.Property(t => t.ResponseMessage).HasMaxLength(1000);
+        entity.Property(t => t.ResultText).HasMaxLength(1000);
+        entity.Property(t => t.ProcessingStatus).HasMaxLength(50);
+        entity.Property(t => t.MessageHeaderId).HasMaxLength(50);
         entity.Property(t => t.FhirTaskJson).HasColumnType("ntext");
 
-   // Indexes
-        entity.HasIndex(t => t.TaskId);
+      // Indexes
+    entity.HasIndex(t => t.TaskId);
         entity.HasIndex(t => t.Status);
-     entity.HasIndex(t => t.Code);
+        entity.HasIndex(t => t.Code);
         entity.HasIndex(t => t.ResponseCode);
         entity.HasIndex(t => t.RequesterId);
-        entity.HasIndex(t => t.OwnerId);
+    entity.HasIndex(t => t.OwnerId);
         entity.HasIndex(t => t.FocusIdentifierValue);
 
-    // Relationships
- entity.HasOne(t => t.TaskRequest)
-          .WithMany()
-            .HasForeignKey(t => t.TaskRequestId)
-    .OnDelete(DeleteBehavior.Restrict);
+        // Relationships
+        entity.HasOne(t => t.CancellationRequest)
+       .WithMany()
+           .HasForeignKey(t => t.CancellationRequestId)
+           .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(t => t.Requester)
-          .WithMany()
+.WithMany()
    .HasForeignKey(t => t.RequesterId)
     .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(t => t.Owner)
-            .WithMany()
-       .HasForeignKey(t => t.OwnerId)
-            .OnDelete(DeleteBehavior.Restrict);
-  }
-
-    /// <summary>
-    /// Configure Communication entity
-    /// </summary>
-    private void ConfigureCommunicationEntity(ModelBuilder modelBuilder)
-    {
-      var entity = modelBuilder.Entity<Communication>();
-
-   // Primary Key
-      entity.HasKey(c => c.Id);
-
-        // Properties
-        entity.Property(c => c.CommunicationId).IsRequired().HasMaxLength(100);
-    entity.Property(c => c.IdentifierSystem).HasMaxLength(500);
-        entity.Property(c => c.IdentifierValue).HasMaxLength(100);
-        entity.Property(c => c.BasedOnResourceType).HasMaxLength(100);
-        entity.Property(c => c.BasedOnIdentifierSystem).HasMaxLength(500);
-entity.Property(c => c.BasedOnIdentifierValue).HasMaxLength(100);
-entity.Property(c => c.Status).IsRequired().HasMaxLength(50);
-        entity.Property(c => c.Category).HasMaxLength(100);
- entity.Property(c => c.CategorySystem).HasMaxLength(500);
- entity.Property(c => c.Priority).HasMaxLength(50);
-        entity.Property(c => c.SubjectPatientId).HasMaxLength(100);
-entity.Property(c => c.AboutResourceType).HasMaxLength(100);
- entity.Property(c => c.AboutIdentifierSystem).HasMaxLength(500);
-        entity.Property(c => c.AboutIdentifierValue).HasMaxLength(100);
-        entity.Property(c => c.PayloadContent).HasColumnType("nvarchar(max)");
-      entity.Property(c => c.RecipientId).HasMaxLength(450);
-     entity.Property(c => c.SenderId).HasMaxLength(450);
-        entity.Property(c => c.PayloadAttachmentContentType).HasMaxLength(100);
-    entity.Property(c => c.PayloadAttachmentTitle).HasMaxLength(500);
-
-   // Indexes
-        entity.HasIndex(c => c.CommunicationId);
-   entity.HasIndex(c => c.Status);
-        entity.HasIndex(c => c.SubjectPatientId);
-        entity.HasIndex(c => c.SenderId);
-  entity.HasIndex(c => c.RecipientId);
-
-        // Relationships
-        entity.HasOne(c => c.SubjectPatient)
-            .WithMany()
-      .HasForeignKey(c => c.SubjectPatientId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasOne(c => c.Sender)
-        .WithMany()
-    .HasForeignKey(c => c.SenderId)
- .OnDelete(DeleteBehavior.Restrict);
-
-entity.HasOne(c => c.Recipient)
-            .WithMany()
-            .HasForeignKey(c => c.RecipientId)
-        .OnDelete(DeleteBehavior.Restrict);
-    }
-
-    /// <summary>
-    /// Configure CommunicationRequest entity
-    /// </summary>
-    private void ConfigureCommunicationRequestEntity(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<CommunicationRequest>();
-
-        // Primary Key
-   entity.HasKey(c => c.Id);
-
-   // Properties
-        entity.Property(c => c.CommunicationRequestId).IsRequired().HasMaxLength(100);
-        entity.Property(c => c.IdentifierSystem).HasMaxLength(500);
-        entity.Property(c => c.IdentifierValue).HasMaxLength(100);
- entity.Property(c => c.Status).IsRequired().HasMaxLength(50);
-  entity.Property(c => c.Category).HasMaxLength(100);
-   entity.Property(c => c.CategorySystem).HasMaxLength(500);
-    entity.Property(c => c.Priority).HasMaxLength(50);
-        entity.Property(c => c.SubjectPatientId).HasMaxLength(100);
-        entity.Property(c => c.AboutResourceType).HasMaxLength(100);
-        entity.Property(c => c.AboutIdentifierSystem).HasMaxLength(500);
-        entity.Property(c => c.AboutIdentifierValue).HasMaxLength(100);
-        entity.Property(c => c.PayloadContent).HasColumnType("nvarchar(max)");
-  entity.Property(c => c.RecipientId).HasMaxLength(450);
-        entity.Property(c => c.SenderId).HasMaxLength(450);
-
-  // Indexes
-        entity.HasIndex(c => c.CommunicationRequestId);
-        entity.HasIndex(c => c.Status);
-        entity.HasIndex(c => c.SubjectPatientId);
-        entity.HasIndex(c => c.SenderId);
-        entity.HasIndex(c => c.RecipientId);
-
-     // Relationships
-        entity.HasOne(c => c.SubjectPatient)
-          .WithMany()
-  .HasForeignKey(c => c.SubjectPatientId)
-     .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasOne(c => c.Sender)
        .WithMany()
-    .HasForeignKey(c => c.SenderId)
-    .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasOne(c => c.Recipient)
-            .WithMany()
-    .HasForeignKey(c => c.RecipientId)
-          .OnDelete(DeleteBehavior.Restrict);
+       .HasForeignKey(t => t.OwnerId)
+         .OnDelete(DeleteBehavior.Restrict);
     }
 
     /// <summary>
     /// Configure PollingRecord entity
     /// </summary>
-    private void ConfigurePollingRecordEntity(ModelBuilder modelBuilder)
-    {
+  private void ConfigurePollingRecordEntity(ModelBuilder modelBuilder)
+  {
         var entity = modelBuilder.Entity<PollingRecord>();
 
         // Primary Key
-      entity.HasKey(p => p.Id);
+        entity.HasKey(p => p.Id);
 
-      // Properties
-        entity.Property(p => p.PollingRecordId).IsRequired().HasMaxLength(100);
-   entity.Property(p => p.ProviderId).IsRequired().HasMaxLength(450);
-        entity.Property(p => p.RequestTaskId).HasMaxLength(100);
-        entity.Property(p => p.TaskRequestId).HasMaxLength(100);
-        entity.Property(p => p.RequestedMessageTypes).HasMaxLength(500);
+        // Properties
+    entity.Property(p => p.PollingRecordId).IsRequired().HasMaxLength(100);
+ entity.Property(p => p.ProviderId).IsRequired().HasMaxLength(100);
+        entity.Property(p => p.CancellationRequestId).HasMaxLength(100);
+        entity.Property(p => p.CancellationResponseId).HasMaxLength(100);
+   entity.Property(p => p.RequestTaskId).HasMaxLength(100);
         entity.Property(p => p.ResponseTaskId).HasMaxLength(100);
-        entity.Property(p => p.TaskResponseId).HasMaxLength(100);
+        entity.Property(p => p.RequestedMessageTypes).HasMaxLength(500);
+  entity.Property(p => p.ReceivedMessageTypes).HasMaxLength(500);
         entity.Property(p => p.ResponseStatus).HasMaxLength(50);
-        entity.Property(p => p.MessagesReceived);
-        entity.Property(p => p.ReceivedMessageTypes).HasMaxLength(500);
-   entity.Property(p => p.RequestBundleJson).HasColumnType("ntext");
-  entity.Property(p => p.ResponseBundleJson).HasColumnType("ntext");
         entity.Property(p => p.ProcessingStatus).IsRequired().HasMaxLength(50);
-        entity.Property(p => p.HttpStatusCode);
- entity.Property(p => p.ErrorMessage).HasMaxLength(1000);
+        entity.Property(p => p.CycleStatus).IsRequired().HasMaxLength(50);
+    entity.Property(p => p.ErrorMessage).HasMaxLength(1000);
         entity.Property(p => p.ErrorCode).HasMaxLength(100);
-    entity.Property(p => p.DurationMs);
-     entity.Property(p => p.CycleStatus).IsRequired().HasMaxLength(50);
-        entity.Property(p => p.IsAcknowledged);
-     entity.Property(p => p.RetryCount);
-        entity.Property(p => p.MaxRetries);
-        entity.Property(p => p.SourceIpAddress).HasMaxLength(50);
-   entity.Property(p => p.RequestSourceId).HasMaxLength(100);
+  entity.Property(p => p.SourceIpAddress).HasMaxLength(50);
+        entity.Property(p => p.RequestSourceId).HasMaxLength(100);
         entity.Property(p => p.Notes).HasMaxLength(1000);
+  entity.Property(p => p.RequestBundleJson).HasColumnType("ntext");
+  entity.Property(p => p.ResponseBundleJson).HasColumnType("ntext");
+      entity.Property(p => p.DurationMs);
+        entity.Property(p => p.MessagesReceived);
+        entity.Property(p => p.RetryCount);
+  entity.Property(p => p.MaxRetries);
+entity.Property(p => p.HttpStatusCode);
+  entity.Property(p => p.IsAcknowledged);
+        entity.Property(p => p.RequestSentAt);
+   entity.Property(p => p.ResponseReceivedAt);
+        entity.Property(p => p.AcknowledgedAt);
+        entity.Property(p => p.NextRetryAt);
 
         // Indexes
-        entity.HasIndex(p => p.PollingRecordId);
-  entity.HasIndex(p => p.ProviderId);
-        entity.HasIndex(p => p.ProcessingStatus);
+        entity.HasIndex(p => p.PollingRecordId).IsUnique();
+        entity.HasIndex(p => p.ProviderId);
+   entity.HasIndex(p => p.CancellationRequestId);
+  entity.HasIndex(p => p.CancellationResponseId);
+      entity.HasIndex(p => p.ProcessingStatus);
         entity.HasIndex(p => p.CycleStatus);
-        entity.HasIndex(p => p.ResponseStatus);
         entity.HasIndex(p => p.RequestSentAt);
         entity.HasIndex(p => p.ResponseReceivedAt);
-        entity.HasIndex(p => p.IsAcknowledged);
 
-        // Relationships
+   // Relationships
         entity.HasOne(p => p.Provider)
             .WithMany()
-       .HasForeignKey(p => p.ProviderId)
-        .OnDelete(DeleteBehavior.Restrict);
+         .HasForeignKey(p => p.ProviderId)
+         .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(p => p.TaskRequest)
+        entity.HasOne(p => p.CancellationRequest)
             .WithMany()
-            .HasForeignKey(p => p.TaskRequestId)
-  .OnDelete(DeleteBehavior.SetNull);
+    .HasForeignKey(p => p.CancellationRequestId)
+   .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(p => p.TaskResponse)
-       .WithMany()
-   .HasForeignKey(p => p.TaskResponseId)
-     .OnDelete(DeleteBehavior.SetNull);
+    entity.HasOne(p => p.CancellationResponse)
+            .WithMany()
+            .HasForeignKey(p => p.CancellationResponseId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 
-    // ???????????????????????????????????????????????????????????????????????????
+    // ???????????????????????????????????????????????????????????????????????????????????????????????????????????
     // MASTER DATA CONFIGURATION METHODS
     // ???????????????????????????????????????????????????????????????????????????
 
     /// <summary>
     /// Configure ServiceCodeMaster entity
-/// </summary>
+    /// </summary>
     private void ConfigureServiceCodeMasterEntity(ModelBuilder modelBuilder)
     {
-   var entity = modelBuilder.Entity<ServiceCodeMaster>();
+        var entity = modelBuilder.Entity<ServiceCodeMaster>();
         entity.HasKey(s => s.Id);
-      entity.Property(s => s.ServiceCode).IsRequired().HasMaxLength(50);
+        entity.Property(s => s.ServiceCode).IsRequired().HasMaxLength(50);
         entity.Property(s => s.ServiceName).IsRequired().HasMaxLength(255);
         entity.Property(s => s.ServiceCategory).IsRequired().HasMaxLength(100);
-     entity.Property(s => s.DefaultPrice).HasPrecision(18, 2);
+        entity.Property(s => s.DefaultPrice).HasPrecision(18, 2);
         entity.HasIndex(s => s.ServiceCode).IsUnique();
         entity.HasIndex(s => s.ServiceCategory);
         entity.HasIndex(s => s.IsNphiesMapped);
@@ -1975,14 +1897,14 @@ entity.HasOne(c => c.Recipient)
     /// Configure MedicationCodeMaster entity
     /// </summary>
     private void ConfigureMedicationCodeMasterEntity(ModelBuilder modelBuilder)
-  {
+    {
         var entity = modelBuilder.Entity<MedicationCodeMaster>();
-    entity.HasKey(m => m.Id);
+        entity.HasKey(m => m.Id);
         entity.Property(m => m.MedicationCode).IsRequired().HasMaxLength(50);
         entity.Property(m => m.MedicationName).IsRequired().HasMaxLength(255);
         entity.Property(m => m.UnitPrice).HasPrecision(18, 2);
         entity.HasIndex(m => m.MedicationCode).IsUnique();
-     entity.HasIndex(m => m.IsActive);
+        entity.HasIndex(m => m.IsActive);
     }
 
     /// <summary>
@@ -1995,7 +1917,7 @@ entity.HasOne(c => c.Recipient)
         entity.Property(d => d.DeviceCode).IsRequired().HasMaxLength(50);
         entity.Property(d => d.DeviceName).IsRequired().HasMaxLength(255);
         entity.Property(d => d.UnitPrice).HasPrecision(18, 2);
- entity.HasIndex(d => d.DeviceCode).IsUnique();
+        entity.HasIndex(d => d.DeviceCode).IsUnique();
         entity.HasIndex(d => d.IsActive);
     }
 
@@ -2018,11 +1940,11 @@ entity.HasOne(c => c.Recipient)
     /// </summary>
     private void ConfigureModifierCodeMasterEntity(ModelBuilder modelBuilder)
     {
-     var entity = modelBuilder.Entity<ModifierCodeMaster>();
+        var entity = modelBuilder.Entity<ModifierCodeMaster>();
         entity.HasKey(m => m.Id);
-   entity.Property(m => m.ModifierCode).IsRequired().HasMaxLength(10);
+        entity.Property(m => m.ModifierCode).IsRequired().HasMaxLength(10);
         entity.Property(m => m.ModifierName).IsRequired().HasMaxLength(255);
- entity.HasIndex(m => m.ModifierCode).IsUnique();
+        entity.HasIndex(m => m.ModifierCode).IsUnique();
         entity.HasIndex(m => m.IsActive);
     }
 
@@ -2031,7 +1953,7 @@ entity.HasOne(c => c.Recipient)
     /// </summary>
     private void ConfigureBenefitCodeMasterEntity(ModelBuilder modelBuilder)
     {
-   var entity = modelBuilder.Entity<BenefitCodeMaster>();
+        var entity = modelBuilder.Entity<BenefitCodeMaster>();
         entity.HasKey(b => b.Id);
         entity.Property(b => b.BenefitCode).IsRequired().HasMaxLength(50);
         entity.Property(b => b.BenefitName).IsRequired().HasMaxLength(255);
@@ -2049,12 +1971,12 @@ entity.HasOne(c => c.Recipient)
         entity.Property(p => p.PayerId).IsRequired().HasMaxLength(100);
         entity.Property(p => p.PayerName).IsRequired().HasMaxLength(255);
         entity.HasIndex(p => p.PayerId).IsUnique();
-   entity.HasIndex(p => p.IsActive);
+        entity.HasIndex(p => p.IsActive);
         entity.HasMany(p => p.Policies)
             .WithOne(pp => pp.Payer)
-            .HasForeignKey(pp => pp.PayerMasterId)
-        .OnDelete(DeleteBehavior.Cascade);
-    }
+        .HasForeignKey(pp => pp.PayerMasterId)
+  .OnDelete(DeleteBehavior.Cascade);
+ }
 
     /// <summary>
     /// Configure PayerPolicyMaster entity
@@ -2064,27 +1986,27 @@ entity.HasOne(c => c.Recipient)
         var entity = modelBuilder.Entity<PayerPolicyMaster>();
         entity.HasKey(p => p.Id);
         entity.Property(p => p.PolicyCode).IsRequired().HasMaxLength(100);
-  entity.Property(p => p.PolicyName).IsRequired().HasMaxLength(255);
+        entity.Property(p => p.PolicyName).IsRequired().HasMaxLength(255);
         entity.Property(p => p.AnnualDeductible).HasPrecision(18, 2);
-        entity.HasIndex(p => p.PolicyCode).IsUnique();
+      entity.HasIndex(p => p.PolicyCode).IsUnique();
         entity.HasIndex(p => p.IsPolicyActive);
-        entity.HasMany(p => p.BenefitCoverages)
+entity.HasMany(p => p.BenefitCoverages)
       .WithOne(pbc => pbc.Policy)
   .HasForeignKey(pbc => pbc.PolicyMasterId)
-            .OnDelete(DeleteBehavior.Cascade);
+ .OnDelete(DeleteBehavior.Cascade);
     }
 
     /// <summary>
-    /// Configure PolicyBenefitCoverage entity
+  /// Configure PolicyBenefitCoverage entity
   /// </summary>
     private void ConfigurePolicyBenefitCoverageEntity(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<PolicyBenefitCoverage>();
-      entity.HasKey(pbc => pbc.Id);
-        entity.Property(pbc => pbc.CoveragePercentage).HasPrecision(5, 2);
-        entity.Property(pbc => pbc.MaxCoverageAmount).HasPrecision(18, 2);
-        entity.HasIndex(pbc => pbc.PolicyMasterId);
-    }
+   var entity = modelBuilder.Entity<PolicyBenefitCoverage>();
+   entity.HasKey(pbc => pbc.Id);
+entity.Property(pbc => pbc.CoveragePercentage).HasPrecision(5, 2);
+ entity.Property(pbc => pbc.MaxCoverageAmount).HasPrecision(18, 2);
+     entity.HasIndex(pbc => pbc.PolicyMasterId);
+  }
 
     /// <summary>
   /// Configure ClaimSubmissionRules entity
@@ -2092,10 +2014,10 @@ entity.HasOne(c => c.Recipient)
     private void ConfigureClaimSubmissionRulesEntity(ModelBuilder modelBuilder)
     {
         var entity = modelBuilder.Entity<ClaimSubmissionRules>();
-        entity.HasKey(csr => csr.Id);
-        entity.Property(csr => csr.RuleName).IsRequired().HasMaxLength(255);
-        entity.Property(csr => csr.MaxClaimAmount).HasPrecision(18, 2);
-        entity.HasIndex(csr => csr.IsActive);
+ entity.HasKey(csr => csr.Id);
+entity.Property(csr => csr.RuleName).IsRequired().HasMaxLength(255);
+  entity.Property(csr => csr.MaxClaimAmount).HasPrecision(18, 2);
+   entity.HasIndex(csr => csr.IsActive);
     }
 
     /// <summary>
@@ -2103,15 +2025,15 @@ entity.HasOne(c => c.Recipient)
     /// </summary>
     private void ConfigureNphiesCodeMappingEntity(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<NphiesCodeMapping>();
-        entity.HasKey(ncm => ncm.Id);
-  entity.Property(ncm => ncm.LocalCode).IsRequired().HasMaxLength(50);
+  var entity = modelBuilder.Entity<NphiesCodeMapping>();
+      entity.HasKey(ncm => ncm.Id);
+entity.Property(ncm => ncm.LocalCode).IsRequired().HasMaxLength(50);
         entity.Property(ncm => ncm.NphiesCode).IsRequired().HasMaxLength(50);
         entity.Property(ncm => ncm.CodeType).IsRequired().HasMaxLength(50);
-        entity.HasIndex(ncm => new { ncm.LocalCode, ncm.LocalCodeSystem }).IsUnique();
-        entity.HasIndex(ncm => ncm.NphiesCode);
-        entity.HasIndex(ncm => ncm.CodeType);
-        entity.HasIndex(ncm => ncm.IsMappingValid);
+  entity.HasIndex(ncm => new { ncm.LocalCode, ncm.LocalCodeSystem }).IsUnique();
+     entity.HasIndex(ncm => ncm.NphiesCode);
+      entity.HasIndex(ncm => ncm.CodeType);
+    entity.HasIndex(ncm => ncm.IsMappingValid);
     }
 
     /// <summary>
@@ -2121,46 +2043,52 @@ entity.HasOne(c => c.Recipient)
  {
      var entity = modelBuilder.Entity<ClinicMaster>();
   entity.HasKey(cm => cm.Id);
-    entity.Property(cm => cm.ClinicCode).IsRequired().HasMaxLength(50);
+entity.Property(cm => cm.ClinicCode).IsRequired().HasMaxLength(50);
  entity.Property(cm => cm.ClinicName).IsRequired().HasMaxLength(255);
-        entity.HasIndex(cm => cm.ClinicCode).IsUnique();
+entity.HasIndex(cm => cm.ClinicCode).IsUnique();
     entity.HasIndex(cm => cm.IsActive);
-        entity.HasMany(cm => cm.Doctors)
-            .WithOne(dm => dm.Clinic)
-            .HasForeignKey(dm => dm.ClinicMasterId)
-            .OnDelete(DeleteBehavior.Restrict);
+entity.HasMany(cm => cm.Doctors)
+  .WithOne(dm => dm.Clinic)
+  .HasForeignKey(dm => dm.ClinicMasterId)
+       .OnDelete(DeleteBehavior.Restrict);
     }
 
     /// <summary>
-    /// Configure DoctorMaster entity
-    /// </summary>
+/// Configure DoctorMaster entity
+ /// </summary>
     private void ConfigureDoctorMasterEntity(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<DoctorMaster>();
-        entity.HasKey(dm => dm.Id);
-    entity.Property(dm => dm.DoctorCode).IsRequired().HasMaxLength(50);
+{
+    var entity = modelBuilder.Entity<DoctorMaster>();
+ entity.HasKey(dm => dm.Id);
+entity.Property(dm => dm.DoctorCode).IsRequired().HasMaxLength(50);
         entity.Property(dm => dm.DoctorName).IsRequired().HasMaxLength(255);
-      entity.Property(dm => dm.ConsultationFee).HasPrecision(18, 2);
-        entity.Property(dm => dm.FollowupFee).HasPrecision(18, 2);
-        entity.HasIndex(dm => dm.DoctorCode).IsUnique();
-        entity.HasIndex(dm => dm.BoardLicenseNumber);
+ entity.Property(dm => dm.ConsultationFee).HasPrecision(18, 2);
+ entity.Property(dm => dm.FollowupFee).HasPrecision(18, 2);
+      entity.HasIndex(dm => dm.DoctorCode).IsUnique();
+      entity.HasIndex(dm => dm.BoardLicenseNumber);
         entity.HasIndex(dm => dm.IsActive);
-    entity.HasMany(dm => dm.Qualifications)
-            .WithOne(dq => dq.Doctor)
+    
+     entity.HasMany(dm => dm.Qualifications)
+ .WithOne(dq => dq.Doctor)
  .HasForeignKey(dq => dq.DoctorMasterId)
-            .OnDelete(DeleteBehavior.Cascade);
+  .OnDelete(DeleteBehavior.Cascade);
+     
+     entity.HasOne(dm => dm.Clinic)
+    .WithMany(cm => cm.Doctors)
+       .HasForeignKey(dm => dm.ClinicMasterId)
+  .OnDelete(DeleteBehavior.Restrict);
     }
 
     /// <summary>
-    /// Configure DoctorQualification entity
+ /// Configure DoctorQualification entity
     /// </summary>
-    private void ConfigureDoctorQualificationEntity(ModelBuilder modelBuilder)
- {
-        var entity = modelBuilder.Entity<DoctorQualification>();
-        entity.HasKey(dq => dq.Id);
+  private void ConfigureDoctorQualificationEntity(ModelBuilder modelBuilder)
+  {
+var entity = modelBuilder.Entity<DoctorQualification>();
+  entity.HasKey(dq => dq.Id);
         entity.Property(dq => dq.QualificationType).IsRequired().HasMaxLength(100);
         entity.Property(dq => dq.QualificationName).IsRequired().HasMaxLength(255);
-      entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
-        entity.HasIndex(dq => dq.DoctorMasterId);
-    }
+        entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
+ entity.HasIndex(dq => dq.DoctorMasterId);
+ }
 }

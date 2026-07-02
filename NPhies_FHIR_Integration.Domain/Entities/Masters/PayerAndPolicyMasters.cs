@@ -24,7 +24,7 @@ public class PayerMaster : BaseEntity
   public string? NphiesConnectionStatus { get; set; }
 
     [StringLength(500)]
-    public string? NphiesApiEndpoint { get; set; }
+  public string? NphiesApiEndpoint { get; set; }
 
     public bool IsNphiesMember { get; set; }
 
@@ -44,7 +44,7 @@ public class PayerMaster : BaseEntity
 
     public bool IsActive { get; set; } = true;
 
-    [StringLength(100)]
+  [StringLength(100)]
     public string? CreatedBy { get; set; }
 
     [StringLength(100)]
@@ -62,7 +62,7 @@ public class PayerPolicyMaster : BaseEntity
 {
     [Required]
     [ForeignKey("Payer")]
-    public int PayerMasterId { get; set; }
+    public string PayerMasterId { get; set; } = string.Empty;
 
   [Required]
     [StringLength(100)]
@@ -72,7 +72,7 @@ public class PayerPolicyMaster : BaseEntity
     [StringLength(255)]
     public string PolicyName { get; set; } = string.Empty;
 
-    [StringLength(100)]
+ [StringLength(100)]
 public string? PolicyType { get; set; }
 
   [StringLength(100)]
@@ -94,10 +94,10 @@ public string? PolicyType { get; set; }
     public decimal? Copay { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
-    public decimal? CoinsurancePercentage { get; set; }
+public decimal? CoinsurancePercentage { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? CoverageLimitPerVisit { get; set; }
+  public decimal? CoverageLimitPerVisit { get; set; }
 
  [Column(TypeName = "decimal(18,2)")]
     public decimal? CoverageLimitPerYear { get; set; }
@@ -121,7 +121,7 @@ public string? PolicyType { get; set; }
     [StringLength(100)]
     public string? ModifiedBy { get; set; }
 
-    // Navigation
+  // Navigation
   [ForeignKey("PayerMasterId")]
     public virtual PayerMaster? Payer { get; set; }
 
@@ -136,16 +136,16 @@ public class PolicyBenefitCoverage : BaseEntity
 {
  [Required]
     [ForeignKey("Policy")]
-    public int PolicyMasterId { get; set; }
+    public string PolicyMasterId { get; set; } = string.Empty;
 
     [ForeignKey("ServiceCode")]
-    public int? ServiceCodeMasterId { get; set; }
+    public string? ServiceCodeMasterId { get; set; }
 
     [StringLength(100)]
     public string? ServiceCategory { get; set; }
 
-    [StringLength(100)]
-    public string? BenefitType { get; set; }
+  [StringLength(100)]
+ public string? BenefitType { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
  public decimal CoveragePercentage { get; set; } = 100;
@@ -196,13 +196,13 @@ public class PolicyBenefitCoverage : BaseEntity
 public class ClaimSubmissionRules : BaseEntity
 {
     [ForeignKey("Payer")]
-    public int? PayerMasterId { get; set; }
+    public string? PayerMasterId { get; set; }
 
     [ForeignKey("Policy")]
-  public int? PolicyMasterId { get; set; }
+  public string? PolicyMasterId { get; set; }
 
     [Required]
-    [StringLength(255)]
+[StringLength(255)]
     public string RuleName { get; set; } = string.Empty;
 
     [StringLength(100)]
@@ -224,9 +224,9 @@ public class ClaimSubmissionRules : BaseEntity
 
     public int? MaxDaysForSubmission { get; set; }
 
-    public bool IsActive { get; set; } = true;
+  public bool IsActive { get; set; } = true;
 
-    public int Priority { get; set; } = 100;
+ public int Priority { get; set; } = 100;
 
   [StringLength(100)]
     public string? CreatedBy { get; set; }

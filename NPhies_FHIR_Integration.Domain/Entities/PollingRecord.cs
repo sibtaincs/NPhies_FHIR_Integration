@@ -29,15 +29,15 @@ public class PollingRecord : BaseEntity
     public string? RequestTaskId { get; set; }
 
     /// <summary>
-    /// Task Request Database ID (if stored)
-    /// FK ? TaskRequest
+    /// Cancellation Request Database ID (if stored)
+    /// FK ? CancellationRequest
     /// </summary>
-    public string? TaskRequestId { get; set; }
+    public string? CancellationRequestId { get; set; }
 
     /// <summary>
-    /// Task Request (navigation property)
+    /// Cancellation Request (navigation property)
     /// </summary>
-    public TaskRequest? TaskRequest { get; set; }
+    public CancellationRequest? CancellationRequest { get; set; }
 
   /// <summary>
     /// Message types requested in poll
@@ -57,15 +57,15 @@ public class PollingRecord : BaseEntity
     public string? ResponseTaskId { get; set; }
 
     /// <summary>
- /// Task Response Database ID (if stored)
-    /// FK ? TaskResponse
+ /// Cancellation Response Database ID (if stored)
+    /// FK ? CancellationResponse
     /// </summary>
-    public string? TaskResponseId { get; set; }
+    public string? CancellationResponseId { get; set; }
 
     /// <summary>
-    /// Task Response (navigation property)
+    /// Cancellation Response (navigation property)
     /// </summary>
-  public TaskResponse? TaskResponse { get; set; }
+  public CancellationResponse? CancellationResponse { get; set; }
 
     /// <summary>
   /// Response status from NPHIES
@@ -104,8 +104,8 @@ public class PollingRecord : BaseEntity
 
     /// <summary>
 /// Processing status of this polling record
-    /// Values: "pending", "processing", "completed", "failed", "acknowledged"
-    /// </summary>
+/// Values: "pending", "processing", "completed", "failed", "acknowledged"
+/// </summary>
     public string ProcessingStatus { get; set; } = "pending";
 
 /// <summary>

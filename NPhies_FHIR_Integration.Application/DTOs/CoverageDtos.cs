@@ -31,10 +31,10 @@ public class CoverageDto : BaseDto
 /// </summary>
 public class CreateCoverageDto
 {
-  public string PolicyNumber { get; set; } = string.Empty;
+    public string PolicyNumber { get; set; } = string.Empty;
     public string MemberID { get; set; } = string.Empty;
     public string CoverageType { get; set; } = string.Empty;
-  public string PatientId { get; set; } = string.Empty;
+    public string PatientId { get; set; } = string.Empty;
     public string InsurerId { get; set; } = string.Empty;
     public DateTime CoverageStartDate { get; set; }
     public DateTime CoverageEndDate { get; set; }
@@ -73,7 +73,7 @@ public class CoverageSearchResultDto
 public class CoverageWithPatientDto : CoverageDto
 {
     public string PatientName { get; set; } = string.Empty;
- public string PatientMRN { get; set; } = string.Empty;
+    public string PatientMRN { get; set; } = string.Empty;
 }
 
 /// <summary>

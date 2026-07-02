@@ -28,23 +28,23 @@ public class NphiesCodeMapping : BaseEntity
     public string NphiesCodeSystem { get; set; } = string.Empty;
 
     [StringLength(255)]
-  public string? NphiesDescription { get; set; }
+    public string? NphiesDescription { get; set; }
 
     [Required]
     [StringLength(50)]
-public string CodeType { get; set; } = string.Empty;
+    public string CodeType { get; set; } = string.Empty;
 
     public bool IsMappingValid { get; set; } = true;
 
     public DateTime? MappingValidationDate { get; set; }
 
     [StringLength(1000)]
-  public string? Notes { get; set; }
+    public string? Notes { get; set; }
 
     [StringLength(100)]
     public string? CreatedBy { get; set; }
 
-  [StringLength(100)]
+    [StringLength(100)]
     public string? ModifiedBy { get; set; }
 }
 
@@ -68,7 +68,7 @@ public class ClinicMaster : BaseEntity
     public string ClinicCode { get; set; } = string.Empty;
 
     [StringLength(100)]
-  public string? ClinicType { get; set; }
+    public string? ClinicType { get; set; }
 
     [StringLength(500)]
     public string? SpecializedServices { get; set; }
@@ -77,7 +77,7 @@ public class ClinicMaster : BaseEntity
 
     public int? NumberOfDoctors { get; set; }
 
- public int? NumberOfNurses { get; set; }
+    public int? NumberOfNurses { get; set; }
 
     [StringLength(255)]
     public string? IsCertifiedBy { get; set; }
@@ -85,7 +85,7 @@ public class ClinicMaster : BaseEntity
     [StringLength(100)]
     public string? AccreditationLevel { get; set; }
 
-  public TimeOnly? WorkingHoursFrom { get; set; }
+    public TimeOnly? WorkingHoursFrom { get; set; }
 
     public TimeOnly? WorkingHoursTo { get; set; }
 
@@ -95,9 +95,9 @@ public class ClinicMaster : BaseEntity
 
     public bool LabAvailable { get; set; }
 
-public bool ImagingAvailable { get; set; }
+    public bool ImagingAvailable { get; set; }
 
-  public bool AcceptsCashPayment { get; set; }
+    public bool AcceptsCashPayment { get; set; }
 
     public bool AcceptsInsurance { get; set; }
 
@@ -127,8 +127,8 @@ public bool ImagingAvailable { get; set; }
 public class DoctorMaster : BaseEntity
 {
     [Required]
-    [StringLength(450)]
- [ForeignKey("Practitioner")]
+    [StringLength(100)]
+    [ForeignKey("Practitioner")]
     public string PractitionerId { get; set; } = string.Empty;
 
     [Required]
@@ -165,7 +165,7 @@ public class DoctorMaster : BaseEntity
     public string CurrencyCode { get; set; } = "SAR";
 
     [ForeignKey("Clinic")]
-  public int? ClinicMasterId { get; set; }
+    public string? ClinicMasterId { get; set; }
 
     public bool IsAvailableForAppointments { get; set; }
 
@@ -174,7 +174,7 @@ public class DoctorMaster : BaseEntity
     [StringLength(100)]
     public string? Board { get; set; }
 
-  [StringLength(100)]
+    [StringLength(100)]
     public string? BoardLicenseNumber { get; set; }
 
     public DateTime? BoardLicenseExpiry { get; set; }
@@ -183,7 +183,7 @@ public class DoctorMaster : BaseEntity
 
     public bool IsTeachingMember { get; set; }
 
- public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; } = true;
 
     [StringLength(100)]
     public string? CreatedBy { get; set; }
@@ -193,7 +193,7 @@ public class DoctorMaster : BaseEntity
 
     // Navigation
     [ForeignKey("PractitionerId")]
-  public virtual Practitioner? Practitioner { get; set; }
+    public virtual Practitioner? Practitioner { get; set; }
 
     [ForeignKey("ClinicMasterId")]
     public virtual ClinicMaster? Clinic { get; set; }
@@ -209,28 +209,28 @@ public class DoctorQualification : BaseEntity
 {
     [Required]
     [ForeignKey("DoctorMaster")]
-    public int DoctorMasterId { get; set; }
+    public string DoctorMasterId { get; set; } = string.Empty;
 
     [Required]
     [StringLength(100)]
     public string QualificationType { get; set; } = string.Empty;
 
-[Required]
+    [Required]
     [StringLength(255)]
-  public string QualificationName { get; set; } = string.Empty;
+    public string QualificationName { get; set; } = string.Empty;
 
     [Required]
     [StringLength(255)]
     public string UniversityName { get; set; } = string.Empty;
 
     [Required]
- public DateTime IssuedDate { get; set; }
+    public DateTime IssuedDate { get; set; }
 
- public bool IsExpiring { get; set; }
+    public bool IsExpiring { get; set; }
 
-  public DateTime? ExpiryDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
 
-  [StringLength(100)]
+    [StringLength(100)]
     public string? CertificateNumber { get; set; }
 
     [StringLength(50)]

@@ -16,8 +16,8 @@ namespace NPhies_FHIR_Integration.ApiService.Controllers;
 [Produces("application/json")]
 public class CancellationResponsesController : ControllerBase
 {
-    private readonly IRepository<TaskResponse> _taskResponseRepository;
-    private readonly IRepository<TaskRequest> _taskRequestRepository;
+    private readonly IRepository<CancellationResponse> _cancellationResponseRepository;
+    private readonly IRepository<CancellationRequest> _cancellationRequestRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<CancellationResponsesController> _logger;
 
@@ -25,13 +25,13 @@ public class CancellationResponsesController : ControllerBase
     /// Constructor with dependency injection
     /// </summary>
     public CancellationResponsesController(
-  IRepository<TaskResponse> taskResponseRepository,
-   IRepository<TaskRequest> taskRequestRepository,
+  IRepository<CancellationResponse> cancellationResponseRepository,
+   IRepository<CancellationRequest> cancellationRequestRepository,
         IMapper mapper,
     ILogger<CancellationResponsesController> logger)
     {
-        _taskResponseRepository = taskResponseRepository ?? throw new ArgumentNullException(nameof(taskResponseRepository));
-  _taskRequestRepository = taskRequestRepository ?? throw new ArgumentNullException(nameof(taskRequestRepository));
+      _cancellationResponseRepository = cancellationResponseRepository ?? throw new ArgumentNullException(nameof(cancellationResponseRepository));
+  _cancellationRequestRepository = cancellationRequestRepository ?? throw new ArgumentNullException(nameof(cancellationRequestRepository));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -45,19 +45,19 @@ public class CancellationResponsesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+ public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
   try
         {
     if (pageNumber < 1 || pageSize < 1 || pageSize > 100)
             {
          _logger.LogWarning("Invalid pagination parameters");
-             return BadRequest(new { message = "Invalid pagination parameters" });
+     return BadRequest(new { message = "Invalid pagination parameters" });
     }
 
-      var allResponses = await _taskResponseRepository.GetAllAsync();
-            var totalCount = allResponses.Count();
-    var responses = allResponses
+      var allResponses = await _cancellationResponseRepository.GetAllAsync();
+         var totalCount = allResponses.Count();
+  var responses = allResponses
      .Skip((pageNumber - 1) * pageSize)
         .Take(pageSize)
  .ToList();
@@ -66,20 +66,20 @@ public class CancellationResponsesController : ControllerBase
 
   _logger.LogInformation($"Retrieved {responseDtos.Count} cancellation responses (Page {pageNumber})");
         return Ok(new
-            {
-            pageNumber = pageNumber,
+    {
+          pageNumber = pageNumber,
   pageSize = pageSize,
-          totalCount = totalCount,
+    totalCount = totalCount,
        totalPages = (totalCount + pageSize - 1) / pageSize,
        items = responseDtos
             });
         }
-        catch (Exception ex)
+   catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving cancellation responses");
+_logger.LogError(ex, "Error retrieving cancellation responses");
     return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
         }
-    }
+}
 
     /// <summary>
     /// Get cancellation response by ID
@@ -92,21 +92,21 @@ public class CancellationResponsesController : ControllerBase
     public async Task<IActionResult> GetById(string id)
     {
         try
-        {
+   {
        if (string.IsNullOrWhiteSpace(id))
        {
      return BadRequest(new { message = "Cancellation Response ID is required" });
     }
 
-  var response = await _taskResponseRepository.GetByIdAsync(id);
+  var response = await _cancellationResponseRepository.GetByIdAsync(id);
          if (response == null)
    {
       _logger.LogWarning($"Cancellation response not found: {id}");
-             return NotFound(new { message = "Cancellation response not found" });
+           return NotFound(new { message = "Cancellation response not found" });
   }
 
-            var responseDto = _mapper.Map<TaskResponseDto>(response);
-            _logger.LogInformation($"Retrieved cancellation response: {id}");
+  var responseDto = _mapper.Map<TaskResponseDto>(response);
+ _logger.LogInformation($"Retrieved cancellation response: {id}");
   return Ok(responseDto);
         }
         catch (Exception ex)
@@ -129,28 +129,28 @@ public class CancellationResponsesController : ControllerBase
         try
    {
      if (string.IsNullOrWhiteSpace(status))
-            {
+       {
           return BadRequest(new { message = "Status is required" });
-    }
+}
 
       var validStatuses = new[] { "completed", "failed", "in-progress", "rejected", "cancelled" };
        if (!validStatuses.Contains(status.ToLower()))
             {
-              return BadRequest(new { message = $"Invalid status. Valid values: {string.Join(", ", validStatuses)}" });
+         return BadRequest(new { message = $"Invalid status. Valid values: {string.Join(", ", validStatuses)}" });
             }
 
-            var responses = await _taskResponseRepository.FindAsync(t => t.Status == status && t.Code == "cancel");
+  var responses = await _cancellationResponseRepository.FindAsync(t => t.Status == status && t.Code == "cancel");
       var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
 
      _logger.LogInformation($"Retrieved {responseDtos.Count} cancellation responses with status: {status}");
       return Ok(new { status = status, count = responseDtos.Count, items = responseDtos });
         }
-        catch (Exception ex)
+      catch (Exception ex)
     {
       _logger.LogError(ex, $"Error retrieving cancellation responses by status: {status}");
         return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
         }
-    }
+ }
 
     /// <summary>
     /// Get cancellation responses by response code
@@ -166,18 +166,18 @@ try
         {
             if (string.IsNullOrWhiteSpace(responseCode))
 {
-           return BadRequest(new { message = "Response code is required" });
+         return BadRequest(new { message = "Response code is required" });
        }
 
-            var responses = await _taskResponseRepository.FindAsync(t => t.ResponseCode == responseCode && t.Code == "cancel");
-            var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
+            var responses = await _cancellationResponseRepository.FindAsync(t => t.ResponseCode == responseCode && t.Code == "cancel");
+    var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
 
      _logger.LogInformation($"Retrieved {responseDtos.Count} cancellation responses with response code: {responseCode}");
         return Ok(new { responseCode = responseCode, count = responseDtos.Count, items = responseDtos });
-        }
+     }
   catch (Exception ex)
         {
-       _logger.LogError(ex, $"Error retrieving cancellation responses by response code: {responseCode}");
+  _logger.LogError(ex, $"Error retrieving cancellation responses by response code: {responseCode}");
    return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
         }
     }
@@ -190,15 +190,15 @@ try
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSuccessful()
     {
-        try
+     try
    {
-  var responses = await _taskResponseRepository.FindAsync(t => t.ResponseCode == "ok" && t.ResponseStatusCode == 200 && t.Code == "cancel");
-            var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
+  var responses = await _cancellationResponseRepository.FindAsync(t => t.ResponseCode == "ok" && t.ResponseStatusCode == 200 && t.Code == "cancel");
+        var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
 
        _logger.LogInformation($"Retrieved {responseDtos.Count} successful cancellation responses");
-            return Ok(new { count = responseDtos.Count, items = responseDtos });
+    return Ok(new { count = responseDtos.Count, items = responseDtos });
         }
-        catch (Exception ex)
+   catch (Exception ex)
       {
    _logger.LogError(ex, "Error retrieving successful cancellation responses");
    return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
@@ -212,19 +212,19 @@ try
     [HttpGet("filter/failed")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFailed()
-    {
+{
         try
-   {
-            var responses = await _taskResponseRepository.FindAsync(t => (t.ResponseCode == "error" || t.ResponseStatusCode >= 400) && t.Code == "cancel");
-          var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
+ {
+      var responses = await _cancellationResponseRepository.FindAsync(t => (t.ResponseCode == "error" || t.ResponseStatusCode >= 400) && t.Code == "cancel");
+  var responseDtos = _mapper.Map<List<TaskResponseDto>>(responses);
 
             _logger.LogInformation($"Retrieved {responseDtos.Count} failed cancellation responses");
-            return Ok(new { count = responseDtos.Count, items = responseDtos });
+return Ok(new { count = responseDtos.Count, items = responseDtos });
      }
       catch (Exception ex)
         {
    _logger.LogError(ex, "Error retrieving failed cancellation responses");
-            return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
+        return StatusCode(500, new { message = "An error occurred while retrieving cancellation responses" });
         }
     }
 
@@ -243,12 +243,12 @@ try
         {
  if (createDto == null)
   {
-          return BadRequest(new { message = "Cancellation response data is required" });
+       return BadRequest(new { message = "Cancellation response data is required" });
     }
 
-            if (string.IsNullOrWhiteSpace(createDto.TaskId))
+     if (string.IsNullOrWhiteSpace(createDto.TaskId))
     {
-                return BadRequest(new { message = "Task ID is required" });
+        return BadRequest(new { message = "Task ID is required" });
             }
 
      // Ensure code is set to "cancel"
@@ -257,27 +257,27 @@ try
             // If referenced cancellation request ID provided, verify it exists
     if (!string.IsNullOrEmpty(createDto.TaskRequestId))
  {
-      var request = await _taskRequestRepository.GetByIdAsync(createDto.TaskRequestId);
-                if (request == null)
+      var request = await _cancellationRequestRepository.GetByIdAsync(createDto.TaskRequestId);
+      if (request == null)
     {
   _logger.LogWarning($"Referenced cancellation request not found: {createDto.TaskRequestId}");
-        return BadRequest(new { message = "Referenced cancellation request not found" });
-                }
-            }
+    return BadRequest(new { message = "Referenced cancellation request not found" });
+  }
+   }
 
- var response = _mapper.Map<TaskResponse>(createDto);
-          await _taskResponseRepository.AddAsync(response);
-  await _taskResponseRepository.SaveChangesAsync();
+ var response = _mapper.Map<CancellationResponse>(createDto);
+  await _cancellationResponseRepository.AddAsync(response);
+  await _cancellationResponseRepository.SaveChangesAsync();
 
   var responseDto = _mapper.Map<TaskResponseDto>(response);
     _logger.LogInformation($"Created new cancellation response: {response.Id}");
 
-            return CreatedAtAction(nameof(GetById), new { id = response.Id }, responseDto);
-        }
+    return CreatedAtAction(nameof(GetById), new { id = response.Id }, responseDto);
+   }
      catch (Exception ex)
-        {
+ {
             _logger.LogError(ex, "Error creating cancellation response");
-            return StatusCode(500, new { message = "An error occurred while creating the cancellation response" });
+  return StatusCode(500, new { message = "An error occurred while creating the cancellation response" });
         }
     }
 
@@ -290,29 +290,29 @@ try
  [HttpPut("{id}")]
   [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateTaskResponseDto updateDto)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(id))
+      try
+      {
+  if (string.IsNullOrWhiteSpace(id))
        {
-            return BadRequest(new { message = "Cancellation Response ID is required" });
+ return BadRequest(new { message = "Cancellation Response ID is required" });
    }
 
-            var response = await _taskResponseRepository.GetByIdAsync(id);
-            if (response == null)
+  var response = await _cancellationResponseRepository.GetByIdAsync(id);
+  if (response == null)
             {
    _logger.LogWarning($"Cancellation response not found for update: {id}");
-      return NotFound(new { message = "Cancellation response not found" });
+ return NotFound(new { message = "Cancellation response not found" });
         }
 
-     _mapper.Map(updateDto, response);
-        _taskResponseRepository.Update(response);
-      await _taskResponseRepository.SaveChangesAsync();
+_mapper.Map(updateDto, response);
+        _cancellationResponseRepository.Update(response);
+      await _cancellationResponseRepository.SaveChangesAsync();
 
     var responseDto = _mapper.Map<TaskResponseDto>(response);
-            _logger.LogInformation($"Updated cancellation response: {id}");
+     _logger.LogInformation($"Updated cancellation response: {id}");
 
    return Ok(responseDto);
    }
@@ -329,34 +329,34 @@ try
     /// <param name="id">Cancellation Response ID</param>
     /// <returns>Deletion status</returns>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string id)
     {
-   try
-        {
+try
+    {
             if (string.IsNullOrWhiteSpace(id))
-            {
-                return BadRequest(new { message = "Cancellation Response ID is required" });
+     {
+       return BadRequest(new { message = "Cancellation Response ID is required" });
      }
 
-            var response = await _taskResponseRepository.GetByIdAsync(id);
-        if (response == null)
+    var response = await _cancellationResponseRepository.GetByIdAsync(id);
+     if (response == null)
  {
      _logger.LogWarning($"Cancellation response not found for deletion: {id}");
-         return NotFound(new { message = "Cancellation response not found" });
+  return NotFound(new { message = "Cancellation response not found" });
    }
 
-     _taskResponseRepository.Delete(response);
-  await _taskResponseRepository.SaveChangesAsync();
+     _cancellationResponseRepository.Delete(response);
+  await _cancellationResponseRepository.SaveChangesAsync();
 
-            _logger.LogInformation($"Deleted cancellation response: {id}");
-            return Ok(new { message = "Cancellation response deleted successfully" });
-        }
+ _logger.LogInformation($"Deleted cancellation response: {id}");
+return Ok(new { message = "Cancellation response deleted successfully" });
+  }
         catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting cancellation response: {id}");
+   {
+_logger.LogError(ex, $"Error deleting cancellation response: {id}");
   return StatusCode(500, new { message = "An error occurred while deleting the cancellation response" });
-        }
+     }
     }
 }

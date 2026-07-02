@@ -16,8 +16,8 @@ public interface IPollingService
     /// </summary>
   /// <param name="providerId">Provider organization ID</param>
     /// <param name="messageTypes">Message types to poll for (e.g., "claim-response")</param>
-    /// <returns>Created TaskRequest</returns>
-  Task<TaskRequest> CreatePollRequestAsync(string providerId, List<string> messageTypes);
+    /// <returns>Created CancellationRequest</returns>
+  Task<CancellationRequest> CreatePollRequestAsync(string providerId, List<string> messageTypes);
 
     /// <summary>
  /// Record polling activity
@@ -46,28 +46,28 @@ Task<PollingRecord?> GetPollingRecordAsync(string recordId);
     /// <param name="taskResponse">Poll response Task</param>
     /// <param name="responseBundle">Bundle containing queued messages</param>
  /// <returns>List of processed message IDs</returns>
-    Task<List<string>> ProcessPollResponseAsync(TaskResponse taskResponse, string responseBundle);
+    Task<List<string>> ProcessPollResponseAsync(CancellationResponse taskResponse, string responseBundle);
 
     /// <summary>
     /// Get pending poll requests for a provider
     /// </summary>
     /// <param name="providerId">Provider organization ID</param>
     /// <returns>List of pending poll requests</returns>
- Task<List<TaskRequest>> GetPendingPollRequestsAsync(string providerId);
+ Task<List<CancellationRequest>> GetPendingPollRequestsAsync(string providerId);
 
     /// <summary>
     /// Get completed poll responses
-    /// </summary>
+  /// </summary>
     /// <param name="providerId">Provider organization ID</param>
     /// <returns>List of completed poll responses</returns>
-    Task<List<TaskResponse>> GetCompletedPollResponsesAsync(string providerId);
+    Task<List<CancellationResponse>> GetCompletedPollResponsesAsync(string providerId);
 
     /// <summary>
     /// Acknowledge poll response (mark as processed)
     /// </summary>
     /// <param name="taskResponseId">Task response ID</param>
-    /// <returns>Updated TaskResponse</returns>
-    Task<TaskResponse> AcknowledgePollResponseAsync(string taskResponseId);
+    /// <returns>Updated CancellationResponse</returns>
+    Task<CancellationResponse> AcknowledgePollResponseAsync(string taskResponseId);
 
     /// <summary>
  /// Get queued messages for a provider
@@ -128,37 +128,37 @@ public class PollingService : IPollingService
     /// <summary>
     /// Create a poll request task
     /// </summary>
-    public async Task<TaskRequest> CreatePollRequestAsync(string providerId, List<string> messageTypes)
+    public async Task<CancellationRequest> CreatePollRequestAsync(string providerId, List<string> messageTypes)
     {
-        try
-        {
+ try
+    {
        _logger.LogInformation($"Creating poll request for provider: {providerId}, message types: {string.Join(", ", messageTypes)}");
 
-  var pollRequest = new TaskRequest
-          {
+  var pollRequest = new CancellationRequest
+   {
        Id = Guid.NewGuid().ToString(),
       TaskId = $"poll-{Guid.NewGuid().ToString().Substring(0, 8)}",
    IdentifierSystem = "http://nphies.sa/identifier/task",
-         IdentifierValue = Guid.NewGuid().ToString(),
-                Status = "requested",
-        Intent = "order",
+IdentifierValue = Guid.NewGuid().ToString(),
+           Status = "requested",
+  Intent = "order",
            Priority = "stat",
-                Code = "poll",
+  Code = "poll",
               CodeSystem = "http://nphies.sa/terminology/CodeSystem/task-code",
       FocusResourceType = "Bundle",
         ReasonCode = "poll-request",
-                ReasonCodeSystem = "http://nphies.sa/terminology/CodeSystem/task-reason",
+     ReasonCodeSystem = "http://nphies.sa/terminology/CodeSystem/task-reason",
      ReasonText = $"Polling for messages: {string.Join(", ", messageTypes)}",
        RequesterId = providerId,
  OwnerId = "NPHIES", // System owner is NPHIES
-              ProcessingStatus = "pending",
-                AuthoredOn = DateTime.UtcNow,
+       ProcessingStatus = "pending",
+   AuthoredOn = DateTime.UtcNow,
        LastModified = DateTime.UtcNow,
     CreatedAt = DateTime.UtcNow,
  Description = $"Poll request for message types: {string.Join(", ", messageTypes)}"
   };
 
-  await _context.TaskRequests.AddAsync(pollRequest);
+  await _context.CancellationRequests.AddAsync(pollRequest);
       await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Poll request created successfully: {pollRequest.TaskId}");
@@ -166,7 +166,7 @@ public class PollingService : IPollingService
   return pollRequest;
         }
         catch (Exception ex)
-      {
+  {
             _logger.LogError(ex, "Error creating poll request");
    throw;
         }
@@ -206,36 +206,36 @@ public class PollingService : IPollingService
     /// <summary>
     /// Process poll response with queued messages
     /// </summary>
-    public async Task<List<string>> ProcessPollResponseAsync(TaskResponse taskResponse, string responseBundle)
+    public async Task<List<string>> ProcessPollResponseAsync(CancellationResponse taskResponse, string responseBundle)
     {
         try
-      {
-          _logger.LogInformation($"Processing poll response: {taskResponse.TaskId}");
+   {
+      _logger.LogInformation($"Processing poll response: {taskResponse.TaskId}");
 
  var processedIds = new List<string>();
 
 // Parse the response bundle
-            using (JsonDocument doc = JsonDocument.Parse(responseBundle))
+          using (JsonDocument doc = JsonDocument.Parse(responseBundle))
     {
        var root = doc.RootElement;
 
          if (root.TryGetProperty("entry", out JsonElement entries))
             {
-        foreach (var entry in entries.EnumerateArray())
+      foreach (var entry in entries.EnumerateArray())
         {
-            if (entry.TryGetProperty("resource", out JsonElement resource))
+   if (entry.TryGetProperty("resource", out JsonElement resource))
       {
     if (resource.TryGetProperty("resourceType", out JsonElement resourceType))
 {
-          var type = resourceType.GetString();
-     _logger.LogInformation($"Processing resource type: {type}");
+  var type = resourceType.GetString();
+   _logger.LogInformation($"Processing resource type: {type}");
 
  // Store the resource based on type
-         var resourceId = await ProcessResourceAsync(type, resource.GetRawText());
+     var resourceId = await ProcessResourceAsync(type, resource.GetRawText());
    if (resourceId != null)
        {
    processedIds.Add(resourceId);
-         }
+      }
        }
   }
         }
@@ -244,24 +244,24 @@ public class PollingService : IPollingService
 
   // Update task response status
             taskResponse.Status = "completed";
-            taskResponse.ProcessingStatus = "processed";
+         taskResponse.ProcessingStatus = "processed";
       taskResponse.ResponseCode = "ok";
-            taskResponse.ResultText = $"Processed {processedIds.Count} messages";
-            taskResponse.LastModified = DateTime.UtcNow;
+     taskResponse.ResultText = $"Processed {processedIds.Count} messages";
+     taskResponse.LastModified = DateTime.UtcNow;
    taskResponse.UpdatedAt = DateTime.UtcNow;
 
-    _context.TaskResponses.Update(taskResponse);
+    _context.CancellationResponses.Update(taskResponse);
     await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"Poll response processed successfully: {processedIds.Count} messages");
+     _logger.LogInformation($"Poll response processed successfully: {processedIds.Count} messages");
 
   return processedIds;
  }
   catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing poll response");
+      {
+       _logger.LogError(ex, "Error processing poll response");
     throw;
-        }
+  }
     }
 
     /// <summary>
@@ -420,67 +420,67 @@ if (root.TryGetProperty("id", out JsonElement id))
   /// <summary>
     /// Get pending poll requests for a provider
     /// </summary>
-    public async Task<List<TaskRequest>> GetPendingPollRequestsAsync(string providerId)
+    public async Task<List<CancellationRequest>> GetPendingPollRequestsAsync(string providerId)
     {
         try
-        {
-        _logger.LogInformation($"Getting pending poll requests for provider: {providerId}");
+ {
+  _logger.LogInformation($"Getting pending poll requests for provider: {providerId}");
 
-     return await Task.FromResult(_context.TaskRequests
+  return await Task.FromResult(_context.CancellationRequests
       .Where(r => r.RequesterId == providerId &&
-      r.Code == "poll" &&
+   r.Code == "poll" &&
   r.Status == "requested")
          .ToList());
-    }
+}
         catch (Exception ex)
     {
    _logger.LogError(ex, "Error getting pending poll requests");
-            throw;
-   }
+throw;
+ }
     }
 
  /// <summary>
     /// Get completed poll responses
     /// </summary>
-    public async Task<List<TaskResponse>> GetCompletedPollResponsesAsync(string providerId)
+    public async Task<List<CancellationResponse>> GetCompletedPollResponsesAsync(string providerId)
     {
         try
-        {
+     {
        _logger.LogInformation($"Getting completed poll responses for provider: {providerId}");
 
-            return await Task.FromResult(_context.TaskResponses
+    return await Task.FromResult(_context.CancellationResponses
      .Where(r => r.RequesterId == providerId &&
          r.Status == "completed" &&
     r.ProcessingStatus == "processed")
          .ToList());
         }
       catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting completed poll responses");
-            throw;
+   {
+        _logger.LogError(ex, "Error getting completed poll responses");
+        throw;
         }
     }
 
-    /// <summary>
+  /// <summary>
     /// Acknowledge poll response (mark as processed)
     /// </summary>
-    public async Task<TaskResponse> AcknowledgePollResponseAsync(string taskResponseId)
+    public async Task<CancellationResponse> AcknowledgePollResponseAsync(string taskResponseId)
     {
-        try
+try
         {
           _logger.LogInformation($"Acknowledging poll response: {taskResponseId}");
 
-       var response = _context.TaskResponses.FirstOrDefault(r => r.Id == taskResponseId);
-            if (response == null)
-            {
+       var response = _context.CancellationResponses.FirstOrDefault(r => r.Id == taskResponseId);
+      if (response == null)
+{
        throw new InvalidOperationException($"Poll response not found: {taskResponseId}");
          }
 
       response.ProcessingStatus = "acknowledged";
          response.LastModified = DateTime.UtcNow;
-            response.UpdatedAt = DateTime.UtcNow;
+       response.UpdatedAt = DateTime.UtcNow;
 
-   _context.TaskResponses.Update(response);
+   _context.CancellationResponses.Update(response);
      await _context.SaveChangesAsync();
 
          _logger.LogInformation($"Poll response acknowledged: {taskResponseId}");
@@ -491,9 +491,9 @@ if (root.TryGetProperty("id", out JsonElement id))
     {
    _logger.LogError(ex, "Error acknowledging poll response");
          throw;
-        }
+   }
     }
-
+    
     /// <summary>
     /// Get queued messages for a provider
     /// </summary>
