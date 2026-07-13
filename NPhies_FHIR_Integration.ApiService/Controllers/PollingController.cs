@@ -65,8 +65,7 @@ public class PollingController : BaseController
     PollingRecordId = $"poll-{Guid.NewGuid().ToString().Substring(0, 8)}",
        ProviderId = request.ProviderId,
    RequestTaskId = pollRequest.TaskId,
-     TaskRequestId = pollRequest.Id,
-    RequestedMessageTypes = string.Join(",", request.MessageTypes),
+     RequestedMessageTypes = string.Join(",", request.MessageTypes),
     RequestSentAt = DateTime.UtcNow,
       ProcessingStatus = "pending",
  CycleStatus = "in-progress",
@@ -167,24 +166,13 @@ Status = r.Status,
 
   var startTime = DateTime.UtcNow;
 
-     // Create TaskResponse object from request
-         var taskResponse = new Domain.Entities.TaskResponse
-      {
-    Id = Guid.NewGuid().ToString(),
-       TaskId = response.TaskId,
-      Status = "completed",
-   ResponseCode = response.ResponseCode ?? "ok",
-     FhirTaskJson = response.ResponseBundle,
-CreatedAt = DateTime.UtcNow
- };
-
-      // Process the response
+     // Process the response
    var processedIds = await _pollingService.ProcessPollResponseAsync(
-   taskResponse,
-         response.ResponseBundle
+   null,
+  response.ResponseBundle
  );
 
-     var duration = DateTime.UtcNow.Subtract(startTime).TotalMilliseconds;
+  var duration = DateTime.UtcNow.Subtract(startTime).TotalMilliseconds;
 
    // Record polling response activity
     var pollingRecord = new Domain.Entities.PollingRecord
@@ -192,7 +180,6 @@ CreatedAt = DateTime.UtcNow
  Id = Guid.NewGuid().ToString(),
  PollingRecordId = $"resp-{Guid.NewGuid().ToString().Substring(0, 8)}",
       ResponseTaskId = response.TaskId,
-        TaskResponseId = taskResponse.Id,
    ResponseStatus = response.ResponseCode ?? "ok",
  ResponseReceivedAt = DateTime.UtcNow,
        MessagesReceived = processedIds.Count,

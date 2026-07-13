@@ -170,26 +170,51 @@ public int PageNumber { get; set; } = 1;
     /// </summary>
     public bool Validate(out string error)
     {
-        error = string.Empty;
+    error = string.Empty;
 
      if (PageNumber < 1)
-        {
-            error = "Page number must be greater than 0";
-          return false;
-        }
+   {
+  error = "Page number must be greater than 0";
+    return false;
+ }
 
-        if (PageSize < 1)
+if (PageSize < 1)
         {
-    error = "Page size must be greater than 0";
+error = "Page size must be greater than 0";
             return false;
         }
 
         if (PageSize > 100)
-        {
+  {
     error = "Page size cannot exceed 100";
-            return false;
-        }
+ return false;
+   }
 
     return true;
     }
+}
+
+/// <summary>
+/// Validation result DTO for rule engine
+/// </summary>
+public class ValidationResultDto
+{
+    public bool IsValid { get; set; }
+    public int TotalErrors { get; set; }
+    public int TotalWarnings { get; set; }
+    public List<ValidationErrorDto> Errors { get; set; } = new();
+    public List<ValidationErrorDto> Warnings { get; set; } = new();
+    public DateTime ValidatedAt { get; set; } = DateTime.UtcNow;
+    public string? ClaimId { get; set; }
+}
+
+/// <summary>
+/// Validation error DTO
+/// </summary>
+public class ValidationErrorDto
+{
+    public string RuleId { get; set; } = string.Empty;
+    public string Severity { get; set; } = "Warning";
+    public string Message { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }

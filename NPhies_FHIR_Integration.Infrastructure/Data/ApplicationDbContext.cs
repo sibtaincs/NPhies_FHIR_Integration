@@ -261,6 +261,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<DoctorQualification> DoctorQualifications { get; set; } = null!;
 
     /// <summary>
+    /// ErrorCodeMaster - NPHIES error codes (1,682 codes)
+    /// </summary>
+    public DbSet<ErrorCodeMaster> ErrorCodeMasters { get; set; } = null!;
+
+    /// <summary>
     /// User entities
     /// </summary>
     public DbSet<User> Users { get; set; } = null!;
@@ -324,8 +329,8 @@ public class ApplicationDbContext : DbContext
         ConfigureCancellationResponseEntity(modelBuilder);
 
         // Communication Configuration
-        ConfigureCommunicationEntity(modelBuilder);
-        ConfigureCommunicationRequestEntity(modelBuilder);
+        // ConfigureCommunicationEntity(modelBuilder);
+        // ConfigureCommunicationRequestEntity(modelBuilder);
 
         // Polling Configuration
         ConfigurePollingRecordEntity(modelBuilder);
@@ -345,6 +350,7 @@ public class ApplicationDbContext : DbContext
         ConfigureClinicMasterEntity(modelBuilder);
         ConfigureDoctorMasterEntity(modelBuilder);
         ConfigureDoctorQualificationEntity(modelBuilder);
+        ConfigureErrorCodeMasterEntity(modelBuilder);
 
         // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
         // This fixes FK column length mismatches systematically
@@ -2087,8 +2093,42 @@ entity.Property(dm => dm.DoctorCode).IsRequired().HasMaxLength(50);
 var entity = modelBuilder.Entity<DoctorQualification>();
   entity.HasKey(dq => dq.Id);
         entity.Property(dq => dq.QualificationType).IsRequired().HasMaxLength(100);
-        entity.Property(dq => dq.QualificationName).IsRequired().HasMaxLength(255);
-        entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
+      entity.Property(dq => dq.QualificationName).IsRequired().HasMaxLength(255);
+    entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
  entity.HasIndex(dq => dq.DoctorMasterId);
  }
+
+    /// <summary>
+    /// Configure ErrorCodeMaster entity
+    /// </summary>
+    private void ConfigureErrorCodeMasterEntity(ModelBuilder modelBuilder)
+{
+        var entity = modelBuilder.Entity<ErrorCodeMaster>();
+
+        // Primary Key
+      entity.HasKey(e => e.Id);
+
+        // Properties
+      entity.Property(e => e.ErrorCode).IsRequired().HasMaxLength(20);
+        entity.Property(e => e.ErrorDescription).IsRequired().HasMaxLength(500);
+    entity.Property(e => e.ErrorCategory).IsRequired().HasMaxLength(50);
+        entity.Property(e => e.Severity).IsRequired().HasMaxLength(20);
+        entity.Property(e => e.StandardAppealDays);
+   entity.Property(e => e.RecommendedAction).HasMaxLength(500);
+        entity.Property(e => e.NphiesCodeSystem).HasMaxLength(500);
+        entity.Property(e => e.AdjudicationImpact).HasMaxLength(50);
+  entity.Property(e => e.Notes).HasMaxLength(1000);
+        entity.Property(e => e.CreatedDate);
+   entity.Property(e => e.LastModifiedDate);
+
+   // Indexes for performance
+        entity.HasIndex(e => e.ErrorCode).IsUnique();
+        entity.HasIndex(e => e.ErrorCategory);
+  entity.HasIndex(e => e.IsActive);
+        entity.HasIndex(e => e.Severity);
+     entity.HasIndex(e => e.AllowsAppeal);
+
+        // Table name
+        entity.ToTable("ErrorCodeMasters");
+    }
 }

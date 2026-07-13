@@ -8,6 +8,7 @@ using NPhies_FHIR_Integration.Application.Services.MasterDataServices;
 using NPhies_FHIR_Integration.Application.Mapping;
 using NPhies_FHIR_Integration.ApiService.Security.Extensions;
 using Microsoft.EntityFrameworkCore;
+using NPhies_FHIR_Integration.Application.Services.Masters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +58,8 @@ builder.Services.AddScoped<IRejectionReasonRepository, RejectionReasonRepository
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFhirToEntityMapper, FhirToEntityMapper>();
 builder.Services.AddScoped<DatabaseSeeder>();
+builder.Services.AddScoped<EnhancedDatabaseSeeder>();
+builder.Services.AddScoped<ErrorCodeMasterSeeder>();
 
 // Register Claim services
 builder.Services.AddScoped<IClaimService, ClaimService>();
@@ -86,6 +89,9 @@ builder.Services.AddScoped<IDoctorMasterService, DoctorMasterService>();
 builder.Services.AddScoped<IDoctorQualificationService, DoctorQualificationService>();
 builder.Services.AddScoped<IClaimSubmissionRulesService, ClaimSubmissionRulesService>();
 
+// Register Error Code Service for NPHIES error code management
+builder.Services.AddScoped<IErrorCodeService, ErrorCodeService>();
+
 // NOTE: Phase 3 RCM Services temporarily commented out - will be implemented later
 // builder.Services.AddScoped<IClaimResponseProcessingService, ClaimResponseProcessingService>();
 // builder.Services.AddScoped<IAdjudicationWorkflowService, AdjudicationWorkflowService>();
@@ -110,6 +116,14 @@ app.MapOpenApi();
     {
  var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
         await seeder.SeedAsync();
+        
+        // Also seed master data
+        var enhancedSeeder = scope.ServiceProvider.GetRequiredService<EnhancedDatabaseSeeder>();
+        await enhancedSeeder.SeedAllMasterDataAsync();
+
+   // Seed error codes
+        var errorCodeSeeder = scope.ServiceProvider.GetRequiredService<ErrorCodeMasterSeeder>();
+        await errorCodeSeeder.SeedCriticalErrorCodesAsync();
     }
 }
 
