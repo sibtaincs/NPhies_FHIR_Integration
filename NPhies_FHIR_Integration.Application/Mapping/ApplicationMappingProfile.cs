@@ -156,21 +156,21 @@ public class ApplicationMappingProfile : Profile
   .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "requested"))
         .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
-     CreateMap<UpdateTaskRequestDto, CancellationRequest>()
-   .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
-    // CancellationResponse Mappings
-  CreateMap<CancellationResponse, TaskResponseDto>()
-    .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful()))
-       .ForMember(dest => dest.IsError, opt => opt.MapFrom(src => src.IsError()));
-  CreateMap<CreateTaskResponseDto, CancellationResponse>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
-      .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "completed"))
-.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
-      CreateMap<UpdateTaskResponseDto, CancellationResponse>()
-            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+        CreateMap<UpdateTaskRequestDto, CancellationRequest>()
+      .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        // CancellationResponse Mappings
+        CreateMap<CancellationResponse, TaskResponseDto>()
+          .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful()))
+             .ForMember(dest => dest.IsError, opt => opt.MapFrom(src => src.IsError()));
+        CreateMap<CreateTaskResponseDto, CancellationResponse>()
+                  .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid().ToString()))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? "completed"))
+      .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+        CreateMap<UpdateTaskResponseDto, CancellationResponse>()
+              .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+         .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
 
