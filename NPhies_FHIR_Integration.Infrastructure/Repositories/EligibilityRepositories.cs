@@ -288,7 +288,7 @@ public class CoverageRepository : Repository<Coverage>, ICoverageRepository
     {
         var now = DateTime.UtcNow.Date;
         return await DbSet.AsNoTracking()
-   .Where(c => c.PatientId == patientId &&
+                 .Where(c => c.PatientId == patientId &&
         c.Status == "active" &&
                 c.CoverageStartDate <= now &&
            c.CoverageEndDate >= now)

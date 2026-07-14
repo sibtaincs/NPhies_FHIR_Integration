@@ -8,7 +8,7 @@ public class ApiResponse<T>
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
-public T? Data { get; set; }
+    public T? Data { get; set; }
     public int StatusCode { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
@@ -20,9 +20,9 @@ public T? Data { get; set; }
         return new ApiResponse<T>
         {
             Success = true,
-     Message = message,
-  Data = data,
-       StatusCode = statusCode
+            Message = message,
+            Data = data,
+            StatusCode = statusCode
         };
     }
 
@@ -31,12 +31,12 @@ public T? Data { get; set; }
     /// </summary>
     public static ApiResponse<T> ErrorResponse(string message, int statusCode = 500)
     {
-    return new ApiResponse<T>
-   {
-     Success = false,
-       Message = message,
-  Data = default,
-   StatusCode = statusCode
+        return new ApiResponse<T>
+        {
+            Success = false,
+            Message = message,
+            Data = default,
+            StatusCode = statusCode
         };
     }
 }
@@ -58,22 +58,22 @@ public class ApiResponse
     {
         return new ApiResponse
         {
-  Success = true,
+            Success = true,
             Message = message,
             StatusCode = statusCode
- };
+        };
     }
 
-/// <summary>
+    /// <summary>
     /// Create error response
     /// </summary>
     public static ApiResponse ErrorResponse(string message, int statusCode = 500)
     {
-      return new ApiResponse
-      {
-   Success = false,
-     Message = message,
-          StatusCode = statusCode
+        return new ApiResponse
+        {
+            Success = false,
+            Message = message,
+            StatusCode = statusCode
         };
     }
 }
@@ -95,20 +95,20 @@ public class PaginatedResponse<T>
     /// <summary>
     /// Create paginated response
     /// </summary>
-  public static PaginatedResponse<T> CreatePaginatedResponse(
-        IEnumerable<T> items,
-      int pageNumber,
-        int pageSize,
- int totalCount)
+    public static PaginatedResponse<T> CreatePaginatedResponse(
+          IEnumerable<T> items,
+        int pageNumber,
+          int pageSize,
+   int totalCount)
     {
         var totalPages = (totalCount + pageSize - 1) / pageSize;
         return new PaginatedResponse<T>
         {
-   Items = items,
-        PageNumber = pageNumber,
+            Items = items,
+            PageNumber = pageNumber,
             PageSize = pageSize,
-   TotalCount = totalCount,
- TotalPages = totalPages
+            TotalCount = totalCount,
+            TotalPages = totalPages
         };
     }
 }
@@ -126,7 +126,7 @@ public class ErrorResponse
     public IEnumerable<string>? Errors { get; set; }
 
     /// <summary>
- /// Create error response
+    /// Create error response
     /// </summary>
     public static ErrorResponse CreateErrorResponse(
         int statusCode,
@@ -137,11 +137,11 @@ public class ErrorResponse
     {
         return new ErrorResponse
         {
-    StatusCode = statusCode,
-     Message = message,
-   ExceptionMessage = exceptionMessage,
-         StackTrace = stackTrace,
-Errors = errors
+            StatusCode = statusCode,
+            Message = message,
+            ExceptionMessage = exceptionMessage,
+            StackTrace = stackTrace,
+            Errors = errors
         };
     }
 }
@@ -153,7 +153,7 @@ public class ValidationErrorResponse
 {
     public int StatusCode { get; set; } = 400;
     public string Message { get; set; } = "Validation failed";
- public Dictionary<string, string[]> Errors { get; set; } = new();
+    public Dictionary<string, string[]> Errors { get; set; } = new();
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
 
@@ -162,35 +162,35 @@ public class ValidationErrorResponse
 /// </summary>
 public class PaginationParams
 {
-public int PageNumber { get; set; } = 1;
- public int PageSize { get; set; } = 10;
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
 
     /// <summary>
     /// Validate pagination parameters
     /// </summary>
     public bool Validate(out string error)
     {
-    error = string.Empty;
+        error = string.Empty;
 
-     if (PageNumber < 1)
-   {
-  error = "Page number must be greater than 0";
-    return false;
- }
-
-if (PageSize < 1)
+        if (PageNumber < 1)
         {
-error = "Page size must be greater than 0";
+            error = "Page number must be greater than 0";
+            return false;
+        }
+
+        if (PageSize < 1)
+        {
+            error = "Page size must be greater than 0";
             return false;
         }
 
         if (PageSize > 100)
-  {
-    error = "Page size cannot exceed 100";
- return false;
-   }
+        {
+            error = "Page size cannot exceed 100";
+            return false;
+        }
 
-    return true;
+        return true;
     }
 }
 

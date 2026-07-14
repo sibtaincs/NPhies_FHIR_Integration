@@ -16,8 +16,8 @@ public class DeductibleRuleTests
     public DeductibleRuleTests()
     {
         // Create a null logger for testing (can be replaced with mock)
-_logger = new NullLogger<DeductibleRule>();
-     _rule = new DeductibleRule(_logger);
+        _logger = new NullLogger<DeductibleRule>();
+        _rule = new DeductibleRule(_logger);
     }
 
     [Fact]
@@ -25,30 +25,30 @@ _logger = new NullLogger<DeductibleRule>();
     {
         // Assert
         Assert.Equal("DEDUCTIBLE", _rule.RuleId);
- }
+    }
 
-  [Fact]
+    [Fact]
     public async Task Priority_Returns10()
     {
-// Assert
-    Assert.Equal(10, _rule.Priority);
+        // Assert
+        Assert.Equal(10, _rule.Priority);
     }
 
     [Fact]
     public async Task IsApplicableAsync_ReturnsTrueWhenRemainingDeductible()
     {
-   // Arrange
+        // Arrange
         var context = new AdjudicationContext
         {
-      AnnualDeductible = 1000m,
+            AnnualDeductible = 1000m,
             DeductibleMet = 500m,
-        RemainingAmount = 100m
+            RemainingAmount = 100m
         };
 
         // Act
         var result = await _rule.IsApplicableAsync(context);
 
-      // Assert
+        // Assert
         Assert.True(result);
     }
 
@@ -58,9 +58,9 @@ _logger = new NullLogger<DeductibleRule>();
         // Arrange
         var context = new AdjudicationContext
         {
-          AnnualDeductible = 1000m,
-          DeductibleMet = 1000m,
-    RemainingAmount = 100m
+            AnnualDeductible = 1000m,
+            DeductibleMet = 1000m,
+            RemainingAmount = 100m
         };
 
         // Act
@@ -75,11 +75,11 @@ _logger = new NullLogger<DeductibleRule>();
     {
         // Arrange
         var context = new AdjudicationContext
-{
-      ItemSequence = 1,
+        {
+            ItemSequence = 1,
             AnnualDeductible = 1000m,
-  DeductibleMet = 800m,
-         RemainingAmount = 150m
+            DeductibleMet = 800m,
+            RemainingAmount = 150m
         };
 
         // Act
@@ -87,7 +87,7 @@ _logger = new NullLogger<DeductibleRule>();
 
         // Assert
         Assert.True(result.IsApplied);
-    Assert.Equal(150m, result.PatientResponsibilityApplied); // Remaining deductible is $200, but only $150 available
+        Assert.Equal(150m, result.PatientResponsibilityApplied); // Remaining deductible is $200, but only $150 available
         Assert.Equal(0m, result.RemainingAmount);
     }
 
@@ -98,15 +98,15 @@ _logger = new NullLogger<DeductibleRule>();
         var context = new AdjudicationContext
         {
             ItemSequence = 1,
-AnnualDeductible = 1000m,
-DeductibleMet = 900m,
-    RemainingAmount = 200m
+            AnnualDeductible = 1000m,
+            DeductibleMet = 900m,
+            RemainingAmount = 200m
         };
 
- // Act
+        // Act
         var result = await _rule.EvaluateAsync(context);
 
-      // Assert
+        // Assert
         Assert.True(result.IsApplied);
         Assert.Equal(100m, result.PatientResponsibilityApplied); // Only $100 deductible remaining
         Assert.Equal(100m, result.RemainingAmount); // $200 - $100 = $100
@@ -117,10 +117,10 @@ DeductibleMet = 900m,
     {
         // Arrange
         var context = new AdjudicationContext
-     {
-        ItemSequence = 1,
-    AnnualDeductible = 1000m,
- DeductibleMet = 1000m,
+        {
+            ItemSequence = 1,
+            AnnualDeductible = 1000m,
+            DeductibleMet = 1000m,
             RemainingAmount = 200m
         };
 
@@ -145,20 +145,20 @@ DeductibleMet = 900m,
     {
         // Arrange
         var context = new AdjudicationContext
-     {
-  AnnualDeductible = annual,
-     DeductibleMet = met,
+        {
+            AnnualDeductible = annual,
+            DeductibleMet = met,
             RemainingAmount = remaining
         };
 
-  // Act
+        // Act
         var result = await _rule.EvaluateAsync(context);
 
         // Assert
         Assert.True(result.IsApplied);
         Assert.Equal(expectedPatient, result.PatientResponsibilityApplied);
         Assert.Equal(expectedInsurance, result.RemainingAmount);
- }
+    }
 }
 
 /// <summary>
