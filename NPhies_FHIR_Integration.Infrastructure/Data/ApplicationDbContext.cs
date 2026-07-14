@@ -266,6 +266,21 @@ public class ApplicationDbContext : DbContext
     public DbSet<ErrorCodeMaster> ErrorCodeMasters { get; set; } = null!;
 
     /// <summary>
+    /// AppealRequest entities
+    /// </summary>
+    public DbSet<AppealRequest> AppealRequests { get; set; } = null!;
+
+    /// <summary>
+    /// AppealStatusHistory entities
+    /// </summary>
+    public DbSet<AppealStatusHistory> AppealStatusHistories { get; set; } = null!;
+
+    /// <summary>
+    /// AppealDocument entities
+    /// </summary>
+    public DbSet<AppealDocument> AppealDocuments { get; set; } = null!;
+
+    /// <summary>
     /// User entities
     /// </summary>
     public DbSet<User> Users { get; set; } = null!;
@@ -352,7 +367,12 @@ public class ApplicationDbContext : DbContext
         ConfigureDoctorQualificationEntity(modelBuilder);
         ConfigureErrorCodeMasterEntity(modelBuilder);
 
-        // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
+        // APPEAL CONFIGURATION
+        ConfigureAppealRequestEntity(modelBuilder);
+ ConfigureAppealStatusHistoryEntity(modelBuilder);
+        ConfigureAppealDocumentEntity(modelBuilder);
+
+ // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
         // This fixes FK column length mismatches systematically
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -2102,33 +2122,159 @@ var entity = modelBuilder.Entity<DoctorQualification>();
     /// Configure ErrorCodeMaster entity
     /// </summary>
     private void ConfigureErrorCodeMasterEntity(ModelBuilder modelBuilder)
-{
+    {
         var entity = modelBuilder.Entity<ErrorCodeMaster>();
 
         // Primary Key
-      entity.HasKey(e => e.Id);
+entity.HasKey(e => e.Id);
 
-        // Properties
-      entity.Property(e => e.ErrorCode).IsRequired().HasMaxLength(20);
+   // Properties
+        entity.Property(e => e.ErrorCode).IsRequired().HasMaxLength(20);
         entity.Property(e => e.ErrorDescription).IsRequired().HasMaxLength(500);
-    entity.Property(e => e.ErrorCategory).IsRequired().HasMaxLength(50);
+   entity.Property(e => e.ErrorCategory).IsRequired().HasMaxLength(50);
         entity.Property(e => e.Severity).IsRequired().HasMaxLength(20);
         entity.Property(e => e.StandardAppealDays);
-   entity.Property(e => e.RecommendedAction).HasMaxLength(500);
+        entity.Property(e => e.RecommendedAction).HasMaxLength(500);
         entity.Property(e => e.NphiesCodeSystem).HasMaxLength(500);
-        entity.Property(e => e.AdjudicationImpact).HasMaxLength(50);
-  entity.Property(e => e.Notes).HasMaxLength(1000);
+ entity.Property(e => e.AdjudicationImpact).HasMaxLength(50);
+        entity.Property(e => e.Notes).HasMaxLength(1000);
         entity.Property(e => e.CreatedDate);
-   entity.Property(e => e.LastModifiedDate);
+        entity.Property(e => e.LastModifiedDate);
 
-   // Indexes for performance
+      // Indexes for performance
         entity.HasIndex(e => e.ErrorCode).IsUnique();
-        entity.HasIndex(e => e.ErrorCategory);
-  entity.HasIndex(e => e.IsActive);
+   entity.HasIndex(e => e.ErrorCategory);
+        entity.HasIndex(e => e.IsActive);
         entity.HasIndex(e => e.Severity);
-     entity.HasIndex(e => e.AllowsAppeal);
+        entity.HasIndex(e => e.AllowsAppeal);
 
         // Table name
         entity.ToTable("ErrorCodeMasters");
     }
+
+    /// <summary>
+ /// Configure AppealRequest entity
+ /// </summary>
+    private void ConfigureAppealRequestEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<AppealRequest>();
+
+        // Primary Key
+ entity.HasKey(a => a.Id);
+
+        // Properties
+        entity.Property(a => a.AppealNumber).IsRequired().HasMaxLength(50);
+        entity.Property(a => a.AppealIdentifierSystem).HasMaxLength(500);
+        entity.Property(a => a.AppealIdentifierValue).HasMaxLength(100);
+        entity.Property(a => a.ClaimId).IsRequired().HasMaxLength(100);
+      entity.Property(a => a.ClaimResponseId).HasMaxLength(100);
+        entity.Property(a => a.PatientId).IsRequired().HasMaxLength(100);
+        entity.Property(a => a.InsurerId).IsRequired().HasMaxLength(100);
+  entity.Property(a => a.ProviderId).IsRequired().HasMaxLength(100);
+        entity.Property(a => a.AppealStatus).IsRequired().HasMaxLength(50);
+     entity.Property(a => a.AppealLevel);
+entity.Property(a => a.ErrorCodeBeingAppealed).IsRequired().HasMaxLength(20);
+ entity.Property(a => a.ErrorDescription).HasMaxLength(500);
+      entity.Property(a => a.AppealReason).HasColumnType("nvarchar(max)");
+     entity.Property(a => a.SupportingDocumentation).HasColumnType("nvarchar(max)");
+        entity.Property(a => a.AppealOutcome).HasMaxLength(50);
+      entity.Property(a => a.ApprovedAmount).HasPrecision(18, 2);
+        entity.Property(a => a.DecisionExplanation).HasColumnType("nvarchar(max)");
+    entity.Property(a => a.WithdrawalReason).HasMaxLength(500);
+        entity.Property(a => a.InternalReferenceNumber).HasMaxLength(100);
+        entity.Property(a => a.Notes).HasColumnType("nvarchar(max)");
+        entity.Property(a => a.EscalatedAppealId).HasMaxLength(100);
+
+      // Indexes
+        entity.HasIndex(a => a.AppealNumber).IsUnique();
+ entity.HasIndex(a => a.ClaimId);
+        entity.HasIndex(a => a.PatientId);
+entity.HasIndex(a => a.InsurerId);
+    entity.HasIndex(a => a.ProviderId);
+        entity.HasIndex(a => a.AppealStatus);
+        entity.HasIndex(a => a.AppealLevel);
+        entity.HasIndex(a => a.AppealDeadlineDate);
+        entity.HasIndex(a => a.IsActive);
+
+        // Relationships
+        entity.HasMany(a => a.StatusHistory)
+            .WithOne(h => h.Appeal)
+            .HasForeignKey(h => h.AppealId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasMany(a => a.AttachedDocuments)
+        .WithOne(d => d.Appeal)
+            .HasForeignKey(d => d.AppealId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Table with schema
+        entity.ToTable("AppealRequests", "RCM");
+    }
+
+    /// <summary>
+    /// Configure AppealStatusHistory entity
+    /// </summary>
+    private void ConfigureAppealStatusHistoryEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<AppealStatusHistory>();
+
+        // Primary Key
+        entity.HasKey(h => h.Id);
+
+  // Properties
+     entity.Property(h => h.AppealId).IsRequired().HasMaxLength(100);
+        entity.Property(h => h.Status).IsRequired().HasMaxLength(50);
+        entity.Property(h => h.ChangedBy).IsRequired().HasMaxLength(100);
+   entity.Property(h => h.ChangeReason).HasMaxLength(1000);
+        entity.Property(h => h.Comments).HasColumnType("nvarchar(max)");
+
+        // Indexes
+        entity.HasIndex(h => h.AppealId);
+    entity.HasIndex(h => h.Status);
+     entity.HasIndex(h => h.StatusChangeDate);
+
+  // Relationships
+entity.HasOne(h => h.Appeal)
+    .WithMany(a => a.StatusHistory)
+         .HasForeignKey(h => h.AppealId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+      // Table with schema
+        entity.ToTable("AppealStatusHistory", "RCM");
+    }
+
+    /// <summary>
+    /// Configure AppealDocument entity
+    /// </summary>
+    private void ConfigureAppealDocumentEntity(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<AppealDocument>();
+
+        // Primary Key
+ entity.HasKey(d => d.Id);
+
+        // Properties
+        entity.Property(d => d.AppealId).IsRequired().HasMaxLength(100);
+      entity.Property(d => d.DocumentType).IsRequired().HasMaxLength(100);
+        entity.Property(d => d.DocumentTitle).IsRequired().HasMaxLength(200);
+        entity.Property(d => d.DocumentDescription).HasMaxLength(1000);
+      entity.Property(d => d.FilePath).IsRequired().HasMaxLength(500);
+        entity.Property(d => d.FileSizeBytes);
+        entity.Property(d => d.MimeType).IsRequired().HasMaxLength(50);
+     entity.Property(d => d.Notes).HasMaxLength(1000);
+
+        // Indexes
+        entity.HasIndex(d => d.AppealId);
+        entity.HasIndex(d => d.DocumentType);
+     entity.HasIndex(d => d.AttachedDate);
+
+     // Relationships
+ entity.HasOne(d => d.Appeal)
+      .WithMany(a => a.AttachedDocuments)
+            .HasForeignKey(d => d.AppealId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Table with schema
+     entity.ToTable("AppealDocuments", "RCM");
+  }
 }

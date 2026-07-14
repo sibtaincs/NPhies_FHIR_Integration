@@ -46,7 +46,7 @@ public class AppealRequest : BaseEntity
 
     /// <summary>
 /// Insurance company (respondent)
-    /// </summary>
+/// </summary>
     public string InsurerId { get; set; } = string.Empty;
     public Organization? Insurer { get; set; }
 
@@ -199,16 +199,16 @@ public ICollection<AppealStatusHistory> StatusHistory { get; set; } = new List<A
     // ========== HELPER METHODS ==========
     /// <summary>
     /// Is appeal within deadline?
-    /// </summary>
+  /// </summary>
     public bool IsWithinDeadline() => DateTime.UtcNow <= AppealDeadlineDate;
 
     /// <summary>
     /// Days remaining to submit appeal
-    /// </summary>
+  /// </summary>
     public int DaysRemainingToAppeal()
     {
-        var remaining = (AppealDeadlineDate - DateTime.UtcNow).Days;
-        return Math.Max(0, remaining);
+    var remaining = (AppealDeadlineDate - DateTime.UtcNow).Days;
+      return Math.Max(0, remaining);
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public ICollection<AppealStatusHistory> StatusHistory { get; set; } = new List<A
 public int AppealAgeDays()
     {
         var submittedDate = AppealSubmittedDate ?? DateTime.UtcNow;
-        return (int)(DateTime.UtcNow - submittedDate).TotalDays;
+     return (int)(DateTime.UtcNow - submittedDate).TotalDays;
     }
 
     /// <summary>
