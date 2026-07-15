@@ -13,15 +13,15 @@ namespace NPhies_FHIR_Integration.Application.Services.Gateway;
 public interface IApiGatewayService
 {
     // ========== RATE LIMITING ==========
- /// <summary>
+    /// <summary>
     /// Check rate limit
     /// </summary>
-  Task<RateLimitResult> CheckRateLimitAsync(
-        string clientId,
-        string endpoint,
-      CancellationToken cancellationToken = default);
+    Task<RateLimitResult> CheckRateLimitAsync(
+          string clientId,
+          string endpoint,
+        CancellationToken cancellationToken = default);
 
-/// <summary>
+    /// <summary>
     /// Get rate limit status
     /// </summary>
     Task<RateLimitStatus> GetRateLimitStatusAsync(
@@ -30,7 +30,7 @@ public interface IApiGatewayService
 
     /// <summary>
     /// Set rate limit
-  /// </summary>
+    /// </summary>
     Task<bool> SetRateLimitAsync(
         string clientId,
    int requestsPerMinute,
@@ -59,7 +59,7 @@ public interface IApiGatewayService
     string apiKeyId,
         CancellationToken cancellationToken = default);
 
- /// <summary>
+    /// <summary>
     /// List API keys
     /// </summary>
     Task<List<ApiKey>> ListApiKeysAsync(
@@ -76,7 +76,7 @@ public interface IApiGatewayService
 
     // ========== REQUEST/RESPONSE LOGGING ==========
     /// <summary>
-  /// Log API request
+    /// Log API request
     /// </summary>
     Task<bool> LogRequestAsync(
       ApiRequestLog requestLog,
@@ -91,7 +91,7 @@ public interface IApiGatewayService
 
     /// <summary>
     /// Get request logs
-  /// </summary>
+    /// </summary>
     Task<List<ApiRequestLog>> GetRequestLogsAsync(
       string clientId,
         DateTime startDate,
@@ -120,12 +120,12 @@ public interface IApiGatewayService
         string clientId,
         CancellationToken cancellationToken = default);
 
-  /// <summary>
+    /// <summary>
     /// Get endpoint performance
     /// </summary>
- Task<EndpointPerformance> GetEndpointPerformanceAsync(
-        string endpoint,
-        CancellationToken cancellationToken = default);
+    Task<EndpointPerformance> GetEndpointPerformanceAsync(
+           string endpoint,
+           CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -134,19 +134,19 @@ public interface IApiGatewayService
 public class ApiGatewayService : IApiGatewayService
 {
     private readonly ILogger<ApiGatewayService> _logger;
-  private readonly Dictionary<string, RateLimitInfo> _rateLimits;
+    private readonly Dictionary<string, RateLimitInfo> _rateLimits;
     private readonly Dictionary<string, ApiKey> _apiKeys;
     private readonly List<ApiRequestLog> _requestLogs;
     private readonly List<ApiResponseLog> _responseLogs;
 
     public ApiGatewayService(ILogger<ApiGatewayService> logger)
     {
-      _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-   _rateLimits = new Dictionary<string, RateLimitInfo>();
-   _apiKeys = new Dictionary<string, ApiKey>();
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _rateLimits = new Dictionary<string, RateLimitInfo>();
+        _apiKeys = new Dictionary<string, ApiKey>();
         _requestLogs = new List<ApiRequestLog>();
         _responseLogs = new List<ApiResponseLog>();
-}
+    }
 
     // ========== RATE LIMITING ==========
 
@@ -156,37 +156,37 @@ public class ApiGatewayService : IApiGatewayService
         CancellationToken cancellationToken = default)
     {
         try
-   {
+        {
             _logger.LogInformation("Checking rate limit for client: {ClientId}, endpoint: {Endpoint}",
          clientId, endpoint);
 
-    var key = $"{clientId}:{endpoint}";
-     if (!_rateLimits.ContainsKey(key))
-{
-             _rateLimits[key] = new RateLimitInfo { RequestsThisMinute = 0, Limit = 100, ResetTime = DateTime.UtcNow.AddMinutes(1) };
+            var key = $"{clientId}:{endpoint}";
+            if (!_rateLimits.ContainsKey(key))
+            {
+                _rateLimits[key] = new RateLimitInfo { RequestsThisMinute = 0, Limit = 100, ResetTime = DateTime.UtcNow.AddMinutes(1) };
             }
 
             var limit = _rateLimits[key];
-   if (DateTime.UtcNow > limit.ResetTime)
-    {
+            if (DateTime.UtcNow > limit.ResetTime)
+            {
                 limit.RequestsThisMinute = 0;
-   limit.ResetTime = DateTime.UtcNow.AddMinutes(1);
+                limit.ResetTime = DateTime.UtcNow.AddMinutes(1);
             }
 
-     var allowed = limit.RequestsThisMinute < limit.Limit;
-   if (allowed) limit.RequestsThisMinute++;
+            var allowed = limit.RequestsThisMinute < limit.Limit;
+            if (allowed) limit.RequestsThisMinute++;
 
-          return new RateLimitResult
-        {
-        Allowed = allowed,
-              RequestsRemaining = limit.Limit - limit.RequestsThisMinute,
-    ResetTime = limit.ResetTime,
-        Limit = limit.Limit
-        };
+            return new RateLimitResult
+            {
+                Allowed = allowed,
+                RequestsRemaining = limit.Limit - limit.RequestsThisMinute,
+                ResetTime = limit.ResetTime,
+                Limit = limit.Limit
+            };
         }
-    catch (Exception ex)
+        catch (Exception ex)
         {
-   _logger.LogError(ex, "Error checking rate limit");
+            _logger.LogError(ex, "Error checking rate limit");
             throw;
         }
     }
@@ -200,19 +200,19 @@ public class ApiGatewayService : IApiGatewayService
             _logger.LogInformation("Getting rate limit status for client: {ClientId}", clientId);
 
             return new RateLimitStatus
- {
-    ClientId = clientId,
-           Limit = 100,
- RequestsThisMinute = 45,
+            {
+                ClientId = clientId,
+                Limit = 100,
+                RequestsThisMinute = 45,
                 RequestsRemaining = 55,
                 ResetTime = DateTime.UtcNow.AddMinutes(1),
-          Status = "Healthy"
-};
-     }
+                Status = "Healthy"
+            };
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting rate limit status");
-     throw;
+            throw;
         }
     }
 
@@ -221,23 +221,23 @@ public class ApiGatewayService : IApiGatewayService
    int requestsPerMinute,
         CancellationToken cancellationToken = default)
     {
-   try
+        try
         {
-      _logger.LogInformation("Setting rate limit for client {ClientId}: {Limit} requests/min",
-        clientId, requestsPerMinute);
+            _logger.LogInformation("Setting rate limit for client {ClientId}: {Limit} requests/min",
+              clientId, requestsPerMinute);
 
-    var keys = _rateLimits.Keys.Where(k => k.StartsWith(clientId)).ToList();
-   foreach (var key in keys)
-     {
-            _rateLimits[key].Limit = requestsPerMinute;
-         }
+            var keys = _rateLimits.Keys.Where(k => k.StartsWith(clientId)).ToList();
+            foreach (var key in keys)
+            {
+                _rateLimits[key].Limit = requestsPerMinute;
+            }
 
             return true;
         }
         catch (Exception ex)
-{
-   _logger.LogError(ex, "Error setting rate limit");
-          return false;
+        {
+            _logger.LogError(ex, "Error setting rate limit");
+            return false;
         }
     }
 
@@ -252,21 +252,21 @@ string apiKey,
             _logger.LogInformation("Validating API key");
 
             if (_apiKeys.TryGetValue(apiKey, out var key) && key.IsActive && !key.IsExpired)
-    {
-         return new ApiKeyValidation
-       {
-         IsValid = true,
-   ClientId = key.ClientId,
-          KeyName = key.KeyName,
-       ExpirationDate = key.ExpirationDate
-    };
-   }
+            {
+                return new ApiKeyValidation
+                {
+                    IsValid = true,
+                    ClientId = key.ClientId,
+                    KeyName = key.KeyName,
+                    ExpirationDate = key.ExpirationDate
+                };
+            }
 
-        return new ApiKeyValidation { IsValid = false };
+            return new ApiKeyValidation { IsValid = false };
         }
         catch (Exception ex)
         {
- _logger.LogError(ex, "Error validating API key");
+            _logger.LogError(ex, "Error validating API key");
             throw;
         }
     }
@@ -278,27 +278,27 @@ string apiKey,
     {
         try
         {
-_logger.LogInformation("Creating API key for client: {ClientId}", clientId);
+            _logger.LogInformation("Creating API key for client: {ClientId}", clientId);
 
-  var apiKey = new ApiKey
+            var apiKey = new ApiKey
             {
-     KeyId = Guid.NewGuid().ToString(),
-          ClientId = clientId,
+                KeyId = Guid.NewGuid().ToString(),
+                ClientId = clientId,
                 KeyName = $"Key-{DateTime.UtcNow:yyyyMMdd-HHmmss}",
-ApiKeyValue = Guid.NewGuid().ToString().Replace("-", ""),
-    CreatedDate = DateTime.UtcNow,
-    ExpirationDate = DateTime.UtcNow.AddYears(1),
- IsActive = true
-        };
+                ApiKeyValue = Guid.NewGuid().ToString().Replace("-", ""),
+                CreatedDate = DateTime.UtcNow,
+                ExpirationDate = DateTime.UtcNow.AddYears(1),
+                IsActive = true
+            };
 
             _apiKeys[apiKey.ApiKeyValue] = apiKey;
-   return apiKey;
+            return apiKey;
         }
-  catch (Exception ex)
+        catch (Exception ex)
         {
-       _logger.LogError(ex, "Error creating API key");
-      throw;
- }
+            _logger.LogError(ex, "Error creating API key");
+            throw;
+        }
     }
 
     public async Task<bool> RevokeApiKeyAsync(
@@ -307,38 +307,38 @@ ApiKeyValue = Guid.NewGuid().ToString().Replace("-", ""),
     {
         try
         {
-     _logger.LogInformation("Revoking API key: {KeyId}", apiKeyId);
+            _logger.LogInformation("Revoking API key: {KeyId}", apiKeyId);
 
             if (_apiKeys.TryGetValue(apiKeyId, out var key))
- {
-           key.IsActive = false;
-         key.RevokedDate = DateTime.UtcNow;
-      return true;
+            {
+                key.IsActive = false;
+                key.RevokedDate = DateTime.UtcNow;
+                return true;
             }
 
-   return false;
+            return false;
         }
-  catch (Exception ex)
+        catch (Exception ex)
         {
-        _logger.LogError(ex, "Error revoking API key");
-      return false;
- }
+            _logger.LogError(ex, "Error revoking API key");
+            return false;
+        }
     }
 
- public async Task<List<ApiKey>> ListApiKeysAsync(
-  string clientId,
-        CancellationToken cancellationToken = default)
-  {
-    try
+    public async Task<List<ApiKey>> ListApiKeysAsync(
+     string clientId,
+           CancellationToken cancellationToken = default)
+    {
+        try
         {
             _logger.LogInformation("Listing API keys for client: {ClientId}", clientId);
 
-   return _apiKeys.Values.Where(k => k.ClientId == clientId).ToList();
-   }
+            return _apiKeys.Values.Where(k => k.ClientId == clientId).ToList();
+        }
         catch (Exception ex)
- {
+        {
             _logger.LogError(ex, "Error listing API keys");
-     throw;
+            throw;
         }
     }
 
@@ -348,22 +348,22 @@ ApiKeyValue = Guid.NewGuid().ToString().Replace("-", ""),
     CancellationToken cancellationToken = default)
     {
         try
-   {
-   _logger.LogInformation("Generating JWT token for client: {ClientId}", clientId);
+        {
+            _logger.LogInformation("Generating JWT token for client: {ClientId}", clientId);
 
-          return new JwtToken
+            return new JwtToken
             {
-      Token = $"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.{Guid.NewGuid()}.{Guid.NewGuid()}",
-         ExpiresIn = 3600,
+                Token = $"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.{Guid.NewGuid()}.{Guid.NewGuid()}",
+                ExpiresIn = 3600,
                 TokenType = "Bearer",
-IssuedAt = DateTime.UtcNow
-   };
+                IssuedAt = DateTime.UtcNow
+            };
         }
         catch (Exception ex)
-     {
-       _logger.LogError(ex, "Error generating JWT token");
-     throw;
-   }
+        {
+            _logger.LogError(ex, "Error generating JWT token");
+            throw;
+        }
     }
 
     // ========== REQUEST/RESPONSE LOGGING ==========
@@ -373,20 +373,20 @@ IssuedAt = DateTime.UtcNow
         CancellationToken cancellationToken = default)
     {
         try
-     {
-          requestLog.LogId = Guid.NewGuid().ToString();
+        {
+            requestLog.LogId = Guid.NewGuid().ToString();
             requestLog.Timestamp = DateTime.UtcNow;
-      _requestLogs.Add(requestLog);
+            _requestLogs.Add(requestLog);
 
             _logger.LogInformation("API request logged: {Method} {Endpoint} from {ClientId}",
            requestLog.Method, requestLog.Endpoint, requestLog.ClientId);
 
             return true;
         }
-   catch (Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error logging request");
-   return false;
+            return false;
         }
     }
 
@@ -395,9 +395,9 @@ IssuedAt = DateTime.UtcNow
         CancellationToken cancellationToken = default)
     {
         try
-    {
+        {
             responseLog.LogId = Guid.NewGuid().ToString();
-   responseLog.Timestamp = DateTime.UtcNow;
+            responseLog.Timestamp = DateTime.UtcNow;
             _responseLogs.Add(responseLog);
 
             _logger.LogInformation("API response logged: {StatusCode} for request {RequestId}",
@@ -405,10 +405,10 @@ IssuedAt = DateTime.UtcNow
 
             return true;
         }
-    catch (Exception ex)
+        catch (Exception ex)
         {
-       _logger.LogError(ex, "Error logging response");
-        return false;
+            _logger.LogError(ex, "Error logging response");
+            return false;
         }
     }
 
@@ -418,18 +418,18 @@ IssuedAt = DateTime.UtcNow
         DateTime endDate,
         CancellationToken cancellationToken = default)
     {
-try
+        try
         {
             _logger.LogInformation("Getting request logs for client {ClientId} from {Start} to {End}",
         clientId, startDate, endDate);
 
-         return _requestLogs
-  .Where(l => l.ClientId == clientId && l.Timestamp >= startDate && l.Timestamp <= endDate)
-                .ToList();
-      }
-  catch (Exception ex)
+            return _requestLogs
+     .Where(l => l.ClientId == clientId && l.Timestamp >= startDate && l.Timestamp <= endDate)
+                   .ToList();
+        }
+        catch (Exception ex)
         {
- _logger.LogError(ex, "Error getting request logs");
+            _logger.LogError(ex, "Error getting request logs");
             throw;
         }
     }
@@ -441,55 +441,55 @@ try
     {
         try
         {
-       _logger.LogInformation("Getting API audit trail from {Start} to {End}", startDate, endDate);
+            _logger.LogInformation("Getting API audit trail from {Start} to {End}", startDate, endDate);
 
             var trail = new List<ApiAuditEntry>();
-          foreach (var req in _requestLogs.Where(l => l.Timestamp >= startDate && l.Timestamp <= endDate))
+            foreach (var req in _requestLogs.Where(l => l.Timestamp >= startDate && l.Timestamp <= endDate))
             {
-  trail.Add(new ApiAuditEntry
-    {
-    AuditId = Guid.NewGuid().ToString(),
-  ClientId = req.ClientId,
-      Action = $"{req.Method} {req.Endpoint}",
-     Timestamp = req.Timestamp,
-  Status = "Success"
-    });
-  }
+                trail.Add(new ApiAuditEntry
+                {
+                    AuditId = Guid.NewGuid().ToString(),
+                    ClientId = req.ClientId,
+                    Action = $"{req.Method} {req.Endpoint}",
+                    Timestamp = req.Timestamp,
+                    Status = "Success"
+                });
+            }
 
             return trail;
         }
         catch (Exception ex)
-  {
-       _logger.LogError(ex, "Error getting audit trail");
+        {
+            _logger.LogError(ex, "Error getting audit trail");
             throw;
         }
-}
+    }
 
     // ========== GATEWAY METRICS ==========
 
     public async Task<GatewayMetrics> GetGatewayMetricsAsync(
         CancellationToken cancellationToken = default)
     {
-      try
+        try
         {
-        _logger.LogInformation("Getting gateway metrics");
+            _logger.LogInformation("Getting gateway metrics");
 
- return new GatewayMetrics
-     {
-    TotalRequests = _requestLogs.Count,
-            SuccessfulRequests = (int)(_requestLogs.Count * 0.98),
-   FailedRequests = (int)(_requestLogs.Count * 0.02),
-          AverageResponseTime = 125,
-           Uptime = 99.95,
-           ActiveConnections = 1250,
-            ThroughputRequestsPerSecond = 450
+            return new GatewayMetrics
+            {
+                TotalRequests = _requestLogs.Count,
+                SuccessfulRequests = (int)(_requestLogs.Count * 0.98),
+                FailedRequests = (int)(_requestLogs.Count * 0.02),
+                AverageResponseTime = 125,
+                Uptime = 99.95,
+                ActiveConnections = 1250,
+                ThroughputRequestsPerSecond = 450
             };
         }
-  catch (Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting gateway metrics");
-       throw;
-     }
+            throw;
+        }
     }
 
     public async Task<ClientMetrics> GetClientMetricsAsync(
@@ -498,24 +498,24 @@ try
     {
         try
         {
-    _logger.LogInformation("Getting metrics for client: {ClientId}", clientId);
+            _logger.LogInformation("Getting metrics for client: {ClientId}", clientId);
 
-   var clientRequests = _requestLogs.Where(l => l.ClientId == clientId).ToList();
+            var clientRequests = _requestLogs.Where(l => l.ClientId == clientId).ToList();
 
-       return new ClientMetrics
- {
-     ClientId = clientId,
-    TotalRequests = clientRequests.Count,
-       SuccessfulRequests = (int)(clientRequests.Count * 0.97),
-     FailedRequests = (int)(clientRequests.Count * 0.03),
-          AverageResponseTime = 120,
-      RateLimitStatus = "Healthy",
-     LastRequestTime = clientRequests.Any() ? clientRequests.Last().Timestamp : DateTime.UtcNow
+            return new ClientMetrics
+            {
+                ClientId = clientId,
+                TotalRequests = clientRequests.Count,
+                SuccessfulRequests = (int)(clientRequests.Count * 0.97),
+                FailedRequests = (int)(clientRequests.Count * 0.03),
+                AverageResponseTime = 120,
+                RateLimitStatus = "Healthy",
+                LastRequestTime = clientRequests.Any() ? clientRequests.Last().Timestamp : DateTime.UtcNow
             };
-    }
+        }
         catch (Exception ex)
         {
-         _logger.LogError(ex, "Error getting client metrics");
+            _logger.LogError(ex, "Error getting client metrics");
             throw;
         }
     }
@@ -528,24 +528,24 @@ CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Getting performance metrics for endpoint: {Endpoint}", endpoint);
 
-      var endpointRequests = _requestLogs.Where(l => l.Endpoint == endpoint).ToList();
+            var endpointRequests = _requestLogs.Where(l => l.Endpoint == endpoint).ToList();
 
             return new EndpointPerformance
             {
-      Endpoint = endpoint,
+                Endpoint = endpoint,
                 TotalRequests = endpointRequests.Count,
-        AverageResponseTime = 115,
+                AverageResponseTime = 115,
                 P95ResponseTime = 250,
-     P99ResponseTime = 450,
-   ErrorRate = 0.02,
-     Availability = 99.98
+                P99ResponseTime = 450,
+                ErrorRate = 0.02,
+                Availability = 99.98
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting endpoint performance");
             throw;
-}
+        }
     }
 }
 
@@ -568,7 +568,7 @@ public class RateLimitResult
 {
     public bool Allowed { get; set; }
     public int RequestsRemaining { get; set; }
-  public DateTime ResetTime { get; set; }
+    public DateTime ResetTime { get; set; }
     public int Limit { get; set; }
 }
 
@@ -658,7 +658,7 @@ public class ApiResponseLog
 public class ApiAuditEntry
 {
     public string AuditId { get; set; } = string.Empty;
-  public string ClientId { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
     public string Action { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
     public string Status { get; set; } = string.Empty;
@@ -698,7 +698,7 @@ public class ClientMetrics
 public class EndpointPerformance
 {
     public string Endpoint { get; set; } = string.Empty;
- public int TotalRequests { get; set; }
+    public int TotalRequests { get; set; }
     public int AverageResponseTime { get; set; }
     public int P95ResponseTime { get; set; }
     public int P99ResponseTime { get; set; }
