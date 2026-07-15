@@ -276,17 +276,20 @@ public class ApplicationDbContext : DbContext
     /// <summary>
     /// AppealRequest entities
     /// </summary>
-    public DbSet<AppealRequest> AppealRequests { get; set; } = null!;
+    // TEMPORARILY REMOVED - Will be added in separate migration to avoid FK cycle issues
+    // public DbSet<AppealRequest> AppealRequests { get; set; } = null!;
 
     /// <summary>
     /// AppealStatusHistory entities
     /// </summary>
-    public DbSet<AppealStatusHistory> AppealStatusHistories { get; set; } = null!;
+    // TEMPORARILY REMOVED
+    // public DbSet<AppealStatusHistory> AppealStatusHistories { get; set; } = null!;
 
     /// <summary>
     /// AppealDocument entities
     /// </summary>
-    public DbSet<AppealDocument> AppealDocuments { get; set; } = null!;
+    // TEMPORARILY REMOVED
+  // public DbSet<AppealDocument> AppealDocuments { get; set; } = null!;
 
     /// <summary>
     /// User entities
@@ -375,10 +378,10 @@ public class ApplicationDbContext : DbContext
         ConfigureDoctorQualificationEntity(modelBuilder);
         ConfigureErrorCodeMasterEntity(modelBuilder);
 
-        // APPEAL CONFIGURATION
-        ConfigureAppealRequestEntity(modelBuilder);
- ConfigureAppealStatusHistoryEntity(modelBuilder);
-        ConfigureAppealDocumentEntity(modelBuilder);
+        // APPEAL CONFIGURATION - TEMPORARILY REMOVED to avoid FK cycles
+        // ConfigureAppealRequestEntity(modelBuilder);
+      // ConfigureAppealStatusHistoryEntity(modelBuilder);
+    // ConfigureAppealDocumentEntity(modelBuilder);
 
  // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
         // This fixes FK column length mismatches systematically
@@ -391,7 +394,6 @@ public class ApplicationDbContext : DbContext
             }
         }
 
-        // NOTE: Problematic entities temporarily removed to prevent cascade FK and column length mismatch issues
         // TODO: Re-enable these entities after fixing schema design and ID column lengths
         // ConfigureTaskEntity(modelBuilder);
         // ConfigurePaymentReconciliationEntity(modelBuilder);
@@ -511,23 +513,24 @@ public class ApplicationDbContext : DbContext
         var entity = modelBuilder.Entity<Organization>();
 
         // Primary Key
-        entity.HasKey(o => o.Id);
+     entity.HasKey(o => o.Id);
+        entity.Property(o => o.Id).HasMaxLength(100); // Explicit length for all FK references
 
         // Properties
-        entity.Property(o => o.OrganizationName).IsRequired().HasMaxLength(255);
+   entity.Property(o => o.OrganizationName).IsRequired().HasMaxLength(255);
         entity.Property(o => o.LicenseNumber).IsRequired().HasMaxLength(100);
         entity.Property(o => o.LicenseSystem).HasMaxLength(500);
         entity.Property(o => o.OrganizationType).IsRequired().HasMaxLength(50);
         entity.Property(o => o.SpecializationType).HasMaxLength(100);
-        entity.Property(o => o.Website).HasMaxLength(500);
-        entity.Property(o => o.Email).HasMaxLength(255);
+      entity.Property(o => o.Website).HasMaxLength(500);
+      entity.Property(o => o.Email).HasMaxLength(255);
         entity.Property(o => o.PhoneNumber).HasMaxLength(20);
-        entity.Property(o => o.AddressLine1).HasMaxLength(255);
-        entity.Property(o => o.AddressLine2).HasMaxLength(255);
-        entity.Property(o => o.City).HasMaxLength(100);
+     entity.Property(o => o.AddressLine1).HasMaxLength(255);
+   entity.Property(o => o.AddressLine2).HasMaxLength(255);
+   entity.Property(o => o.City).HasMaxLength(100);
         entity.Property(o => o.State).HasMaxLength(100);
         entity.Property(o => o.PostalCode).HasMaxLength(20);
-        entity.Property(o => o.Status).IsRequired().HasMaxLength(50);
+      entity.Property(o => o.Status).IsRequired().HasMaxLength(50);
 
         // Indexes
         entity.HasIndex(o => o.LicenseNumber).IsUnique();
@@ -540,7 +543,7 @@ public class ApplicationDbContext : DbContext
 .HasForeignKey(l => l.OrganizationId)
    .OnDelete(DeleteBehavior.Cascade);
 
-        entity.HasMany(o => o.Practitioners)
+   entity.HasMany(o => o.Practitioners)
         .WithOne(p => p.Organization)
  .HasForeignKey(p => p.OrganizationId)
            .OnDelete(DeleteBehavior.Restrict);
@@ -551,18 +554,18 @@ public class ApplicationDbContext : DbContext
      .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(o => o.ProcessedClaims)
-                .WithOne(c => c.Insurer)
-           .HasForeignKey(c => c.InsurerId)
+  .WithOne(c => c.Insurer)
+        .HasForeignKey(c => c.InsurerId)
                .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(o => o.EligibilityRequests)
  .WithOne(e => e.Provider)
-          .HasForeignKey(e => e.ProviderId)
+    .HasForeignKey(e => e.ProviderId)
      .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasMany(o => o.EligibilityResponses)
+      entity.HasMany(o => o.EligibilityResponses)
     .WithOne(e => e.Insurer)
-            .HasForeignKey(e => e.InsurerId)
+     .HasForeignKey(e => e.InsurerId)
   .OnDelete(DeleteBehavior.Restrict);
     }
 
@@ -2077,6 +2080,7 @@ entity.Property(ncm => ncm.LocalCode).IsRequired().HasMaxLength(50);
  {
      var entity = modelBuilder.Entity<ClinicMaster>();
   entity.HasKey(cm => cm.Id);
+  entity.Property(cm => cm.OrganizationId).HasMaxLength(100); // Match Organization.Id length
 entity.Property(cm => cm.ClinicCode).IsRequired().HasMaxLength(50);
  entity.Property(cm => cm.ClinicName).IsRequired().HasMaxLength(255);
 entity.HasIndex(cm => cm.ClinicCode).IsUnique();
@@ -2085,10 +2089,10 @@ entity.HasMany(cm => cm.Doctors)
   .WithOne(dm => dm.Clinic)
   .HasForeignKey(dm => dm.ClinicMasterId)
        .OnDelete(DeleteBehavior.Restrict);
-    }
+ }
 
     /// <summary>
-/// Configure DoctorMaster entity
+ /// Configure DoctorMaster entity
  /// </summary>
     private void ConfigureDoctorMasterEntity(ModelBuilder modelBuilder)
 {
@@ -2115,14 +2119,14 @@ entity.Property(dm => dm.DoctorCode).IsRequired().HasMaxLength(50);
 
     /// <summary>
  /// Configure DoctorQualification entity
-    /// </summary>
+ /// </summary>
   private void ConfigureDoctorQualificationEntity(ModelBuilder modelBuilder)
   {
 var entity = modelBuilder.Entity<DoctorQualification>();
   entity.HasKey(dq => dq.Id);
         entity.Property(dq => dq.QualificationType).IsRequired().HasMaxLength(100);
       entity.Property(dq => dq.QualificationName).IsRequired().HasMaxLength(255);
-    entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
+        entity.Property(dq => dq.UniversityName).IsRequired().HasMaxLength(255);
  entity.HasIndex(dq => dq.DoctorMasterId);
  }
 
@@ -2165,55 +2169,59 @@ entity.HasKey(e => e.Id);
  /// </summary>
     private void ConfigureAppealRequestEntity(ModelBuilder modelBuilder)
     {
-        var entity = modelBuilder.Entity<AppealRequest>();
+   var entity = modelBuilder.Entity<AppealRequest>();
 
-        // Primary Key
- entity.HasKey(a => a.Id);
+   // Primary Key
+     entity.HasKey(a => a.Id);
 
-        // Properties
+        // Properties - NO FK relationships to prevent cascade delete cycles
         entity.Property(a => a.AppealNumber).IsRequired().HasMaxLength(50);
-        entity.Property(a => a.AppealIdentifierSystem).HasMaxLength(500);
-        entity.Property(a => a.AppealIdentifierValue).HasMaxLength(100);
+      entity.Property(a => a.AppealIdentifierSystem).HasMaxLength(500);
+      entity.Property(a => a.AppealIdentifierValue).HasMaxLength(100);
         entity.Property(a => a.ClaimId).IsRequired().HasMaxLength(100);
-      entity.Property(a => a.ClaimResponseId).HasMaxLength(100);
-        entity.Property(a => a.PatientId).IsRequired().HasMaxLength(100);
-        entity.Property(a => a.InsurerId).IsRequired().HasMaxLength(100);
-  entity.Property(a => a.ProviderId).IsRequired().HasMaxLength(100);
+        entity.Property(a => a.ClaimResponseId).HasMaxLength(100);
+ entity.Property(a => a.PatientId).IsRequired().HasMaxLength(100);
+      entity.Property(a => a.InsurerId).IsRequired().HasMaxLength(100);
+        entity.Property(a => a.ProviderId).IsRequired().HasMaxLength(100);
         entity.Property(a => a.AppealStatus).IsRequired().HasMaxLength(50);
-     entity.Property(a => a.AppealLevel);
-entity.Property(a => a.ErrorCodeBeingAppealed).IsRequired().HasMaxLength(20);
- entity.Property(a => a.ErrorDescription).HasMaxLength(500);
-      entity.Property(a => a.AppealReason).HasColumnType("nvarchar(max)");
-     entity.Property(a => a.SupportingDocumentation).HasColumnType("nvarchar(max)");
-        entity.Property(a => a.AppealOutcome).HasMaxLength(50);
-      entity.Property(a => a.ApprovedAmount).HasPrecision(18, 2);
-        entity.Property(a => a.DecisionExplanation).HasColumnType("nvarchar(max)");
-    entity.Property(a => a.WithdrawalReason).HasMaxLength(500);
-        entity.Property(a => a.InternalReferenceNumber).HasMaxLength(100);
-        entity.Property(a => a.Notes).HasColumnType("nvarchar(max)");
+        entity.Property(a => a.AppealLevel);
+        entity.Property(a => a.ErrorCodeBeingAppealed).IsRequired().HasMaxLength(20);
+        entity.Property(a => a.ErrorDescription).HasMaxLength(500);
+        entity.Property(a => a.AppealReason).HasColumnType("nvarchar(max)");
+        entity.Property(a => a.SupportingDocumentation).HasColumnType("nvarchar(max)");
+   entity.Property(a => a.AppealOutcome).HasMaxLength(50);
+    entity.Property(a => a.ApprovedAmount).HasPrecision(18, 2);
+ entity.Property(a => a.DecisionExplanation).HasColumnType("nvarchar(max)");
+        entity.Property(a => a.WithdrawalReason).HasMaxLength(500);
+    entity.Property(a => a.InternalReferenceNumber).HasMaxLength(100);
+      entity.Property(a => a.Notes).HasColumnType("nvarchar(max)");
         entity.Property(a => a.EscalatedAppealId).HasMaxLength(100);
 
-      // Indexes
-        entity.HasIndex(a => a.AppealNumber).IsUnique();
- entity.HasIndex(a => a.ClaimId);
-        entity.HasIndex(a => a.PatientId);
-entity.HasIndex(a => a.InsurerId);
-    entity.HasIndex(a => a.ProviderId);
+        // Indexes
+     entity.HasIndex(a => a.AppealNumber).IsUnique();
+        entity.HasIndex(a => a.ClaimId);
+ entity.HasIndex(a => a.PatientId);
+    entity.HasIndex(a => a.InsurerId);
+        entity.HasIndex(a => a.ProviderId);
         entity.HasIndex(a => a.AppealStatus);
-        entity.HasIndex(a => a.AppealLevel);
-        entity.HasIndex(a => a.AppealDeadlineDate);
-        entity.HasIndex(a => a.IsActive);
+   entity.HasIndex(a => a.AppealLevel);
+    entity.HasIndex(a => a.AppealDeadlineDate);
+      entity.HasIndex(a => a.IsActive);
 
-        // Relationships
+        // Relationships - Only configure child entities to avoid FK cycle
         entity.HasMany(a => a.StatusHistory)
-            .WithOne(h => h.Appeal)
-            .HasForeignKey(h => h.AppealId)
-        .OnDelete(DeleteBehavior.Cascade);
+       .WithOne(h => h.Appeal)
+          .HasForeignKey(h => h.AppealId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(a => a.AttachedDocuments)
         .WithOne(d => d.Appeal)
             .HasForeignKey(d => d.AppealId)
-            .OnDelete(DeleteBehavior.Cascade);
+  .OnDelete(DeleteBehavior.Cascade);
+
+        // NOTE: InsurerId and ProviderId are NOT configured as FKs to Organizations
+        // to prevent cascade delete cycles. They are treated as logical FKs only.
+  // This allows the appeal to be created without database constraint violations.
 
         // Table with schema
         entity.ToTable("AppealRequests", "RCM");
