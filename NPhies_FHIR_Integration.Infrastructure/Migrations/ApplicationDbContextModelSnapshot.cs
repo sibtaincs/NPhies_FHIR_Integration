@@ -68,7 +68,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RateLimitLogs");
+                    b.ToTable("RateLimitLogs", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.AuditLog", b =>
@@ -129,7 +129,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Benefit", b =>
@@ -208,7 +208,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("BenefitType");
 
-                    b.ToTable("Benefits");
+                    b.ToTable("Benefits", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.BenefitBalance", b =>
@@ -254,7 +254,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("EligibilityResponseId");
 
-                    b.ToTable("BenefitBalances");
+                    b.ToTable("BenefitBalances", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.BenefitCodeMaster", b =>
@@ -301,7 +301,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("BenefitCodeMaster");
+                    b.ToTable("BenefitCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.CancellationRequest", b =>
@@ -421,7 +421,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("CancellationRequests");
+                    b.ToTable("CancellationRequests", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.CancellationResponse", b =>
@@ -554,7 +554,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("CancellationResponses");
+                    b.ToTable("CancellationResponses", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Claim", b =>
@@ -724,7 +724,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Use");
 
-                    b.ToTable("Claims");
+                    b.ToTable("Claims", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimCareTeam", b =>
@@ -787,7 +787,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("PractitionerId");
 
-                    b.ToTable("ClaimCareTeams");
+                    b.ToTable("ClaimCareTeams", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimDiagnosis", b =>
@@ -856,7 +856,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("OnAdmissionCode");
 
-                    b.ToTable("ClaimDiagnoses");
+                    b.ToTable("ClaimDiagnoses", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimItem", b =>
@@ -963,7 +963,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Sequence");
 
-                    b.ToTable("ClaimItems");
+                    b.ToTable("ClaimItems", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimItemDetail", b =>
@@ -1031,7 +1031,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Sequence");
 
-                    b.ToTable("ClaimItemDetails");
+                    b.ToTable("ClaimItemDetails", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimRelated", b =>
@@ -1084,7 +1084,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimId");
 
-                    b.ToTable("ClaimRelatedClaims");
+                    b.ToTable("ClaimRelatedClaims", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponse", b =>
@@ -1192,7 +1192,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("ClaimResponses");
+                    b.ToTable("ClaimResponses", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseAddItem", b =>
@@ -1263,7 +1263,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimResponseId");
 
-                    b.ToTable("ClaimResponseAddItems");
+                    b.ToTable("ClaimResponseAddItems", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseAdjudication", b =>
@@ -1316,7 +1316,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimResponseAddItemId");
 
-                    b.ToTable("ClaimResponseAdjudications");
+                    b.ToTable("ClaimResponseAdjudications", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseDiagnosisExt", b =>
@@ -1369,7 +1369,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimResponseId");
 
-                    b.ToTable("ClaimResponseDiagnosesExt");
+                    b.ToTable("ClaimResponseDiagnosesExt", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseInsurance", b =>
@@ -1414,7 +1414,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Sequence");
 
-                    b.ToTable("ClaimResponseInsurances");
+                    b.ToTable("ClaimResponseInsurances", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseSupportingInfoExt", b =>
@@ -1482,7 +1482,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimResponseId");
 
-                    b.ToTable("ClaimResponseSupportingInfosExt");
+                    b.ToTable("ClaimResponseSupportingInfosExt", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimResponseTotal", b =>
@@ -1537,7 +1537,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimResponseId");
 
-                    b.ToTable("ClaimResponseTotals");
+                    b.ToTable("ClaimResponseTotals", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimSubmissionRules", b =>
@@ -1612,7 +1612,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("PolicyMasterId");
 
-                    b.ToTable("ClaimSubmissionRules");
+                    b.ToTable("ClaimSubmissionRules", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClaimSupportingInfo", b =>
@@ -1688,7 +1688,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ClaimId");
 
-                    b.ToTable("ClaimSupportingInfos");
+                    b.ToTable("ClaimSupportingInfos", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ClinicMaster", b =>
@@ -1793,7 +1793,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.ToTable("ClinicMaster");
+                    b.ToTable("ClinicMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Communication", b =>
@@ -1897,7 +1897,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("SubjectPatientId");
 
-                    b.ToTable("Communications");
+                    b.ToTable("Communications", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.CommunicationRequest", b =>
@@ -1970,7 +1970,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("SubjectPatientId");
 
-                    b.ToTable("CommunicationRequests");
+                    b.ToTable("CommunicationRequests", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Coverage", b =>
@@ -2117,7 +2117,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Coverages");
+                    b.ToTable("Coverages", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.CoverageEligibilityRequest", b =>
@@ -2265,7 +2265,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("CoverageEligibilityRequests");
+                    b.ToTable("CoverageEligibilityRequests", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.CoverageEligibilityResponse", b =>
@@ -2436,7 +2436,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("ResponseUUID")
                         .IsUnique();
 
-                    b.ToTable("CoverageEligibilityResponses");
+                    b.ToTable("CoverageEligibilityResponses", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.DiagnosisCodeMaster", b =>
@@ -2506,7 +2506,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("DiagnosisCodeMaster");
+                    b.ToTable("DiagnosisCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.DoctorMaster", b =>
@@ -2621,7 +2621,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("PractitionerId");
 
-                    b.ToTable("DoctorMaster");
+                    b.ToTable("DoctorMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.DoctorQualification", b =>
@@ -2683,7 +2683,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("DoctorMasterId");
 
-                    b.ToTable("DoctorQualification");
+                    b.ToTable("DoctorQualification", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.EligibilityError", b =>
@@ -2765,7 +2765,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Severity");
 
-                    b.ToTable("EligibilityErrors");
+                    b.ToTable("EligibilityErrors", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.EligibilityItem", b =>
@@ -2835,7 +2835,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("EligibilityRequestId");
 
-                    b.ToTable("EligibilityItems");
+                    b.ToTable("EligibilityItems", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.EligibilityItemModifier", b =>
@@ -2876,7 +2876,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("EligibilityItemId");
 
-                    b.ToTable("EligibilityItemModifiers");
+                    b.ToTable("EligibilityItemModifiers", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Encounter", b =>
@@ -2976,7 +2976,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Encounters");
+                    b.ToTable("Encounters", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ErrorCodeMaster", b =>
@@ -3160,7 +3160,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.LoginAttempt", b =>
@@ -3199,7 +3199,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LoginAttempts");
+                    b.ToTable("LoginAttempts", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.MedicalDeviceCodeMaster", b =>
@@ -3276,7 +3276,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("MedicalDeviceCodeMaster");
+                    b.ToTable("MedicalDeviceCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.MedicationCodeMaster", b =>
@@ -3358,7 +3358,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("MedicationCode")
                         .IsUnique();
 
-                    b.ToTable("MedicationCodeMaster");
+                    b.ToTable("MedicationCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.MessageHeader", b =>
@@ -3493,7 +3493,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("MessageHeaders");
+                    b.ToTable("MessageHeaders", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ModifierCodeMaster", b =>
@@ -3555,7 +3555,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("ModifierCode")
                         .IsUnique();
 
-                    b.ToTable("ModifierCodeMaster");
+                    b.ToTable("ModifierCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.NphiesCodeMapping", b =>
@@ -3635,7 +3635,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[LocalCodeSystem] IS NOT NULL");
 
-                    b.ToTable("NphiesCodeMapping");
+                    b.ToTable("NphiesCodeMapping", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Organization", b =>
@@ -3759,7 +3759,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Organizations");
+                    b.ToTable("Organizations", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Patient", b =>
@@ -3894,7 +3894,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Patients");
+                    b.ToTable("Patients", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.PayerMaster", b =>
@@ -3971,7 +3971,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("PayerId")
                         .IsUnique();
 
-                    b.ToTable("PayerMaster");
+                    b.ToTable("PayerMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.PayerPolicyMaster", b =>
@@ -4071,7 +4071,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("PolicyCode")
                         .IsUnique();
 
-                    b.ToTable("PayerPolicyMaster");
+                    b.ToTable("PayerPolicyMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.PolicyBenefitCoverage", b =>
@@ -4158,7 +4158,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ServiceCodeMasterId");
 
-                    b.ToTable("PolicyBenefitCoverage");
+                    b.ToTable("PolicyBenefitCoverage", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.PollingRecord", b =>
@@ -4299,7 +4299,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("ResponseReceivedAt");
 
-                    b.ToTable("PollingRecords");
+                    b.ToTable("PollingRecords", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.Practitioner", b =>
@@ -4380,7 +4380,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Practitioners");
+                    b.ToTable("Practitioners", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.RefreshToken", b =>
@@ -4425,7 +4425,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ServiceCodeMaster", b =>
@@ -4515,7 +4515,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
                     b.HasIndex("ServiceCode")
                         .IsUnique();
 
-                    b.ToTable("ServiceCodeMaster");
+                    b.ToTable("ServiceCodeMaster", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.User", b =>
@@ -4599,7 +4599,7 @@ namespace NPhies_FHIR_Integration.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("NPhies_FHIR_Integration.Domain.Entities.ApiRateLimitLog", b =>
