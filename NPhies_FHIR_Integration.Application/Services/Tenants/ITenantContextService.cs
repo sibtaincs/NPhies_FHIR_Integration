@@ -22,19 +22,19 @@ public interface ITenantContextService
     /// </summary>
     string? GetCurrentTenantId();
 
-  /// <summary>
+    /// <summary>
     /// Get tenant configuration
     /// </summary>
     Task<TenantConfiguration> GetTenantConfigAsync(string tenantId, CancellationToken cancellationToken = default);
 
- /// <summary>
+    /// <summary>
     /// Validate tenant access
- /// </summary>
-  Task<bool> ValidateTenantAccessAsync(string tenantId, string userId, CancellationToken cancellationToken = default);
+    /// </summary>
+    Task<bool> ValidateTenantAccessAsync(string tenantId, string userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get all tenants
-  /// </summary>
+    /// </summary>
     Task<List<TenantInfo>> GetAllTenantsAsync(CancellationToken cancellationToken = default);
 }
 
@@ -49,14 +49,14 @@ public interface ITenantConfigService
     /// </summary>
     Task<string?> GetTenantSettingAsync(string tenantId, string settingName, CancellationToken cancellationToken = default);
 
-/// <summary>
+    /// <summary>
     /// Set tenant setting
     /// </summary>
- Task SetTenantSettingAsync(string tenantId, string settingName, string value, CancellationToken cancellationToken = default);
+    Task SetTenantSettingAsync(string tenantId, string settingName, string value, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get all tenant settings
-  /// </summary>
+    /// </summary>
     Task<Dictionary<string, string>> GetAllTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -69,10 +69,10 @@ public interface ITenantConfigService
     /// </summary>
     Task EnableFeatureAsync(string tenantId, string featureName, CancellationToken cancellationToken = default);
 
-/// <summary>
+    /// <summary>
     /// Disable feature for tenant
     /// </summary>
-Task DisableFeatureAsync(string tenantId, string featureName, CancellationToken cancellationToken = default);
+    Task DisableFeatureAsync(string tenantId, string featureName, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -86,38 +86,38 @@ public class TenantContextService : ITenantContextService
 
     public TenantContextService(ILogger<TenantContextService> logger)
     {
-      _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-      _tenantConfigs = new Dictionary<string, TenantConfiguration>();
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _tenantConfigs = new Dictionary<string, TenantConfiguration>();
     }
 
     /// <summary>
     /// Set current tenant
     /// </summary>
     public async Task SetCurrentTenantAsync(string tenantId, CancellationToken cancellationToken = default)
-  {
+    {
         try
         {
             if (string.IsNullOrEmpty(tenantId))
-          {
-    throw new ArgumentException("Tenant ID cannot be empty");
-      }
+            {
+                throw new ArgumentException("Tenant ID cannot be empty");
+            }
 
-          _currentTenantId = tenantId;
+            _currentTenantId = tenantId;
             _logger.LogInformation("Current tenant set to {TenantId}", tenantId);
         }
         catch (Exception ex)
         {
-        _logger.LogError(ex, "Error setting current tenant");
+            _logger.LogError(ex, "Error setting current tenant");
             throw;
         }
-  }
+    }
 
     /// <summary>
     /// Get current tenant ID
     /// </summary>
     public string? GetCurrentTenantId()
     {
-     return _currentTenantId;
+        return _currentTenantId;
     }
 
     /// <summary>
@@ -127,36 +127,36 @@ public class TenantContextService : ITenantContextService
     {
         try
         {
-        if (_tenantConfigs.TryGetValue(tenantId, out var config))
-      {
-        return config;
-        }
-
-       // Create default configuration
-var newConfig = new TenantConfiguration
+            if (_tenantConfigs.TryGetValue(tenantId, out var config))
             {
-    TenantId = tenantId,
-     TenantName = $"Tenant {tenantId}",
-     IsActive = true,
- CreatedDate = DateTime.UtcNow,
- Settings = new Dictionary<string, string>
+                return config;
+            }
+
+            // Create default configuration
+            var newConfig = new TenantConfiguration
+            {
+                TenantId = tenantId,
+                TenantName = $"Tenant {tenantId}",
+                IsActive = true,
+                CreatedDate = DateTime.UtcNow,
+                Settings = new Dictionary<string, string>
  {
           { "MaxUsers", "100" },
          { "StorageLimit", "1000" },
             { "EnableAudit", "true" }
                 }
-     };
+            };
 
-         _tenantConfigs[tenantId] = newConfig;
-          _logger.LogInformation("Tenant configuration created for {TenantId}", tenantId);
+            _tenantConfigs[tenantId] = newConfig;
+            _logger.LogInformation("Tenant configuration created for {TenantId}", tenantId);
 
-      return newConfig;
-   }
+            return newConfig;
+        }
         catch (Exception ex)
-   {
-     _logger.LogError(ex, "Error getting tenant configuration");
-       throw;
-    }
+        {
+            _logger.LogError(ex, "Error getting tenant configuration");
+            throw;
+        }
     }
 
     /// <summary>
@@ -169,45 +169,45 @@ var newConfig = new TenantConfiguration
             var config = await GetTenantConfigAsync(tenantId, cancellationToken);
 
             if (!config.IsActive)
-     {
-      _logger.LogWarning("Tenant {TenantId} is not active", tenantId);
-      return false;
-  }
+            {
+                _logger.LogWarning("Tenant {TenantId} is not active", tenantId);
+                return false;
+            }
 
-_logger.LogInformation("Tenant access validated for {TenantId}, User: {UserId}", tenantId, userId);
-         return true;
+            _logger.LogInformation("Tenant access validated for {TenantId}, User: {UserId}", tenantId, userId);
+            return true;
         }
         catch (Exception ex)
         {
-   _logger.LogError(ex, "Error validating tenant access");
+            _logger.LogError(ex, "Error validating tenant access");
             return false;
         }
     }
 
     /// <summary>
     /// Get all tenants
- /// </summary>
+    /// </summary>
     public async Task<List<TenantInfo>> GetAllTenantsAsync(CancellationToken cancellationToken = default)
     {
         try
-     {
-      var tenants = _tenantConfigs.Values
-     .Select(c => new TenantInfo
- {
-         TenantId = c.TenantId,
-            TenantName = c.TenantName,
-            IsActive = c.IsActive,
-    CreatedDate = c.CreatedDate,
-     UserCount = 1 // Placeholder
-          })
-    .ToList();
+        {
+            var tenants = _tenantConfigs.Values
+           .Select(c => new TenantInfo
+           {
+               TenantId = c.TenantId,
+               TenantName = c.TenantName,
+               IsActive = c.IsActive,
+               CreatedDate = c.CreatedDate,
+               UserCount = 1 // Placeholder
+           })
+          .ToList();
 
-   _logger.LogInformation("Retrieved {Count} tenants", tenants.Count);
+            _logger.LogInformation("Retrieved {Count} tenants", tenants.Count);
             return tenants;
         }
-   catch (Exception ex)
+        catch (Exception ex)
         {
-        _logger.LogError(ex, "Error getting all tenants");
+            _logger.LogError(ex, "Error getting all tenants");
             return new List<TenantInfo>();
         }
     }
@@ -228,27 +228,27 @@ public class TenantConfigService : ITenantConfigService
     }
 
     /// <summary>
- /// Get tenant setting
-/// </summary>
+    /// Get tenant setting
+    /// </summary>
     public async Task<string?> GetTenantSettingAsync(string tenantId, string settingName, CancellationToken cancellationToken = default)
     {
         try
         {
-        _logger.LogDebug("Getting tenant setting: {Tenant}.{Setting}", tenantId, settingName);
+            _logger.LogDebug("Getting tenant setting: {Tenant}.{Setting}", tenantId, settingName);
 
-       // In production, this would query a database
-   if (settingName == "MaxClaims")
-     return "10000";
+            // In production, this would query a database
+            if (settingName == "MaxClaims")
+                return "10000";
             if (settingName == "ApprovalWorkflow")
-         return "Standard";
+                return "Standard";
 
-        return null;
-  }
-   catch (Exception ex)
+            return null;
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting tenant setting");
-   return null;
-    }
+            return null;
+        }
     }
 
     /// <summary>
@@ -256,27 +256,27 @@ public class TenantConfigService : ITenantConfigService
     /// </summary>
     public async Task SetTenantSettingAsync(string tenantId, string settingName, string value, CancellationToken cancellationToken = default)
     {
-   try
-     {
+        try
+        {
             _logger.LogInformation("Setting tenant configuration: {Tenant}.{Setting} = {Value}", tenantId, settingName, value);
 
             // In production, this would update the database
         }
- catch (Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting tenant setting");
-throw;
-     }
+            throw;
+        }
     }
 
     /// <summary>
-  /// Get all tenant settings
+    /// Get all tenant settings
     /// </summary>
     public async Task<Dictionary<string, string>> GetAllTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
     {
         try
         {
-       var settings = new Dictionary<string, string>
+            var settings = new Dictionary<string, string>
  {
      { "MaxClaims", "10000" },
        { "MaxAppeals", "5000" },
@@ -285,14 +285,14 @@ throw;
  { "EnableBatchProcessing", "true" }
   };
 
-     _logger.LogInformation("Retrieved {Count} settings for tenant {TenantId}", settings.Count, tenantId);
-    return settings;
+            _logger.LogInformation("Retrieved {Count} settings for tenant {TenantId}", settings.Count, tenantId);
+            return settings;
         }
         catch (Exception ex)
-  {
+        {
             _logger.LogError(ex, "Error getting all tenant settings");
-      return new Dictionary<string, string>();
-    }
+            return new Dictionary<string, string>();
+        }
     }
 
     /// <summary>
@@ -302,32 +302,32 @@ throw;
     {
         try
         {
-          if (_tenantFeatures.TryGetValue(tenantId, out var features))
+            if (_tenantFeatures.TryGetValue(tenantId, out var features))
             {
-    return features;
-       }
+                return features;
+            }
 
             var newFeatures = new TenantFeatures
             {
- TenantId = tenantId,
-           EnabledFeatures = new List<string>
+                TenantId = tenantId,
+                EnabledFeatures = new List<string>
    {
            "ClaimAdjudication",
       "AppealManagement",
           "Reporting",
         "FinancialAnalytics"
   }
-   };
+            };
 
             _tenantFeatures[tenantId] = newFeatures;
-     _logger.LogInformation("Tenant features created for {TenantId}", tenantId);
+            _logger.LogInformation("Tenant features created for {TenantId}", tenantId);
 
             return newFeatures;
         }
         catch (Exception ex)
-  {
-_logger.LogError(ex, "Error getting tenant features");
-     throw;
+        {
+            _logger.LogError(ex, "Error getting tenant features");
+            throw;
         }
     }
 
@@ -335,40 +335,40 @@ _logger.LogError(ex, "Error getting tenant features");
     /// Enable feature for tenant
     /// </summary>
     public async Task EnableFeatureAsync(string tenantId, string featureName, CancellationToken cancellationToken = default)
- {
-   try
+    {
+        try
         {
             var features = await GetTenantFeaturesAsync(tenantId, cancellationToken);
 
- if (!features.EnabledFeatures.Contains(featureName))
-  {
-        features.EnabledFeatures.Add(featureName);
-        }
+            if (!features.EnabledFeatures.Contains(featureName))
+            {
+                features.EnabledFeatures.Add(featureName);
+            }
 
-  _logger.LogInformation("Feature enabled for tenant: {Tenant}.{Feature}", tenantId, featureName);
+            _logger.LogInformation("Feature enabled for tenant: {Tenant}.{Feature}", tenantId, featureName);
         }
         catch (Exception ex)
         {
-          _logger.LogError(ex, "Error enabling feature");
+            _logger.LogError(ex, "Error enabling feature");
             throw;
         }
     }
 
     /// <summary>
-  /// Disable feature for tenant
+    /// Disable feature for tenant
     /// </summary>
     public async Task DisableFeatureAsync(string tenantId, string featureName, CancellationToken cancellationToken = default)
     {
         try
         {
             var features = await GetTenantFeaturesAsync(tenantId, cancellationToken);
-   features.EnabledFeatures.Remove(featureName);
+            features.EnabledFeatures.Remove(featureName);
 
-         _logger.LogInformation("Feature disabled for tenant: {Tenant}.{Feature}", tenantId, featureName);
-     }
+            _logger.LogInformation("Feature disabled for tenant: {Tenant}.{Feature}", tenantId, featureName);
+        }
         catch (Exception ex)
         {
-       _logger.LogError(ex, "Error disabling feature");
+            _logger.LogError(ex, "Error disabling feature");
             throw;
         }
     }
@@ -381,7 +381,7 @@ _logger.LogError(ex, "Error getting tenant features");
 /// </summary>
 public class TenantConfiguration
 {
-  public string TenantId { get; set; } = string.Empty;
+    public string TenantId { get; set; } = string.Empty;
     public string TenantName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
@@ -395,7 +395,7 @@ public class TenantInfo
 {
     public string TenantId { get; set; } = string.Empty;
     public string TenantName { get; set; } = string.Empty;
-  public bool IsActive { get; set; }
+    public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
     public int UserCount { get; set; }
 }
