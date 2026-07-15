@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using NPhies_FHIR_Integration.Domain.Entities;
 
 namespace NPhies_FHIR_Integration.Infrastructure.Data;
@@ -14,6 +15,13 @@ public class ApplicationDbContext : DbContext
     /// </summary>
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        // Suppress pending model changes warning - Phase 3 services are application-layer only
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 
     // DbSets for all domain entities
