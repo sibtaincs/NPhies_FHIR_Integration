@@ -1,490 +1,735 @@
-# NPHIES FHIR Integration - User Guide
+# ?? **NPHIES FHIR INTEGRATION - COMPLETE USER GUIDE**
 
-## ?? Table of Contents
+## Table of Contents
 1. [Introduction](#introduction)
-2. [System Overview](#system-overview)
-3. [Getting Started](#getting-started)
-4. [Using the System](#using-the-system)
-5. [Common Tasks](#common-tasks)
-6. [Troubleshooting](#troubleshooting)
-7. [Support](#support)
+2. [Getting Started](#getting-started)
+3. [User Interface Navigation](#user-interface-navigation)
+4. [Submitting Claims](#submitting-claims)
+5. [Eligibility Verification](#eligibility-verification)
+6. [Pre-Authorization](#pre-authorization)
+7. [Tracking Claims](#tracking-claims)
+8. [Managing Corrections](#managing-corrections)
+9. [Appeals Process](#appeals-process)
+10. [Reports & Analytics](#reports--analytics)
+11. [Troubleshooting](#troubleshooting)
+12. [FAQs](#faqs)
 
 ---
 
 ## Introduction
 
-The NPHIES FHIR Integration System is a comprehensive healthcare claims management platform designed to streamline claim processing, validate medical claims according to NPHIES standards, and provide real-time analytics and reporting.
+### What is NPHIES FHIR Integration?
 
-### What You Can Do With This System
+The NPHIES FHIR Integration System is a comprehensive healthcare claims processing platform that:
 
-- **Submit Claims**: Submit medical claims in FHIR format
-- **Track Claims**: Monitor claim status in real-time
-- **View Analytics**: Access comprehensive dashboards and reports
-- **Manage Appeals**: Handle claim appeals efficiently
-- **Generate Reports**: Create custom compliance and financial reports
-- **Monitor Performance**: Track system health and performance metrics
-
----
-
-## System Overview
-
-### Architecture
-The system consists of 43 production-ready services organized into 4 phases:
-
-- **Phase 1 (6 services)**: Validation & Compliance
-- **Phase 2A (15 services)**: RCM Processing
-- **Phase 2B (10 services)**: Analytics & Reporting  
-- **Phase 2C (12 services)**: Infrastructure & Deployment
+- **Streamlines Claim Submission** - Submit claims directly to NPHIES
+- **Verifies Eligibility** - Check member coverage in real-time
+- **Manages Pre-Authorizations** - Submit and track pre-auth requests
+- **Provides Real-time Status** - Track claim status end-to-end
+- **Handles Corrections** - Manage claim amendments easily
+- **Processes Appeals** - Submit and track appeals for denied claims
+- **Offers Analytics** - Detailed reports and performance metrics
 
 ### Key Features
 
-#### Claim Validation (Phase 1)
-- Comprehensive claim validation with 47+ rules
-- Real-time eligibility verification
-- FHIR message format compliance checking
-- Standardized error codes (1,682 NPHIES codes)
-
-#### Claims Processing (Phase 2A)
-- Automated adjudication with 10 core rules
-- Multi-tier benefit determination
-- Complex payment calculations
-- Automated denial and appeal management
-- Real-time claim status tracking
-
-#### Analytics & Reporting (Phase 2B)
-- NPHIES compliance reporting
-- Real-time claims analytics dashboard
-- Provider performance metrics
-- Error analysis with recommendations
-- Financial analytics and forecasting
-- Custom report builder
-
-#### Infrastructure (Phase 2C)
-- API gateway with rate limiting
-- Database optimization
-- Distributed caching
-- Load balancing
-- Disaster recovery capabilities
-- Security hardening and encryption
-- Comprehensive monitoring and alerting
+? **Real-time Eligibility Verification**  
+? **Batch Claim Submission**  
+? **Automated Pre-Authorization**  
+? **Instant Status Tracking**  
+? **Error Detection & Correction**  
+? **Appeals Management**  
+? **Comprehensive Reporting**  
+? **24/7 Monitoring**  
 
 ---
 
 ## Getting Started
 
-### Prerequisites
+### System Requirements
 
-- Network access to the NPHIES FHIR Integration API
-- Valid API credentials (API key)
-- Understanding of FHIR standards
-- Familiarity with healthcare claims processing
+**Browser Requirements:**
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-### Initial Setup
+**Internet:**
+- Broadband connection (5 Mbps minimum)
+- Stable connection for optimal performance
 
-1. **Obtain API Credentials**: Contact your administrator for API key
-2. **Configure Integration**: Set up API endpoint in your system
-3. **Validate Connection**: Test connectivity to the API
-4. **Submit Test Claims**: Start with test submissions
+### Login & Authentication
 
-### First Steps
+1. **Go to Login Page**
+   - Navigate to: https://nphies-fhir.health/login
+
+2. **Enter Credentials**
+   - Username: Your provider ID
+   - Password: Your secure password
+
+3. **Two-Factor Authentication** (if enabled)
+   - Enter code from authenticator app
+   - Or click "Send code via email"
+
+4. **Accept Terms**
+   - Review and accept terms of service
+   - Click "I Agree"
+
+5. **Access Dashboard**
+   - You'll be directed to your dashboard
+
+### First Time Setup
+
+**Step 1: Profile Configuration**
+- Click "Settings" ? "Profile"
+- Verify provider information
+- Update contact details
+- Set notification preferences
+
+**Step 2: Team Management**
+- Go to "Team" ? "Add Member"
+- Enter team member details
+- Set user role (Admin, Operator, Viewer)
+- Send invitation link
+
+**Step 3: Organization Settings**
+- Configure default values
+- Set batch processing preferences
+- Enable/disable features
+- Configure email notifications
+
+---
+
+## User Interface Navigation
+
+### Dashboard Overview
+
+The Dashboard shows:
 
 ```
-1. Register your provider credentials
-2. Set up claim submission workflow
-3. Configure notification preferences
-4. Submit test claim
-5. Monitor processing status
-6. View results in dashboard
+???????????????????????????????????????????????????
+? NPHIES FHIR Integration Dashboard  ?
+??????????????????????????????????????????????????
+? Claims   ? Eligibility? Pre-Auth    ? Analytics?
+? (125)    ? (98 due)   ? (45 pending)?         ?
+??????????????????????????????????????????????????
+?     ?
+? Recent Activity      ?
+? ?????????????????????????????????????????????   ?
+? • Claim CLM-001: Approved ($1,200)  ? Today   ?
+? • Claim CLM-002: Needs Correction   ?? Today   ?
+? • Pre-Auth: PAU-001 Approved ? Yesterday?
+?       ?
+????????????????????????????????????????????????????
+? Quick Stats              ?
+? ?????????????????????????????????????????????    ?
+? Submitted: 250 | Approved: 200 | Denied: 30    ?
+? Success Rate: 96.2% | Avg Processing: 2 days   ?
+????????????????????????????????????????????????????
+```
+
+### Main Menu
+
+| Option | Description |
+|--------|-------------|
+| **Dashboard** | Home page with overview |
+| **Claims** | Submit and manage claims |
+| **Eligibility** | Check member coverage |
+| **Pre-Auth** | Request pre-authorization |
+| **Tracking** | Monitor claim status |
+| **Corrections** | Amend submitted claims |
+| **Appeals** | Manage denied claim appeals |
+| **Reports** | View analytics and reports |
+| **Settings** | Configure preferences |
+| **Support** | Help and documentation |
+
+### Navigation Tips
+
+- **Quick Search**: Use search box to find claims by ID
+- **Filters**: Apply filters to narrow results
+- **Export**: Export data to CSV/PDF
+- **Favorites**: Star frequently used pages
+- **Shortcuts**: Use keyboard shortcuts (? for help)
+
+---
+
+## Submitting Claims
+
+### Step-by-Step Claim Submission
+
+#### Step 1: Start New Claim
+
+1. Click **"Claims"** in main menu
+2. Click **"+ Submit New Claim"** button
+3. Select claim type:
+   - Medical
+   - Dental
+   - Pharmacy
+4. Click **"Continue"**
+
+#### Step 2: Patient Information
+
+```
+Patient Details
+?????????????????????????????????
+Member ID:        [SUB001            ]  ?
+First Name:       [John         ]
+Last Name:        [Smith        ]
+DOB:   [01/15/1980      ]
+Gender:           [Male        ?]
+?????????????????????????????????
+```
+
+- Fill in patient details
+- Verify against NPHIES database (auto-populated)
+- Correct any mismatches
+- Click **"Next"**
+
+#### Step 3: Service Information
+
+```
+Service Details
+?????????????????????????????????
+Service Type:     [Office Visit      ?]
+Service Code:     [99213     ]
+Service Date:     [01/15/2024        ]
+Amount:           [150.00 ]
+Provider NPI:     [1234567890        ]
+?????????????????????????????????
+```
+
+- Select service type
+- Enter service code
+- Enter service date
+- Enter amount
+- Click **"Next"**
+
+#### Step 4: Diagnosis & Medical Details
+
+```
+Diagnosis Information
+?????????????????????????????????
+Primary Diagnosis: [J06.9       ] (Acute URI)
+Secondary:  [M79.3    ] (Myalgia)
+Primary:           [99213       ] (Office Visit)
+Secondary:         [71045       ] (Shoulder X-ray)
+?????????????????????????????????
+```
+
+- Enter diagnosis codes (ICD-10)
+- Select primary diagnosis
+- Add secondary diagnoses
+- Add service procedures
+- Click **"Next"**
+
+#### Step 5: Insurance Information
+
+```
+Insurance Details
+?????????????????????????????????
+Insurance ID:     [INS-001     ]
+Insurer:        [ABC Insurance]
+Group Number:     [GRP-001           ]
+Plan:             [Standard Plan     ]
+Coverage Status:  [Active       ?]
+?????????????????????????????????
+```
+
+- Verify insurance information
+- Update if necessary
+- Confirm coverage status
+- Click **"Next"**
+
+#### Step 6: Attachments (Optional)
+
+```
+Attachments
+?????????????????????????????????
+?? Supporting Documents
+  ? Medical Records
+? X-ray Images
+  ? Lab Results
+  ? Prescription
+?????????????????????????????????
+```
+
+- Attach supporting documents
+- Upload lab results if required
+- Include clinical notes
+- Click **"Next"**
+
+#### Step 7: Review & Submit
+
+```
+Claim Review
+?????????????????????????????????
+Patient:          John Smith (SUB001)
+Service: Office Visit ($150)
+Diagnosis:        J06.9 (Acute URI)
+Insurer:          ABC Insurance
+Status:           Ready to Submit ?
+?????????????????????????????????
+```
+
+- Review all information
+- Make any corrections
+- Click **"Submit Claim"**
+- Confirmation message appears
+
+### Batch Submission
+
+For submitting multiple claims:
+
+1. Click **"Batch Submit"**
+2. Upload CSV/Excel file
+3. Map columns to fields
+4. Preview data
+5. Click **"Submit Batch"**
+6. Monitor batch progress
+
+**Batch Format (CSV)**:
+```csv
+MemberId,FirstName,LastName,ServiceCode,ServiceDate,Amount,DiagnosisCode
+SUB001,John,Smith,99213,01/15/2024,150,J06.9
+SUB002,Jane,Doe,99214,01/15/2024,200,E11.9
 ```
 
 ---
 
-## Using the System
+## Eligibility Verification
 
-### Submitting Claims
+### Check Member Eligibility
 
-#### Via API
+#### Method 1: Quick Check
 
-```json
-POST /api/claims
-{
-  "claimId": "CLM-2024-001",
-  "patientId": "PAT-123456",
-  "providerId": "PROV-789",
-  "serviceDate": "2024-01-15",
-  "services": [
-    {
-"serviceCode": "99213",
-      "description": "Office visit",
-    "amount": 150.00
- }
-  ]
-}
+1. Click **"Eligibility"** ? **"Quick Check"**
+2. Enter **Member ID**: `SUB001`
+3. Click **"Check"**
+4. View eligibility status:
+
+```
+Member Eligibility
+?????????????????????????????????
+Status:    Active ?
+Plan:     Standard Plan
+Group:      GRP-001
+Coverage:         Effective
+Deductible:       $1,000 (Met: $500)
+Out-of-Pocket:    $3,000 (Met: $1,200)
+?????????????????????????????????
 ```
 
-#### Via Web Portal
+#### Method 2: Detailed Check
 
-1. Navigate to "Submit Claim"
-2. Fill in claim details
-3. Upload supporting documents
-4. Review and submit
-5. Receive confirmation number
+1. Click **"Eligibility"** ? **"Detailed Check"**
+2. Fill in all details:
+   - Member ID
+   - Service Date
+   - Service Code
+3. Click **"Verify"**
+4. Review benefit details:
 
-### Tracking Claims
+```
+Benefit Details for Service Code 99213
+?????????????????????????????????
+Coverage: 80% (Plan covers 80%)
+Copay:            $25
+Deductible:     Applies
+Auth Required: No
+Prior Auth:       N/A
+?????????????????????????????????
+```
 
-#### Real-Time Status
-- View claim status: Submitted ? Received ? Under Review ? Adjudicated ? Paid
-- Check processing timeline
-- View payment details
-- Access supporting documentation
+### Understanding Eligibility Status
 
-#### Dashboard Features
-- Claim search by ID, patient, or date
-- Status filtering
-- Performance metrics
-- Denial analytics
+| Status | Meaning | Action |
+|--------|---------|--------|
+| **Active** | Member is eligible | Submit claim |
+| **Inactive** | Member not covered | Contact insurer |
+| **Suspended** | Temporarily inactive | Investigate |
+| **Terminated** | Coverage ended | Contact member |
+| **Pending** | Awaiting verification | Wait for update |
 
-### Managing Appeals
+### Eligibility Insights
 
-#### Appeal Process
-1. View denied claim details
-2. Click "Submit Appeal"
-3. Provide appeal justification
-4. Attach supporting documentation
-5. Submit appeal
-6. Track appeal status
-
-#### Appeal Statuses
-- Submitted
-- Under Review
-- Approved
-- Denied
-- Partially Approved
-- Escalated
+- **Real-time Updates**: Checked directly with NPHIES
+- **Auto-refresh**: Updates every 24 hours
+- **Caching**: Faster subsequent checks
+- **Alerts**: Notified of coverage changes
 
 ---
 
-## Common Tasks
+## Pre-Authorization
 
-### Task 1: Check Claim Status
+### Request Pre-Authorization
 
-**Steps:**
-1. Log in to portal
-2. Navigate to "My Claims"
-3. Search for claim ID
-4. Click claim to view details
-5. View current status and timeline
+#### Step 1: Start Request
 
-**Expected Time:** 1-2 minutes
+1. Click **"Pre-Auth"** ? **"+ New Request"**
+2. Enter patient details
+3. Click **"Continue"**
 
-### Task 2: Submit an Appeal
+#### Step 2: Service Details
 
-**Steps:**
-1. Find denied claim in claims list
-2. Click "Appeal" button
-3. Select appeal type (First/Second/Third level)
-4. Enter appeal reason
-5. Upload supporting documents
+```
+Pre-Authorization Details
+?????????????????????????????????
+Service Type:   [Specialty Exam    ?]
+Service Code:     [92014             ]
+Estimated Cost:   [$500              ]
+Clinical Reason:  [Comprehensive eye exam]
+?????????????????????????????????
+```
+
+#### Step 3: Medical Justification
+
+```
+Clinical Information
+?????????????????????????????????
+Diagnosis:        [H44.003 (Retinal disease)]
+Justification:    [Frequent headaches, 
+         visual disturbances,
+     need comprehensive eye exam]
+?????????????????????????????????
+```
+
+- Explain medical necessity
+- Include clinical findings
+- Attach supporting documents
+- Click **"Submit"**
+
+#### Step 4: Confirmation
+
+```
+Pre-Auth Request Submitted
+?????????????????????????????????
+Authorization ID: AUTH-2024-001
+Status: Submitted ?
+Submitted Date:   01/15/2024
+Estimated Decision: 24 hours
+?????????????????????????????????
+```
+
+### Monitor Pre-Auth Status
+
+1. Click **"Pre-Auth"** ? **"My Requests"**
+2. View request status
+3. Check decision
+4. Link to claim submission
+
+**Status Timeline**:
+- Submitted ? Accepted ? Reviewing ? Decided ? Approved/Denied
+
+---
+
+## Tracking Claims
+
+### View Claim Status
+
+#### Method 1: Dashboard
+
+Status indicators show on dashboard:
+- ?? **Approved** - Claim approved
+- ?? **Processing** - Under review
+- ?? **Denied** - Claim denied
+- ?? **Correction Needed** - Needs amendment
+
+#### Method 2: Search Claims
+
+1. Click **"Tracking"** ? **"Search Claims"**
+2. Enter **Claim ID**: `CLM-001`
+3. Click **"Search"**
+4. View full claim details
+
+#### Method 3: Filter & Sort
+
+```
+Filters Available:
+  ? Status (All, Submitted, Approved, Denied)
+  ? Date Range
+  ? Amount Range
+  ? Provider
+  ? Insurance
+
+Sort By:
+  • Date (Newest/Oldest)
+  • Amount (High/Low)
+  • Status
+```
+
+### Claim Detail View
+
+```
+Claim Details - CLM-001
+?????????????????????????????????
+Patient:          John Smith (SUB001)
+Service Date:     01/15/2024
+Service:          Office Visit (99213)
+Diagnosis:        J06.9 (Acute URI)
+Amount:           $150.00
+
+Status:           APPROVED ? (Jan 16)
+Approved Amount:  $120.00
+Patient Resp:   $30.00 (Copay)
+Payment Status:   PAID (Jan 20)
+Payment Amount:   $120.00
+
+Insurance:        ABC Insurance
+Authorization:    PRE-001 (Valid)
+Attachments:      2 files
+?????????????????????????????????
+```
+
+### Status Explanations
+
+| Status | Timeline | Meaning |
+|--------|----------|---------|
+| **Submitted** | Day 1 | Received by NPHIES |
+| **Accepted** | Day 1-2 | Format validation passed |
+| **Processing** | Day 2-3 | Under clinical review |
+| **Approved** | Day 3-5 | Approved for payment |
+| **Denied** | Day 3-5 | Not covered/eligible |
+| **Paid** | Day 5-10 | Payment issued |
+
+---
+
+## Managing Corrections
+
+### Submit Claim Correction
+
+When a claim needs correction:
+
+1. Click **"Corrections"** ? **"+ New Correction"**
+2. Select claim to correct
+3. Choose fields to correct:
+
+```
+Fields to Correct
+?????????????????????????????????
+? Patient Information
+? Service Details
+? Diagnosis Codes
+? Insurance Information
+? Amount
+? Attachments
+?????????????????????????????????
+```
+
+4. Enter corrections
+5. Explain reason for correction
+6. Submit correction
+
+### Correction Status
+
+```
+Correction #CORR-001
+?????????????????????????????????
+Original Claim:   CLM-001
+Correction Date:  01/16/2024
+Status:  Accepted ?
+Changes Made:     • Amount: $150 ? $160
+New Claim ID:     CLM-001R1
+Resubmitted:      01/16/2024
+?????????????????????????????????
+```
+
+---
+
+## Appeals Process
+
+### Submit Appeal
+
+For denied claims:
+
+1. Click **"Appeals"** ? **"+ New Appeal"**
+2. Select claim to appeal
+3. Review denial reason
+4. Provide appeal justification:
+
+```
+Appeal Details
+?????????????????????????????????
+Claim ID:         CLM-001
+Denial Reason:    Exceeds benefit limit
+Appeal Reason:    [Text area for justification]
+Supporting Docs:  [Upload files]
+Contact Info:     [Phone/Email]
+?????????????????????????????????
+```
+
+5. Attach supporting documents
 6. Submit appeal
-7. Receive confirmation
+7. Get appeal ID and deadline
 
-**Appeal Deadline:** 30 days from denial date
+### Appeal Timeline
 
-### Task 3: Generate a Report
+```
+Appeal Status - APP-001
+?????????????????????????????????
+Submitted:        01/16/2024
+Deadline:         02/15/2024 (30 days)
+Status:Under Review ?
+Expected Decision: 01/30/2024
+?????????????????????????????????
+```
 
-**Steps:**
-1. Navigate to "Reports"
-2. Select report type (Claims, Denials, Financial, etc.)
+---
+
+## Reports & Analytics
+
+### Dashboard Analytics
+
+View key metrics:
+
+```
+Performance Metrics
+?????????????????????????????????
+Total Claims:     500
+Approved:         450 (90%)
+Denied:           30 (6%)
+Corrections:      20 (4%)
+
+Avg Processing:   2.5 days
+Success Rate:     96.2%
+Payment Avg:      $180.50
+?????????????????????????????????
+```
+
+### Generate Reports
+
+1. Click **"Reports"** ? **"Generate Report"**
+2. Select report type:
+   - Claims Summary
+   - Financial Report
+   - Performance Report
+   - Compliance Report
 3. Set date range
-4. Choose filters (provider, claim type, etc.)
-5. Select format (PDF, Excel, JSON)
-6. Generate report
-7. Download or email
+4. Click **"Generate"**
+5. Download PDF/Excel
 
-### Task 4: Check System Status
+### Export Data
 
-**Steps:**
-1. Navigate to "System Status"
-2. View component health
-3. Check recent alerts
-4. View uptime metrics
-5. View active incidents (if any)
-
-### Task 5: Update Provider Information
-
-**Steps:**
-1. Go to "Settings" ? "Provider Profile"
-2. Update credentials, contact info, specialties
-3. Upload license documentation
-4. Save changes
-5. Wait for verification (usually 1-2 hours)
+```
+Export Options:
+?????????????????????????????????
+Format:    [PDF ?] [Excel ?] [CSV ?]
+Date:      [From] [To]
+Filter:    [Status] [Provider]
+Include:   [?] All Details
+ [?] Attachments
+?????????????????????????????????
+```
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues & Solutions
 
-#### Issue: Claim Validation Failed
-**Possible Causes:**
-- Missing required fields
-- Invalid service codes
-- Incorrect date format
-- Ineligible patient
+**Issue**: "Claim Submission Failed"
+- **Cause**: Invalid data format
+- **Solution**: 
+  1. Review error message
+  2. Correct highlighted fields
+  3. Re-submit claim
 
-**Solution:**
-1. Review validation error message
-2. Check provided error code documentation
-3. Correct the identified issue
-4. Resubmit claim
+**Issue**: "Member Not Found"
+- **Cause**: Incorrect member ID
+- **Solution**:
+  1. Verify member ID with patient
+  2. Check member ID format
+  3. Search by name instead
 
-#### Issue: Slow Response Times
-**Possible Causes:**
-- High system load
-- Network latency
-- Database query optimization needed
+**Issue**: "Service Not Covered"
+- **Cause**: Service not included in plan
+- **Solution**:
+  1. Check plan details
+  2. Verify service code
+  3. Contact insurer for coverage details
 
-**Solution:**
-1. Retry request
-2. Check internet connection
-3. Contact support if persists
-4. Check system status page
+**Issue**: "Authorization Required"
+- **Cause**: Service requires pre-auth
+- **Solution**:
+  1. Submit pre-authorization request
+  2. Wait for approval
+  3. Submit claim after approval
 
-#### Issue: Unable to Download Report
-**Possible Causes:**
-- Browser compatibility
-- File size too large
-- Insufficient permissions
-
-**Solution:**
-1. Try different browser
-2. Generate smaller date range
-3. Contact administrator for permissions
-4. Use email delivery option
-
-#### Issue: Appeal Deadline Passed
-**Possible Causes:**
-- Not submitted within 30-day window
-- Date confusion
-
-**Solution:**
-1. Contact provider relations
-2. Request deadline extension (if applicable)
-3. Document reason for delay
-4. Follow exception process
-
-#### Issue: System Unavailable
-**Possible Causes:**
-- Scheduled maintenance
-- Technical incident
-- Network connectivity
-
-**Solution:**
-1. Check system status page
-2. Wait for maintenance window to complete
-3. Contact support for ongoing incidents
-4. Check status updates via email
-
----
-
-## Dashboard Features
-
-### Claims Dashboard
-- **Total Claims Submitted**: Count of all claims
-- **Approval Rate**: Percentage of approved claims
-- **Average Processing Time**: Days to adjudication
-- **Claims by Status**: Breakdown of claim statuses
-- **Denial Rate**: Percentage of denied claims
-
-### Financial Dashboard
-- **Total Revenue**: Amount of approved claims
-- **Denied Amount**: Sum of denied claims
-- **Write-offs**: Contractual adjustments
-- **Net Revenue**: Final payment received
-- **Trending**: Month-over-month comparison
-
-### Provider Dashboard
-- **Provider Ranking**: Performance comparison
-- **Submission Quality**: Error rate and validation
-- **Approval Rate**: Claims approved percentage
-- **Average Processing Time**: Days to payment
-- **Compliance Score**: NPHIES adherence
-
-### Network Dashboard
-- **In-Network Providers**: Count and status
-- **Out-of-Network Providers**: Count and rules
-- **Network Coverage**: Geographic coverage
-- **Provider Specialties**: Available services
-- **Network Health**: Overall network metrics
-
----
-
-## API Reference (Quick)
-
-### Base URL
-```
-https://api.nphies-fhir.health
-```
-
-### Authentication
-```
-Header: Authorization: Bearer YOUR_API_KEY
-```
-
-### Main Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/claims | Submit claim |
-| GET | /api/claims/{id} | Get claim details |
-| GET | /api/claims | List claims |
-| POST | /api/claims/{id}/appeal | Submit appeal |
-| GET | /api/dashboard/metrics | Get metrics |
-| POST | /api/reports/generate | Generate report |
-
-### Response Format
-```json
-{
-  "success": true,
-"data": {},
-  "errors": [],
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
-
----
-
-## Best Practices
-
-### For Claim Submission
-1. ? Verify all required fields before submission
-2. ? Use standard service codes
-3. ? Include complete patient information
-4. ? Ensure provider credentials are current
-5. ? Attach supporting documentation
-6. ? Don't submit duplicate claims
-7. ? Don't alter claim amounts post-submission
-
-### For Appeals
-1. ? Submit within 30-day deadline
-2. ? Provide detailed justification
-3. ? Include supporting medical evidence
-4. ? Reference original claim ID
-5. ? Follow appeal guidelines
-6. ? Don't submit multiple identical appeals
-7. ? Don't change appeal justification mid-process
-
-### For System Usage
-1. ? Keep API credentials secure
-2. ? Monitor your account regularly
-3. ? Set up notifications
-4. ? Respond to requests promptly
-5. ? Maintain accurate provider information
-6. ? Don't share credentials
-7. ? Don't attempt unauthorized access
-
----
-
-## Support
+**Issue**: "System Timeout"
+- **Cause**: Network or server issue
+- **Solution**:
+  1. Wait a few minutes
+  2. Refresh page
+  3. Try again
+  4. Contact support if issue persists
 
 ### Getting Help
 
-**For Technical Issues:**
+**In-app Support**:
+- Click "?" in top-right corner
+- View help articles
+- Live chat with support (if available)
+
+**Contact Support**:
 - Email: support@nphies-fhir.health
-- Phone: +966-XX-XXXX-XXXX
-- Portal: Submit support ticket
-- Chat: Available 8 AM - 5 PM (GMT+3)
-
-**For Business Questions:**
-- Email: business@nphies-fhir.health
-- Account Manager: Assigned to your organization
-- Training: Available upon request
-
-### Reporting Issues
-
-When reporting issues, include:
-1. Issue description
-2. Steps to reproduce
-3. Screenshots (if applicable)
-4. Error messages
-5. Claim ID(s) affected
-6. Time of occurrence
-
-### SLA Response Times
-
-| Issue Type | Severity | Response Time |
-|-----------|----------|---|
-| System Down | Critical | 15 minutes |
-| Functional Issue | High | 1 hour |
-| Slow Performance | Medium | 2 hours |
-| Documentation | Low | 24 hours |
+- Phone: 1-800-NPHIES-1
+- Web: https://support.nphies-fhir.health
 
 ---
 
-## Additional Resources
+## FAQs
 
-### Training & Documentation
-- Video Tutorials: [available in portal]
-- User Guides: [downloadable PDFs]
-- API Documentation: [Swagger/OpenAPI]
-- FAQ: [comprehensive database]
-- Webinars: [scheduled monthly]
+**Q: How long does claim processing take?**
+A: Average 2-3 days for NPHIES review. Once approved, payment typically follows within 5-10 days.
 
-### Compliance & Standards
-- NPHIES Specifications: [download link]
-- FHIR R4 Standards: [reference guide]
-- Security Standards: [HIPAA/SOC2 info]
-- Data Privacy: [policy document]
+**Q: Can I submit claims in bulk?**
+A: Yes! Use the Batch Submit feature to upload CSV files with multiple claims.
 
-### System Information
-- Status Page: status.nphies-fhir.health
-- Release Notes: [current version info]
-- System Requirements: .NET 9+
-- Supported Browsers: Chrome, Firefox, Safari, Edge
+**Q: What if my claim is denied?**
+A: You can request a correction (if data was wrong) or file an appeal (if you disagree with decision).
 
----
+**Q: Is my data secure?**
+A: Yes, all data is encrypted (HTTPS/TLS), and the system meets HIPAA and NPHIES security requirements.
 
-## Frequently Asked Questions (FAQ)
+**Q: Can I access from mobile?**
+A: Yes, the system is fully responsive and works on smartphones and tablets.
 
-### Q: How long does claim processing take?
-**A:** Average processing time is 15 days from submission to payment, but can vary based on complexity and required review.
+**Q: What are the system hours?**
+A: The system is available 24/7, but NPHIES processing is during standard business hours.
 
-### Q: Can I modify a claim after submission?
-**A:** No, claims cannot be modified after submission. You must contact support for corrections.
+**Q: How do I reset my password?**
+A: Click "Forgot Password" on login page, enter your email, and follow the link sent to you.
 
-### Q: What is the appeal deadline?
-**A:** Appeals must be submitted within 30 days of the denial notice.
+**Q: Can multiple users access the same account?**
+A: Yes, add team members in Settings ? Team Management to grant them access.
 
-### Q: How many times can I appeal?
-**A:** You can appeal up to 3 levels for each claim.
-
-### Q: What if my claim is denied?
-**A:** Review the denial reason, gather supporting documentation, and submit an appeal within 30 days.
-
-### Q: Is my data secure?
-**A:** Yes, all data is encrypted in transit and at rest, with comprehensive security measures in place.
-
-### Q: Can I get historical reports?
-**A:** Yes, reports can be generated for any date range within available data (typically 2+ years).
-
-### Q: What formats are supported for document uploads?
-**A:** PDF, JPEG, PNG, and TIFF files up to 10MB per file.
-
-### Q: How do I reset my password?
-**A:** Use the "Forgot Password" link on the login page or contact support.
-
-### Q: Can I integrate via API?
-**A:** Yes, comprehensive API is available with documentation and code samples.
+**Q: What file formats are accepted for attachments?**
+A: PDF, JPG, PNG, TIFF (up to 10 MB per file).
 
 ---
 
-## Document Information
+## Tips & Best Practices
 
-**Version:** 1.0  
-**Last Updated:** January 2024  
-**Status:** Production Ready  
-**Applicable To:** All NPHIES FHIR Integration System Users
+### ? Do's
+
+- ? Always verify patient information before submitting
+- ? Check eligibility before claim submission
+- ? Include necessary documentation
+- ? Keep security credentials safe
+- ? Monitor claim status regularly
+- ? Submit corrections immediately when needed
+
+### ? Don'ts
+
+- ? Don't submit duplicate claims
+- ? Don't enter fake information
+- ? Don't share login credentials
+- ? Don't submit without verification
+- ? Don't ignore denial notifications
+- ? Don't miss appeal deadlines
 
 ---
 
-**For the most current information, visit: www.nphies-fhir.health**
+**Document**: USER_GUIDE.md  
+**Version**: 2.0  
+**Last Updated**: January 2024  
+**Status**: Complete  
+
