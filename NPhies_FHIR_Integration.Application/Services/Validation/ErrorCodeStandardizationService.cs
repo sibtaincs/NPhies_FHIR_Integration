@@ -19,22 +19,22 @@ namespace NPhies_FHIR_Integration.Application.Services
         Task<StandardizedError> GetStandardizedErrorAsync(string errorCode);
 
         /// <summary>
-   /// Get all errors for a validation failure type
+        /// Get all errors for a validation failure type
         /// </summary>
         Task<List<StandardizedError>> GetErrorsForCategoryAsync(string category);
 
         /// <summary>
-   /// Get error severity level
-  /// </summary>
+        /// Get error severity level
+        /// </summary>
         Task<ErrorSeverityLevel> GetErrorSeverityAsync(string errorCode);
 
         /// <summary>
         /// Get remediation action for error
         /// </summary>
-     Task<string> GetRemediationActionAsync(string errorCode);
+        Task<string> GetRemediationActionAsync(string errorCode);
 
-     /// <summary>
-  /// Translate error to user language
+        /// <summary>
+        /// Translate error to user language
         /// </summary>
         Task<LocalizedError> GetLocalizedErrorAsync(string errorCode, string languageCode = "en");
 
@@ -43,22 +43,22 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// </summary>
         Task<ErrorStatistics> GetErrorStatisticsAsync(string errorCode);
 
-    /// <summary>
-    /// Validate error code existence
+        /// <summary>
+        /// Validate error code existence
         /// </summary>
         Task<bool> ErrorCodeExistsAsync(string errorCode);
 
         /// <summary>
-/// Search errors by keyword
+        /// Search errors by keyword
         /// </summary>
         Task<List<StandardizedError>> SearchErrorsAsync(string keyword);
 
-   /// <summary>
+        /// <summary>
         /// Get all available error categories
         /// </summary>
         Task<List<string>> GetErrorCategoriesAsync();
 
-    /// <summary>
+        /// <summary>
         /// Get root cause analysis for error
         /// </summary>
         Task<RootCauseAnalysis> GetRootCauseAnalysisAsync(string errorCode);
@@ -77,8 +77,8 @@ namespace NPhies_FHIR_Integration.Application.Services
         public List<string> AffectedElements { get; set; } = new();
         public string RemediationAction { get; set; } = string.Empty;
         public List<string> Examples { get; set; } = new();
-    public string NphiesReference { get; set; } = string.Empty;
-public bool IsRecoverable { get; set; }
+        public string NphiesReference { get; set; } = string.Empty;
+        public bool IsRecoverable { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
     }
@@ -90,12 +90,12 @@ public bool IsRecoverable { get; set; }
     {
         Critical = 1,    // System failure, no processing possible
         Error = 2,  // Claim/message rejected
-      Warning = 3,     // Processing may continue with caution
-   Info = 4         // Informational only
+        Warning = 3,     // Processing may continue with caution
+        Info = 4         // Informational only
     }
 
     /// <summary>
- /// Localized error message
+    /// Localized error message
     /// </summary>
     public class LocalizedError
     {
@@ -113,7 +113,7 @@ public bool IsRecoverable { get; set; }
     {
         public string ErrorCode { get; set; } = string.Empty;
         public string PrimaryRootCause { get; set; } = string.Empty;
-   public List<string> SecondaryRootCauses { get; set; } = new();
+        public List<string> SecondaryRootCauses { get; set; } = new();
         public List<string> PreventionMeasures { get; set; } = new();
         public List<string> CommonOccurrenceScenarios { get; set; } = new();
         public decimal OccurrenceFrequency { get; set; } // Percentage
@@ -129,19 +129,19 @@ public bool IsRecoverable { get; set; }
         public int OccurrenceCountToday { get; set; }
         public int OccurrenceCountThisWeek { get; set; }
         public int OccurrenceCountThisMonth { get; set; }
-      public decimal PercentageOfTotalErrors { get; set; }
+        public decimal PercentageOfTotalErrors { get; set; }
         public DateTime FirstOccurrenceDate { get; set; }
-     public DateTime LastOccurrenceDate { get; set; }
+        public DateTime LastOccurrenceDate { get; set; }
         public List<string> TopAffectedProviders { get; set; } = new();
         public List<string> TopAffectedCodes { get; set; } = new();
         public decimal SuccessfulResolutionRate { get; set; }
     }
 
-  /// <summary>
+    /// <summary>
     /// NPHIES Error Code Standardization Service Implementation
     /// Provides comprehensive error code management and standardization
     /// </summary>
-public class ErrorCodeStandardizationService : IErrorCodeStandardizationService
+    public class ErrorCodeStandardizationService : IErrorCodeStandardizationService
     {
         private readonly ILogger<ErrorCodeStandardizationService> _logger;
 
@@ -463,7 +463,7 @@ AffectedElements = new() { "Claim.provider" },
         };
 
         // Localized error messages (Arabic and English)
-   private readonly Dictionary<string, LocalizedError> _localizedErrors = new()
+        private readonly Dictionary<string, LocalizedError> _localizedErrors = new()
         {
     { "CLM-001-en", new LocalizedError
           {
@@ -502,265 +502,265 @@ AffectedElements = new() { "Claim.provider" },
        }}
         };
 
-     public ErrorCodeStandardizationService(ILogger<ErrorCodeStandardizationService> logger)
- {
+        public ErrorCodeStandardizationService(ILogger<ErrorCodeStandardizationService> logger)
+        {
             _logger = logger;
         }
 
         /// <summary>
         /// Get standardized error by code
         /// </summary>
-     public async Task<StandardizedError> GetStandardizedErrorAsync(string errorCode)
-   {
-      try
-          {
-      _logger.LogInformation($"Retrieving standardized error: {errorCode}");
-
-          if (string.IsNullOrWhiteSpace(errorCode))
-    return null;
-
-      if (_errorCodeMap.TryGetValue(errorCode.ToUpper(), out var error))
-          {
-           _logger.LogInformation($"Error found: {error.ErrorName}");
-          return error;
-       }
-
-    _logger.LogWarning($"Error code not found: {errorCode}");
-         return null;
-   }
-       catch (Exception ex)
+        public async Task<StandardizedError> GetStandardizedErrorAsync(string errorCode)
+        {
+            try
             {
-          _logger.LogError(ex, $"Error retrieving standardized error: {errorCode}");
-         return null;
-          }
+                _logger.LogInformation($"Retrieving standardized error: {errorCode}");
+
+                if (string.IsNullOrWhiteSpace(errorCode))
+                    return null;
+
+                if (_errorCodeMap.TryGetValue(errorCode.ToUpper(), out var error))
+                {
+                    _logger.LogInformation($"Error found: {error.ErrorName}");
+                    return error;
+                }
+
+                _logger.LogWarning($"Error code not found: {errorCode}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving standardized error: {errorCode}");
+                return null;
+            }
         }
 
         /// <summary>
         /// Get all errors for category
-     /// </summary>
+        /// </summary>
         public async Task<List<StandardizedError>> GetErrorsForCategoryAsync(string category)
         {
-         try
-        {
-          _logger.LogInformation($"Retrieving errors for category: {category}");
+            try
+            {
+                _logger.LogInformation($"Retrieving errors for category: {category}");
 
-       var errors = _errorCodeMap.Values
-       .Where(e => e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
-       .ToList();
+                var errors = _errorCodeMap.Values
+                .Where(e => e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-        _logger.LogInformation($"Found {errors.Count} errors in category {category}");
-       return errors;
-     }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving errors for category: {category}");
-    return new List<StandardizedError>();
+                _logger.LogInformation($"Found {errors.Count} errors in category {category}");
+                return errors;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving errors for category: {category}");
+                return new List<StandardizedError>();
+            }
         }
-      }
 
         /// <summary>
         /// Get error severity
         /// </summary>
- public async Task<ErrorSeverityLevel> GetErrorSeverityAsync(string errorCode)
+        public async Task<ErrorSeverityLevel> GetErrorSeverityAsync(string errorCode)
         {
-       try
+            try
             {
-      var error = await GetStandardizedErrorAsync(errorCode);
-        return error?.SeverityLevel ?? ErrorSeverityLevel.Info;
-      }
-         catch (Exception ex)
-      {
-         _logger.LogError(ex, $"Error retrieving severity for: {errorCode}");
-    return ErrorSeverityLevel.Info;
-       }
+                var error = await GetStandardizedErrorAsync(errorCode);
+                return error?.SeverityLevel ?? ErrorSeverityLevel.Info;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving severity for: {errorCode}");
+                return ErrorSeverityLevel.Info;
+            }
         }
 
         /// <summary>
-  /// Get remediation action
+        /// Get remediation action
         /// </summary>
         public async Task<string> GetRemediationActionAsync(string errorCode)
-    {
-    try
-      {
-    var error = await GetStandardizedErrorAsync(errorCode);
-      return error?.RemediationAction ?? "Contact system administrator";
-         }
-      catch (Exception ex)
+        {
+            try
             {
- _logger.LogError(ex, $"Error retrieving remediation for: {errorCode}");
-           return "Contact system administrator";
-   }
-    }
-
-        /// <summary>
-      /// Get localized error
-        /// </summary>
- public async Task<LocalizedError> GetLocalizedErrorAsync(string errorCode, string languageCode = "en")
-   {
-     try
-          {
-_logger.LogInformation($"Retrieving localized error: {errorCode} ({languageCode})");
-
-                var key = $"{errorCode}-{languageCode.ToLower()}";
-            if (_localizedErrors.TryGetValue(key, out var error))
-    {
-         return error;
+                var error = await GetStandardizedErrorAsync(errorCode);
+                return error?.RemediationAction ?? "Contact system administrator";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving remediation for: {errorCode}");
+                return "Contact system administrator";
+            }
         }
 
-          // Fallback to English if translation not available
-      key = $"{errorCode}-en";
-     if (_localizedErrors.TryGetValue(key, out var englishError))
+        /// <summary>
+        /// Get localized error
+        /// </summary>
+        public async Task<LocalizedError> GetLocalizedErrorAsync(string errorCode, string languageCode = "en")
+        {
+            try
             {
-       return englishError;
+                _logger.LogInformation($"Retrieving localized error: {errorCode} ({languageCode})");
+
+                var key = $"{errorCode}-{languageCode.ToLower()}";
+                if (_localizedErrors.TryGetValue(key, out var error))
+                {
+                    return error;
                 }
 
-   _logger.LogWarning($"Localized error not found: {errorCode} ({languageCode})");
-                return null;
-  }
-catch (Exception ex)
-   {
-         _logger.LogError(ex, $"Error retrieving localized error: {errorCode}");
-      return null;
-   }
-   }
+                // Fallback to English if translation not available
+                key = $"{errorCode}-en";
+                if (_localizedErrors.TryGetValue(key, out var englishError))
+                {
+                    return englishError;
+                }
 
-      /// <summary>
+                _logger.LogWarning($"Localized error not found: {errorCode} ({languageCode})");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving localized error: {errorCode}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Get error statistics
         /// </summary>
         public async Task<ErrorStatistics> GetErrorStatisticsAsync(string errorCode)
-    {
-     try
-  {
-             _logger.LogInformation($"Retrieving statistics for error: {errorCode}");
-
-    // In production, this would query a database for actual statistics
-      var stats = new ErrorStatistics
-         {
-        ErrorCode = errorCode,
-  TotalOccurrences = 150,
-    OccurrenceCountToday = 5,
-             OccurrenceCountThisWeek = 42,
- OccurrenceCountThisMonth = 135,
-              PercentageOfTotalErrors = 2.5m,
-FirstOccurrenceDate = DateTime.Now.AddMonths(-6),
- LastOccurrenceDate = DateTime.Now.AddDays(-1),
-            TopAffectedProviders = new() { "PROV-001", "PROV-002", "PROV-003" },
-              TopAffectedCodes = new() { "99213", "99214", "G0008" },
-           SuccessfulResolutionRate = 85.5m
-       };
-
-        return stats;
-  }
-    catch (Exception ex)
+        {
+            try
             {
-      _logger.LogError(ex, $"Error retrieving statistics for: {errorCode}");
-         return null;
-     }
+                _logger.LogInformation($"Retrieving statistics for error: {errorCode}");
+
+                // In production, this would query a database for actual statistics
+                var stats = new ErrorStatistics
+                {
+                    ErrorCode = errorCode,
+                    TotalOccurrences = 150,
+                    OccurrenceCountToday = 5,
+                    OccurrenceCountThisWeek = 42,
+                    OccurrenceCountThisMonth = 135,
+                    PercentageOfTotalErrors = 2.5m,
+                    FirstOccurrenceDate = DateTime.Now.AddMonths(-6),
+                    LastOccurrenceDate = DateTime.Now.AddDays(-1),
+                    TopAffectedProviders = new() { "PROV-001", "PROV-002", "PROV-003" },
+                    TopAffectedCodes = new() { "99213", "99214", "G0008" },
+                    SuccessfulResolutionRate = 85.5m
+                };
+
+                return stats;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving statistics for: {errorCode}");
+                return null;
+            }
         }
 
-/// <summary>
-     /// Verify error code exists
- /// </summary>
+        /// <summary>
+        /// Verify error code exists
+        /// </summary>
         public async Task<bool> ErrorCodeExistsAsync(string errorCode)
         {
-   try
-         {
-  if (string.IsNullOrWhiteSpace(errorCode))
-    return false;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(errorCode))
+                    return false;
 
-              return _errorCodeMap.ContainsKey(errorCode.ToUpper());
+                return _errorCodeMap.ContainsKey(errorCode.ToUpper());
             }
-          catch (Exception ex)
-   {
-          _logger.LogError(ex, $"Error checking if code exists: {errorCode}");
-        return false;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error checking if code exists: {errorCode}");
+                return false;
             }
         }
 
-    /// <summary>
-     /// Search errors by keyword
+        /// <summary>
+        /// Search errors by keyword
         /// </summary>
         public async Task<List<StandardizedError>> SearchErrorsAsync(string keyword)
         {
-       try
-        {
-    _logger.LogInformation($"Searching errors for keyword: {keyword}");
+            try
+            {
+                _logger.LogInformation($"Searching errors for keyword: {keyword}");
 
-     var results = _errorCodeMap.Values
-         .Where(e => e.ErrorName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-               e.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-      e.ErrorCode.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-          .ToList();
+                var results = _errorCodeMap.Values
+                    .Where(e => e.ErrorName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                          e.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                 e.ErrorCode.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                     .ToList();
 
- _logger.LogInformation($"Found {results.Count} errors matching keyword");
-     return results;
-      }
-        catch (Exception ex)
-        {
-   _logger.LogError(ex, $"Error searching errors: {keyword}");
-   return new List<StandardizedError>();
-      }
+                _logger.LogInformation($"Found {results.Count} errors matching keyword");
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error searching errors: {keyword}");
+                return new List<StandardizedError>();
+            }
         }
 
         /// <summary>
         /// Get all error categories
         /// </summary>
         public async Task<List<string>> GetErrorCategoriesAsync()
-    {
-      try
+        {
+            try
             {
-       _logger.LogInformation("Retrieving all error categories");
-           return _errorCategories.Keys.ToList();
-}
-          catch (Exception ex)
+                _logger.LogInformation("Retrieving all error categories");
+                return _errorCategories.Keys.ToList();
+            }
+            catch (Exception ex)
             {
-    _logger.LogError(ex, "Error retrieving categories");
-     return new List<string>();
-        }
+                _logger.LogError(ex, "Error retrieving categories");
+                return new List<string>();
+            }
         }
 
-  /// <summary>
- /// Get root cause analysis
+        /// <summary>
+        /// Get root cause analysis
         /// </summary>
         public async Task<RootCauseAnalysis> GetRootCauseAnalysisAsync(string errorCode)
         {
             try
-      {
-   _logger.LogInformation($"Retrieving root cause analysis for: {errorCode}");
+            {
+                _logger.LogInformation($"Retrieving root cause analysis for: {errorCode}");
 
-    // In production, this would use ML/analytics to determine actual root causes
-         var analysis = new RootCauseAnalysis
-{
-           ErrorCode = errorCode,
-  PrimaryRootCause = "Incomplete claim submission data",
-        SecondaryRootCauses = new()
+                // In production, this would use ML/analytics to determine actual root causes
+                var analysis = new RootCauseAnalysis
+                {
+                    ErrorCode = errorCode,
+                    PrimaryRootCause = "Incomplete claim submission data",
+                    SecondaryRootCauses = new()
      {
         "Provider not registered in network",
            "Outdated provider information",
        "Data entry error"
            },
- PreventionMeasures = new()
+                    PreventionMeasures = new()
             {
       "Implement pre-submission validation",
         "Provide provider education on claim requirements",
     "Use claim templates with required field validation"
   },
-            CommonOccurrenceScenarios = new()
+                    CommonOccurrenceScenarios = new()
         {
    "New provider joining network without full registration",
         "Provider mergers or name changes",
             "System integration issues"
           },
-      OccurrenceFrequency = 45.2m // 45.2% of similar errors
-      };
+                    OccurrenceFrequency = 45.2m // 45.2% of similar errors
+                };
 
                 return analysis;
-    }
-        catch (Exception ex)
-   {
-        _logger.LogError(ex, $"Error retrieving root cause analysis: {errorCode}");
-          return null;
-  }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving root cause analysis: {errorCode}");
+                return null;
+            }
         }
     }
 }
