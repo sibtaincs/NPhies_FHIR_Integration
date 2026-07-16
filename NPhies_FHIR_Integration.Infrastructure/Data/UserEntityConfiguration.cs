@@ -15,7 +15,7 @@ public static class UserEntityConfiguration
     {
         ConfigureUserEntity(modelBuilder);
         ConfigureRefreshTokenEntity(modelBuilder);
-   ConfigureLoginAttemptEntity(modelBuilder);
+        ConfigureLoginAttemptEntity(modelBuilder);
         ConfigureAuditLogEntity(modelBuilder);
         ConfigureApiRateLimitLogEntity(modelBuilder);
     }
@@ -25,28 +25,28 @@ public static class UserEntityConfiguration
     /// </summary>
     private static void ConfigureUserEntity(ModelBuilder modelBuilder)
     {
- var entity = modelBuilder.Entity<User>();
+        var entity = modelBuilder.Entity<User>();
 
- // Primary Key
+        // Primary Key
         entity.HasKey(u => u.Id);
 
- // Properties
+        // Properties
         entity.Property(u => u.Id).HasMaxLength(100);
         entity.Property(u => u.Username).IsRequired().HasMaxLength(100);
-  entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+        entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
         entity.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
-  entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
+        entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
         entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(500);
-      entity.Property(u => u.PasswordSalt).IsRequired().HasMaxLength(500);
+        entity.Property(u => u.PasswordSalt).IsRequired().HasMaxLength(500);
         entity.Property(u => u.Roles).HasConversion(
           v => string.Join(",", v),
             v => v.Split(",", System.StringSplitOptions.RemoveEmptyEntries).ToList()
         );
-     entity.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
-      entity.Property(u => u.IsEmailVerified).IsRequired().HasDefaultValue(false);
-  entity.Property(u => u.IsMfaEnabled).IsRequired().HasDefaultValue(false);
+        entity.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
+        entity.Property(u => u.IsEmailVerified).IsRequired().HasDefaultValue(false);
+        entity.Property(u => u.IsMfaEnabled).IsRequired().HasDefaultValue(false);
         entity.Property(u => u.MfaSecret).HasMaxLength(255);
-entity.Property(u => u.IsLocked).IsRequired().HasDefaultValue(false);
+        entity.Property(u => u.IsLocked).IsRequired().HasDefaultValue(false);
         entity.Property(u => u.FailedLoginAttempts).IsRequired().HasDefaultValue(0);
         entity.Property(u => u.LastLoginAt);
         entity.Property(u => u.LockedUntilAt);
@@ -61,12 +61,12 @@ entity.Property(u => u.IsLocked).IsRequired().HasDefaultValue(false);
         // Indexes
         entity.HasIndex(u => u.Username).IsUnique();
         entity.HasIndex(u => u.Email).IsUnique();
-      entity.HasIndex(u => u.IsActive);
+        entity.HasIndex(u => u.IsActive);
         entity.HasIndex(u => u.IsLocked);
- entity.HasIndex(u => u.CreatedAt);
-    entity.HasIndex(u => u.LastLoginAt);
+        entity.HasIndex(u => u.CreatedAt);
+        entity.HasIndex(u => u.LastLoginAt);
 
-     // Relationships
+        // Relationships
         entity.HasMany(u => u.RefreshTokens)
     .WithOne(rt => rt.User)
             .HasForeignKey(rt => rt.UserId)
@@ -82,10 +82,10 @@ entity.Property(u => u.IsLocked).IsRequired().HasDefaultValue(false);
   .HasForeignKey(al => al.UserId)
             .OnDelete(DeleteBehavior.SetNull);
 
-   entity.HasMany(u => u.RateLimitLogs)
-            .WithOne(rll => rll.User)
-        .HasForeignKey(rll => rll.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+        entity.HasMany(u => u.RateLimitLogs)
+                 .WithOne(rll => rll.User)
+             .HasForeignKey(rll => rll.UserId)
+                 .OnDelete(DeleteBehavior.SetNull);
     }
 
     /// <summary>
@@ -95,21 +95,21 @@ entity.Property(u => u.IsLocked).IsRequired().HasDefaultValue(false);
     {
         var entity = modelBuilder.Entity<RefreshToken>();
 
-    // Primary Key
+        // Primary Key
         entity.HasKey(rt => rt.Id);
 
-   // Properties
-      entity.Property(rt => rt.Id).HasMaxLength(100);
-     entity.Property(rt => rt.UserId).IsRequired().HasMaxLength(100);
-    entity.Property(rt => rt.Token).IsRequired().HasMaxLength(500);
+        // Properties
+        entity.Property(rt => rt.Id).HasMaxLength(100);
+        entity.Property(rt => rt.UserId).IsRequired().HasMaxLength(100);
+        entity.Property(rt => rt.Token).IsRequired().HasMaxLength(500);
         entity.Property(rt => rt.ExpiresAt).IsRequired();
         entity.Property(rt => rt.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
-     entity.Property(rt => rt.IpAddress).HasMaxLength(50);
+        entity.Property(rt => rt.IpAddress).HasMaxLength(50);
         entity.Property(rt => rt.UserAgent).HasMaxLength(500);
         entity.Property(rt => rt.IsRevoked).IsRequired().HasDefaultValue(false);
         entity.Property(rt => rt.RevokedAt);
-entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
-      entity.Property(rt => rt.ReplacedByToken).HasMaxLength(500);
+        entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
+        entity.Property(rt => rt.ReplacedByToken).HasMaxLength(500);
 
         // Indexes
         entity.HasIndex(rt => rt.UserId);
@@ -122,30 +122,30 @@ entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
   .WithMany(u => u.RefreshTokens)
     .HasForeignKey(rt => rt.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-  }
+    }
 
     /// <summary>
     /// Configure LoginAttempt entity
     /// </summary>
     private static void ConfigureLoginAttemptEntity(ModelBuilder modelBuilder)
     {
-  var entity = modelBuilder.Entity<LoginAttempt>();
+        var entity = modelBuilder.Entity<LoginAttempt>();
 
-     // Primary Key
-   entity.HasKey(la => la.Id);
+        // Primary Key
+        entity.HasKey(la => la.Id);
 
         // Properties
- entity.Property(la => la.Id).HasMaxLength(100);
- entity.Property(la => la.UserId).HasMaxLength(100);
+        entity.Property(la => la.Id).HasMaxLength(100);
+        entity.Property(la => la.UserId).HasMaxLength(100);
         entity.Property(la => la.Username).IsRequired().HasMaxLength(100);
-     entity.Property(la => la.IpAddress).IsRequired().HasMaxLength(50);
+        entity.Property(la => la.IpAddress).IsRequired().HasMaxLength(50);
         entity.Property(la => la.UserAgent).HasMaxLength(500);
         entity.Property(la => la.IsSuccessful).IsRequired().HasDefaultValue(false);
-    entity.Property(la => la.FailureReason).HasMaxLength(500);
-      entity.Property(la => la.AttemptAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
-     entity.Property(la => la.DurationMs);
+        entity.Property(la => la.FailureReason).HasMaxLength(500);
+        entity.Property(la => la.AttemptAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+        entity.Property(la => la.DurationMs);
 
-  // Indexes
+        // Indexes
         entity.HasIndex(la => la.UserId);
         entity.HasIndex(la => la.Username);
         entity.HasIndex(la => la.IpAddress);
@@ -153,10 +153,10 @@ entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
         entity.HasIndex(la => la.IsSuccessful);
 
         // Relationships
-   entity.HasOne(la => la.User)
-            .WithMany(u => u.LoginAttempts)
-     .HasForeignKey(la => la.UserId)
-      .OnDelete(DeleteBehavior.SetNull);
+        entity.HasOne(la => la.User)
+                 .WithMany(u => u.LoginAttempts)
+          .HasForeignKey(la => la.UserId)
+           .OnDelete(DeleteBehavior.SetNull);
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
     /// </summary>
     private static void ConfigureAuditLogEntity(ModelBuilder modelBuilder)
     {
-     var entity = modelBuilder.Entity<AuditLog>();
+        var entity = modelBuilder.Entity<AuditLog>();
 
         // Primary Key
         entity.HasKey(al => al.Id);
@@ -172,32 +172,32 @@ entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
         // Properties
         entity.Property(al => al.Id).HasMaxLength(100);
         entity.Property(al => al.UserId).HasMaxLength(100);
-    entity.Property(al => al.Username).HasMaxLength(100);
-     entity.Property(al => al.Action).IsRequired().HasMaxLength(255);
+        entity.Property(al => al.Username).HasMaxLength(100);
+        entity.Property(al => al.Action).IsRequired().HasMaxLength(255);
         entity.Property(al => al.EntityType).HasMaxLength(100);
         entity.Property(al => al.EntityId).HasMaxLength(100);
         entity.Property(al => al.OldValues).HasColumnType("nvarchar(max)");
         entity.Property(al => al.NewValues).HasColumnType("nvarchar(max)");
-    entity.Property(al => al.ChangeDetails).HasColumnType("nvarchar(max)");
-  entity.Property(al => al.IpAddress).IsRequired().HasMaxLength(50);
-     entity.Property(al => al.UserAgent).HasMaxLength(500);
+        entity.Property(al => al.ChangeDetails).HasColumnType("nvarchar(max)");
+        entity.Property(al => al.IpAddress).IsRequired().HasMaxLength(50);
+        entity.Property(al => al.UserAgent).HasMaxLength(500);
         entity.Property(al => al.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
         entity.Property(al => al.AuditLevel).IsRequired().HasMaxLength(50).HasDefaultValue("Info");
-   entity.Property(al => al.Endpoint).HasMaxLength(500);
+        entity.Property(al => al.Endpoint).HasMaxLength(500);
         entity.Property(al => al.HttpStatusCode);
-   entity.Property(al => al.DurationMs);
+        entity.Property(al => al.DurationMs);
 
         // Indexes
-    entity.HasIndex(al => al.UserId);
+        entity.HasIndex(al => al.UserId);
         entity.HasIndex(al => al.Username);
         entity.HasIndex(al => al.Action);
         entity.HasIndex(al => al.EntityType);
         entity.HasIndex(al => al.EntityId);
-      entity.HasIndex(al => al.CreatedAt);
+        entity.HasIndex(al => al.CreatedAt);
         entity.HasIndex(al => al.AuditLevel);
-      entity.HasIndex(al => new { al.EntityType, al.EntityId });
+        entity.HasIndex(al => new { al.EntityType, al.EntityId });
 
- // Relationships
+        // Relationships
         entity.HasOne(al => al.User)
       .WithMany(u => u.AuditLogs)
  .HasForeignKey(al => al.UserId)
@@ -206,37 +206,37 @@ entity.Property(rt => rt.RevokedBy).HasMaxLength(100);
 
     /// <summary>
     /// Configure ApiRateLimitLog entity
-  /// </summary>
+    /// </summary>
     private static void ConfigureApiRateLimitLogEntity(ModelBuilder modelBuilder)
-  {
+    {
         var entity = modelBuilder.Entity<ApiRateLimitLog>();
 
         // Primary Key
         entity.HasKey(rll => rll.Id);
 
         // Properties
-     entity.Property(rll => rll.Id).HasMaxLength(100);
+        entity.Property(rll => rll.Id).HasMaxLength(100);
         entity.Property(rll => rll.UserId).HasMaxLength(100);
-   entity.Property(rll => rll.IpAddress).IsRequired().HasMaxLength(50);
+        entity.Property(rll => rll.IpAddress).IsRequired().HasMaxLength(50);
         entity.Property(rll => rll.Endpoint).IsRequired().HasMaxLength(500);
-   entity.Property(rll => rll.HttpMethod).IsRequired().HasMaxLength(10);
+        entity.Property(rll => rll.HttpMethod).IsRequired().HasMaxLength(10);
         entity.Property(rll => rll.RequestCount).IsRequired().HasDefaultValue(0);
-   entity.Property(rll => rll.MaxRequests).IsRequired().HasDefaultValue(0);
-   entity.Property(rll => rll.WindowStart).IsRequired();
+        entity.Property(rll => rll.MaxRequests).IsRequired().HasDefaultValue(0);
+        entity.Property(rll => rll.WindowStart).IsRequired();
         entity.Property(rll => rll.WindowEnd).IsRequired();
         entity.Property(rll => rll.IsRateLimited).IsRequired().HasDefaultValue(false);
         entity.Property(rll => rll.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
         entity.Property(rll => rll.ResetAt);
 
-    // Indexes
+        // Indexes
         entity.HasIndex(rll => rll.UserId);
-      entity.HasIndex(rll => rll.IpAddress);
+        entity.HasIndex(rll => rll.IpAddress);
         entity.HasIndex(rll => rll.Endpoint);
         entity.HasIndex(rll => rll.IsRateLimited);
         entity.HasIndex(rll => rll.CreatedAt);
         entity.HasIndex(rll => new { rll.IpAddress, rll.Endpoint });
 
-     // Relationships
+        // Relationships
         entity.HasOne(rll => rll.User)
  .WithMany(u => u.RateLimitLogs)
             .HasForeignKey(rll => rll.UserId)

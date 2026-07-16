@@ -12,13 +12,13 @@ public class AgeQualificationRule : IAdjudicationRule
 {
     private readonly ILogger<AgeQualificationRule> _logger;
 
-  public string RuleId => "AGE_QUALIFICATION";
+    public string RuleId => "AGE_QUALIFICATION";
     public string RuleName => "Age Qualification Check";
     public int Priority => 4;
 
     public AgeQualificationRule(ILogger<AgeQualificationRule> logger)
     {
-    _logger = logger;
+        _logger = logger;
     }
 
     /// <summary>
@@ -26,25 +26,25 @@ public class AgeQualificationRule : IAdjudicationRule
     /// </summary>
     public async Task<bool> IsApplicableAsync(AdjudicationContext context)
     {
-     return await Task.FromResult(!string.IsNullOrEmpty(context.ServiceType));
+        return await Task.FromResult(!string.IsNullOrEmpty(context.ServiceType));
     }
 
     /// <summary>
     /// Check if patient age qualifies for service
     /// </summary>
-  public async Task<RuleResult> EvaluateAsync(AdjudicationContext context)
+    public async Task<RuleResult> EvaluateAsync(AdjudicationContext context)
     {
-   if (!context.IsAgeQualified)
+        if (!context.IsAgeQualified)
         {
-      _logger.LogWarning("Patient age does not qualify for service {ServiceCode}",
-   context.ServiceCode);
+            _logger.LogWarning("Patient age does not qualify for service {ServiceCode}",
+         context.ServiceCode);
 
-   return RuleResult.Applied(
-      ruleId: RuleId,
-        patientResponsibility: context.AllowedAmount,
-      remaining: 0m,
-        message: "Patient age does not qualify for this service. Claim denied.");
-      }
+            return RuleResult.Applied(
+               ruleId: RuleId,
+                 patientResponsibility: context.AllowedAmount,
+               remaining: 0m,
+                 message: "Patient age does not qualify for this service. Claim denied.");
+        }
 
         return RuleResult.Skip(RuleId);
     }
