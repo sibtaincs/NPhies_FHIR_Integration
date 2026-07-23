@@ -129,26 +129,27 @@ await AssignPermissionToRoleAsync(roleId, permissionId);
 
         public async Task<bool> DeleteRoleAsync(int roleId)
     {
-   var role = await _roleRepository.GetByIdAsync(roleId);
+   var role = await _roleRepository.GetByIdAsync(roleId.ToString());
    if (role == null)
-          return false;
+     return false;
 
  // Check if any users have this role
      var userRoles = role.UserRoles?.Any() ?? false;
        if (userRoles)
       throw new InvalidOperationException("Cannot delete role with assigned users");
 
-       await _roleRepository.DeleteAsync(role);
+       _roleRepository.Delete(role);
+         await _roleRepository.SaveChangesAsync();
             return true;
-        }
+}
 
-        #endregion
+ #endregion
 
-        #region Permission Management
+    #region Permission Management
 
-        public async Task<PermissionDto> GetPermissionByIdAsync(int permissionId)
+ public async Task<PermissionDto> GetPermissionByIdAsync(int permissionId)
   {
-            var permission = await _permissionRepository.GetByIdAsync(permissionId);
+          var permission = await _permissionRepository.GetByIdAsync(permissionId.ToString());
     return MapToDto(permission);
    }
 
@@ -163,11 +164,11 @@ await AssignPermissionToRoleAsync(roleId, permissionId);
         {
             var permissions = await _permissionRepository.GetAllAsync();
             return permissions.Select(MapToDto).ToList();
-        }
+    }
 
-        public async Task<List<PermissionDto>> GetPermissionsByCategoryAsync(string category)
-        {
-            var permissions = await _permissionRepository.GetAllAsync();
+public async Task<List<PermissionDto>> GetPermissionsByCategoryAsync(string category)
+     {
+ var permissions = await _permissionRepository.GetAllAsync();
     var filtered = permissions.Where(p => p.Category == category).ToList();
     return filtered.Select(MapToDto).ToList();
       }
@@ -175,7 +176,7 @@ await AssignPermissionToRoleAsync(roleId, permissionId);
       public async Task<List<PermissionDto>> GetPermissionsByLevelAsync(int level)
         {
         var permissions = await _permissionRepository.GetAllAsync();
-            var filtered = permissions.Where(p => p.RequiredLevel <= level).ToList();
+   var filtered = permissions.Where(p => p.RequiredLevel <= level).ToList();
       return filtered.Select(MapToDto).ToList();
         }
 
@@ -187,63 +188,64 @@ await AssignPermissionToRoleAsync(roleId, permissionId);
         {
       var rolePermission = new RolePermission
        {
-            RoleId = roleId,
+    RoleId = roleId,
      PermissionId = permissionId,
    GrantedByDefault = true,
-                AssignedAt = DateTime.UtcNow
+    AssignedAt = DateTime.UtcNow
   };
 
    var result = await _rolePermissionRepository.AddAsync(rolePermission);
          return result != null;
-        }
+      }
 
         public async Task<bool> RemovePermissionFromRoleAsync(int roleId, int permissionId)
-        {
-          var rolePermissions = await _rolePermissionRepository.GetAllAsync();
+      {
+    var rolePermissions = await _rolePermissionRepository.GetAllAsync();
             var rolePermission = rolePermissions.FirstOrDefault(rp =>
     rp.RoleId == roleId && rp.PermissionId == permissionId);
 
   if (rolePermission == null)
        return false;
 
-         await _rolePermissionRepository.DeleteAsync(rolePermission);
+_rolePermissionRepository.Delete(rolePermission);
+     await _rolePermissionRepository.SaveChangesAsync();
    return true;
-        }
+ }
 
      public async Task<List<PermissionDto>> GetRolePermissionsAsync(int roleId)
-      {
+  {
     var rolePermissions = await _rolePermissionRepository.GetAllAsync();
-         var permissions = rolePermissions
+   var permissions = rolePermissions
       .Where(rp => rp.RoleId == roleId)
-                .Select(rp => rp.Permission)
+         .Select(rp => rp.Permission)
      .ToList();
 
      return permissions.Select(MapToDto).ToList();
-        }
+    }
 
-        #endregion
+     #endregion
 
-        #region Role Hierarchy
+      #region Role Hierarchy
 
-        public async Task<RoleHierarchyDto> GetRoleHierarchyAsync(string department)
-        {
+   public async Task<RoleHierarchyDto> GetRoleHierarchyAsync(string department)
+  {
  var roles = await GetRolesByDepartmentAsync(department);
-          var hierarchy = new RoleHierarchyDto
+var hierarchy = new RoleHierarchyDto
             {
   Department = department,
     Levels = new List<RoleLevelDto>()
-     };
+ };
 
-            for (int level = 1; level <= 4; level++)
+  for (int level = 1; level <= 4; level++)
             {
-         var levelRoles = roles.Where(r => r.Level == level).ToList();
+    var levelRoles = roles.Where(r => r.Level == level).ToList();
        if (levelRoles.Any())
-                {
-           hierarchy.Levels.Add(new RoleLevelDto
         {
-                   Level = level,
+      hierarchy.Levels.Add(new RoleLevelDto
+        {
+  Level = level,
      LevelName = GetLevelName(level),
-               Roles = levelRoles
+           Roles = levelRoles
           });
     }
 }
@@ -253,38 +255,38 @@ await AssignPermissionToRoleAsync(roleId, permissionId);
 
         public async Task<List<RoleDto>> GetHierarchyChainAsync(int roleId)
  {
-    var role = await _roleRepository.GetByIdAsync(roleId);
+    var role = await _roleRepository.GetByIdAsync(roleId.ToString());
  var chain = new List<RoleDto> { MapToDto(role) };
 
-        while (role.SupervisorRoleId.HasValue)
+        while (role?.SupervisorRoleId.HasValue == true)
           {
-role = await _roleRepository.GetByIdAsync(role.SupervisorRoleId.Value);
+role = await _roleRepository.GetByIdAsync(role.SupervisorRoleId.Value.ToString());
     if (role != null)
        chain.Add(MapToDto(role));
    else
  break;
-            }
+        }
 
-            return chain;
+      return chain;
         }
 
      #endregion
 
-        #region Helper Methods
+ #region Helper Methods
 
    private RoleDto MapToDto(Role role)
    {
             if (role == null)
-                return null;
+    return null;
 
     return new RoleDto
       {
-       Id = role.Id,
-            Name = role.Name,
+  Id = role.Id,
+      Name = role.Name,
     DisplayName = role.DisplayName,
-            Department = role.Department,
+     Department = role.Department,
      Level = role.Level,
-        Description = role.Description,
+   Description = role.Description,
           SupervisorRoleId = role.SupervisorRoleId,
        IsActive = role.IsActive,
         PermissionIds = role.RolePermissions?.Select(rp => rp.PermissionId).ToList() ?? new List<int>(),
@@ -298,23 +300,23 @@ private PermissionDto MapToDto(Permission permission)
       if (permission == null)
    return null;
 
-            return new PermissionDto
-            {
+        return new PermissionDto
+  {
       Id = permission.Id,
-       Name = permission.Name,
-                Category = permission.Category,
+  Name = permission.Name,
+    Category = permission.Category,
     Action = permission.Action,
-              RequiredLevel = permission.RequiredLevel,
-    Description = permission.Description,
+     RequiredLevel = permission.RequiredLevel,
+  Description = permission.Description,
          IsActive = permission.IsActive
-       };
+   };
         }
 
-        private static string GetLevelName(int level)
+     private static string GetLevelName(int level)
     {
      return level switch
-            {
-           1 => "Reviewer",
+  {
+       1 => "Reviewer",
    2 => "Senior Reviewer",
      3 => "Supervisor",
          4 => "Manager",

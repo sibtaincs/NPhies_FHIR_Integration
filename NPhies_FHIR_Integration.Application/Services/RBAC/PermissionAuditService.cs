@@ -37,28 +37,29 @@ IRepository<User> userRepository,
      // Get user's current role
            var userRoles = await _userRoleRepository.GetAllAsync();
      var userRole = userRoles.FirstOrDefault(ur =>
-  ur.UserId == userId && ur.RemovedAt == null && ur.IsPrimary);
+  ur.UserId == userId.ToString() && ur.RemovedAt == null && ur.IsPrimary);
 
      string roleAtTime = "UNKNOWN";
           if (userRole != null)
         {
-     var role = await _roleRepository.GetByIdAsync(userRole.RoleId);
+     var role = await _roleRepository.GetByIdAsync(userRole.RoleId.ToString());
          roleAtTime = role?.Name ?? "UNKNOWN";
          }
 
      var auditLog = new PermissionAuditLog
             {
-      UserId = userId,
+      UserId = userId.ToString(),
       Action = action,
     ResourceType = resourceType,
-         ResourceId = resourceId,
+         ResourceId = resourceId.ToString(),
  Details = details,
    UserRoleAtTime = roleAtTime,
-            IpAddress = ipAddress ?? "SYSTEM",
+        IpAddress = ipAddress ?? "SYSTEM",
            CreatedAt = DateTime.UtcNow
      };
 
  await _auditRepository.AddAsync(auditLog);
+         await _auditRepository.SaveChangesAsync();
         }
 
         public async Task LogPermissionCheckAsync(int userId, string permission, bool granted, string ipAddress = null)
