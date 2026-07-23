@@ -1,3 +1,4 @@
+#pragma warning disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +26,12 @@ namespace NPhies_FHIR_Integration.Application.Services.RBAC
   IRepository<User> userRepository,
     IRepository<Role> roleRepository,
     IRepository<ClaimAssignment> claimAssignmentRepository,
-          IRepository<QAReview> qaReviewRepository,
+            IRepository<QAReview> qaReviewRepository,
      IPermissionAuditService auditService)
-      {
-_supervisorRepository = supervisorRepository;
-   _userRepository = userRepository;
-          _roleRepository = roleRepository;
+        {
+            _supervisorRepository = supervisorRepository;
+       _userRepository = userRepository;
+            _roleRepository = roleRepository;
         _claimAssignmentRepository = claimAssignmentRepository;
       _qaReviewRepository = qaReviewRepository;
       _auditService = auditService;
@@ -38,66 +39,66 @@ _supervisorRepository = supervisorRepository;
 
 #region Supervisor Assignments
 
-  public async Task<SupervisorAssignmentDto> CreateSupervisorAssignmentAsync(CreateSupervisorAssignmentDto dto)
+        public async Task<SupervisorAssignmentDto> CreateSupervisorAssignmentAsync(CreateSupervisorAssignmentDto dto)
         {
-  // Check if assignment already exists
+         // Check if assignment already exists
         var existing = await _supervisorRepository.GetAllAsync();
 var alreadyExists = existing.FirstOrDefault(sa =>
-         sa.SupervisorUserId.ToString() == dto.SupervisorUserId.ToString() &&
-     sa.SubordinateUserId.ToString() == dto.SubordinateUserId.ToString() &&
-  sa.RemovedAt == null);
+         sa.SupervisorUserId == dto.SupervisorUserId &&
+            sa.SubordinateUserId == dto.SubordinateUserId &&
+                sa.RemovedAt == null);
 
      if (alreadyExists != null)
     throw new InvalidOperationException("Supervisor assignment already exists");
 
        // Get supervisor's role to determine role ID
-     var supervisor = await _userRepository.GetByIdAsync(dto.SupervisorUserId.ToString());
- if (supervisor == null)
-    throw new InvalidOperationException("Supervisor user not found");
+        var supervisor = await _userRepository.GetByIdAsync(dto.SupervisorUserId);
+    if (supervisor == null)
+          throw new InvalidOperationException("Supervisor user not found");
 
-       var assignment = new SupervisorAssignment
-       {
-       SupervisorUserId = dto.SupervisorUserId.ToString(),
-           SubordinateUserId = dto.SubordinateUserId.ToString(),
+            var assignment = new SupervisorAssignment
+            {
+       SupervisorUserId = dto.SupervisorUserId,
+           SubordinateUserId = dto.SubordinateUserId,
      Department = dto.Department,
    SupervisorRoleId = supervisor.RoleId,
      TeamSize = dto.TeamSize,
-    AssignedAt = DateTime.UtcNow
-       };
+                AssignedAt = DateTime.UtcNow
+            };
 
-       var result = await _supervisorRepository.AddAsync(assignment);
+            var result = await _supervisorRepository.AddAsync(assignment);
         
-// Audit log
-         await _auditService.LogActionAsync(
+            // Audit log
+            await _auditService.LogActionAsync(
              dto.SupervisorUserId,
-              "SUPERVISOR_ASSIGNMENT_CREATED",
+                "SUPERVISOR_ASSIGNMENT_CREATED",
      "USER",
  dto.SubordinateUserId,
    $"Assigned {dto.SubordinateUserId} as subordinate in {dto.Department}");
 
      return MapToDto(result);
-      }
+        }
 
         public async Task<SupervisorAssignmentDto> GetSupervisorAssignmentAsync(int supervisorId, int subordinateId)
         {
-var assignments = await _supervisorRepository.GetAllAsync();
-     var assignment = assignments.FirstOrDefault(sa =>
-       sa.SupervisorUserId.ToString() == supervisorId.ToString() &&
- sa.SubordinateUserId.ToString() == subordinateId.ToString() &&
+            var assignments = await _supervisorRepository.GetAllAsync();
+            var assignment = assignments.FirstOrDefault(sa =>
+       sa.SupervisorUserId == supervisorId &&
+ sa.SubordinateUserId == subordinateId &&
  sa.RemovedAt == null);
 
-       if (assignment == null)
+            if (assignment == null)
  return null;
 
- return await MapToDtoAsync(assignment);
+            return await MapToDtoAsync(assignment);
         }
 
     public async Task<List<SupervisorAssignmentDto>> GetSupervisorTeamAsync(int supervisorId)
-     {
+        {
     var assignments = await _supervisorRepository.GetAllAsync();
-var team = assignments
-  .Where(sa => sa.SupervisorUserId.ToString() == supervisorId.ToString() && sa.RemovedAt == null)
-       .ToList();
+            var team = assignments
+        .Where(sa => sa.SupervisorUserId == supervisorId && sa.RemovedAt == null)
+          .ToList();
 
  var result = new List<SupervisorAssignmentDto>();
        foreach (var assignment in team)
@@ -112,8 +113,8 @@ var team = assignments
         {
    var assignments = await _supervisorRepository.GetAllAsync();
       var supervisors = assignments
-     .Where(sa => sa.SubordinateUserId.ToString() == subordinateId.ToString() && sa.RemovedAt == null)
-       .ToList();
+     .Where(sa => sa.SubordinateUserId == subordinateId && sa.RemovedAt == null)
+                .ToList();
 
      var result = new List<SupervisorAssignmentDto>();
   foreach (var assignment in supervisors)
@@ -125,60 +126,59 @@ var team = assignments
       }
 
         public async Task<List<SupervisorAssignmentDto>> GetManagerSupervisorsAsync(int managerId)
-    {
+      {
        // Get all supervisors that report to this manager
          var assignments = await _supervisorRepository.GetAllAsync();
   var supervisors = assignments
-        .Where(sa => sa.SupervisorUserId.ToString() == managerId.ToString() && sa.RemovedAt == null)
-       .ToList();
+          .Where(sa => sa.SupervisorUserId == managerId && sa.RemovedAt == null)
+                .ToList();
 
-      var result = new List<SupervisorAssignmentDto>();
+            var result = new List<SupervisorAssignmentDto>();
      foreach (var assignment in supervisors)
    {
-          result.Add(await MapToDtoAsync(assignment));
-   }
+            result.Add(await MapToDtoAsync(assignment));
+            }
 
             return result;
-    }
+      }
 
      public async Task<bool> RemoveSupervisorAssignmentAsync(int supervisorId, int subordinateId)
         {
         var assignments = await _supervisorRepository.GetAllAsync();
             var assignment = assignments.FirstOrDefault(sa =>
-         sa.SupervisorUserId.ToString() == supervisorId.ToString() &&
-   sa.SubordinateUserId.ToString() == subordinateId.ToString() &&
+         sa.SupervisorUserId == supervisorId &&
+   sa.SubordinateUserId == subordinateId &&
       sa.RemovedAt == null);
 
-          if (assignment == null)
+            if (assignment == null)
    return false;
 
             assignment.RemovedAt = DateTime.UtcNow;
-_supervisorRepository.Update(assignment);
-            await _supervisorRepository.SaveChangesAsync();
+            await _supervisorRepository.UpdateAsync(assignment);
 
           // Audit log
-          await _auditService.LogActionAsync(
+            await _auditService.LogActionAsync(
 supervisorId,
       "SUPERVISOR_ASSIGNMENT_REMOVED",
-         "USER",
+            "USER",
           subordinateId,
      "Removed supervisor assignment");
 
  return true;
   }
 
-    #endregion
+        #endregion
 
-   #region Supervisor Queries
+        #region Supervisor Queries
 
 public async Task<int> GetTeamSizeAsync(int supervisorId)
         {
   var team = await GetSupervisorTeamAsync(supervisorId);
-         return team.Count;
+            return team.Count;
         }
 
     public async Task<bool> IsSupervisorOfAsync(int supervisorId, int subordinateId)
-     {
+        {
       var assignment = await GetSupervisorAssignmentAsync(supervisorId, subordinateId);
      return assignment != null;
         }
@@ -189,11 +189,11 @@ public async Task<int> GetTeamSizeAsync(int supervisorId)
             var directSubordinates = await GetSupervisorTeamAsync(supervisorId);
 
    foreach (var subordinate in directSubordinates)
-          {
+            {
       result.Add(subordinate.SubordinateUserId);
 
    // Recursively get subordinates of this subordinate
-       var indirectSubordinates = await GetAllSubordinatesRecursiveAsync(subordinate.SubordinateUserId);
+                var indirectSubordinates = await GetAllSubordinatesRecursiveAsync(subordinate.SubordinateUserId);
        result.AddRange(indirectSubordinates);
         }
 
@@ -202,58 +202,58 @@ public async Task<int> GetTeamSizeAsync(int supervisorId)
 
      #endregion
 
-  #region Team Management
+        #region Team Management
 
     public async Task<TeamMetricsDto> GetTeamMetricsAsync(int supervisorId)
         {
-   var team = await GetSupervisorTeamAsync(supervisorId);
+            var team = await GetSupervisorTeamAsync(supervisorId);
         var subordinateIds = team.Select(t => t.SubordinateUserId).ToList();
 
      var claimAssignments = await _claimAssignmentRepository.GetAllAsync();
- var qaReviews = await _qaReviewRepository.GetAllAsync();
+          var qaReviews = await _qaReviewRepository.GetAllAsync();
 
-     var today = DateTime.UtcNow.Date;
+            var today = DateTime.UtcNow.Date;
             var pendingAssignments = claimAssignments
-     .Where(ca => subordinateIds.Contains(int.Parse(ca.AssignedToUserId)) && ca.CompletedAt == null)
-     .ToList();
+     .Where(ca => subordinateIds.Contains(ca.AssignedToUserId) && ca.CompletedAt == null)
+        .ToList();
 
    var completedToday = claimAssignments
-      .Where(ca => subordinateIds.Contains(int.Parse(ca.AssignedToUserId)) &&
-   ca.CompletedAt.HasValue &&
+      .Where(ca => subordinateIds.Contains(ca.AssignedToUserId) &&
+                 ca.CompletedAt.HasValue &&
      ca.CompletedAt.Value.Date == today)
- .ToList();
+          .ToList();
 
-          var allTeamAssignments = claimAssignments
-          .Where(ca => subordinateIds.Contains(int.Parse(ca.AssignedToUserId)))
+            var allTeamAssignments = claimAssignments
+          .Where(ca => subordinateIds.Contains(ca.AssignedToUserId))
               .ToList();
 
- var qaForTeam = qaReviews
-   .Where(qa => subordinateIds.Contains(int.Parse(qa.ReviewedByUserId)))
+      var qaForTeam = qaReviews
+                .Where(qa => subordinateIds.Contains(qa.ReviewedByUserId))
 .ToList();
 
-       var avgTimeMinutes = allTeamAssignments.Any()
+            var avgTimeMinutes = allTeamAssignments.Any()
        ? allTeamAssignments
            .Where(ca => ca.CompletedAt.HasValue)
   .Average(ca => (ca.CompletedAt.Value - ca.AssignedAt).TotalMinutes)
-           : 0d;
+           : 0;
 
-var accuracy = qaForTeam.Any()
-   ? (qaForTeam.Count(qa => qa.Result == "PASS") / (double)qaForTeam.Count) * 100
-      : 0d;
+var accuracy = allTeamAssignments.Any()
+     ? (qaForTeam.Count(qa => qa.Result == "PASS") / (double)qaForTeam.Count) * 100
+      : 0;
 
-        var reviewerPerformance = new List<ReviewerPerformanceDto>();
-       foreach (var subordinate in team)
+            var reviewerPerformance = new List<ReviewerPerformanceDto>();
+            foreach (var subordinate in team)
 {
     var subAssignments = allTeamAssignments
-  .Where(ca => int.Parse(ca.AssignedToUserId) == subordinate.SubordinateUserId)
+              .Where(ca => ca.AssignedToUserId == subordinate.SubordinateUserId)
            .ToList();
 
      var subCompletedToday = completedToday
-      .Where(ca => int.Parse(ca.AssignedToUserId) == subordinate.SubordinateUserId)
+         .Where(ca => ca.AssignedToUserId == subordinate.SubordinateUserId)
        .ToList();
 
        if (subAssignments.Any())
-   {
+      {
           reviewerPerformance.Add(new ReviewerPerformanceDto
     {
           ReviewerId = subordinate.SubordinateUserId,
@@ -262,34 +262,34 @@ var accuracy = qaForTeam.Any()
      ClaimsReviewedToday = subCompletedToday.Count,
         ClaimsReviewedThisWeek = subAssignments.Count(ca => (DateTime.UtcNow - ca.AssignedAt).Days < 7),
     AverageTimeMinutes = subAssignments
-     .Where(ca => ca.CompletedAt.HasValue)
+       .Where(ca => ca.CompletedAt.HasValue)
    .Average(ca => (ca.CompletedAt.Value - ca.AssignedAt).TotalMinutes),
-        AccuracyPercentage = qaForTeam.Any(qa => int.Parse(qa.ReviewedByUserId) == subordinate.SubordinateUserId)
-   ? (qaForTeam.Where(qa => int.Parse(qa.ReviewedByUserId) == subordinate.SubordinateUserId).Count(qa => qa.Result == "PASS") /
-        (double)qaForTeam.Count(qa => int.Parse(qa.ReviewedByUserId) == subordinate.SubordinateUserId)) * 100
-          : 0d,
+        AccuracyPercentage = qaForTeam.Any(qa => qa.ReviewedByUserId == subordinate.SubordinateUserId)
+   ? (qaForTeam.Where(qa => qa.ReviewedByUserId == subordinate.SubordinateUserId).Count(qa => qa.Result == "PASS") /
+        (double)qaForTeam.Count(qa => qa.ReviewedByUserId == subordinate.SubordinateUserId)) * 100
+          : 0,
       ApprovalRate = subAssignments.Any(ca => ca.ReviewType == "MEDICAL")
      ? (subAssignments.Count(ca => ca.Result == "APPROVE") / (double)subAssignments.Count(ca => ca.ReviewType == "MEDICAL")) * 100
-          : 0d
-     });
+          : 0
+             });
  }
-  }
+            }
 
          return new TeamMetricsDto
-    {
+            {
            SupervisorId = supervisorId,
     TeamSize = team.Count,
-       PendingReviews = pendingAssignments.Count,
+          PendingReviews = pendingAssignments.Count,
     CompletedToday = completedToday.Count,
          AverageCompletionTime = avgTimeMinutes,
           AccuracyRate = accuracy,
-    ReviewerPerformance = reviewerPerformance
-     };
-  }
+        ReviewerPerformance = reviewerPerformance
+       };
+        }
 
-    public async Task<List<ReviewerPerformanceDto>> GetTeamPerformanceAsync(int supervisorId)
+        public async Task<List<ReviewerPerformanceDto>> GetTeamPerformanceAsync(int supervisorId)
  {
-      var metrics = await GetTeamMetricsAsync(supervisorId);
+            var metrics = await GetTeamMetricsAsync(supervisorId);
             return metrics.ReviewerPerformance;
         }
 
@@ -299,7 +299,7 @@ var accuracy = qaForTeam.Any()
 
     public async Task<DepartmentMetricsDto> GetDepartmentMetricsAsync(int managerId)
         {
-  // Get all supervisors under this manager
+            // Get all supervisors under this manager
             var allSubordinates = await GetAllSubordinatesRecursiveAsync(managerId);
         allSubordinates.Add(managerId); // Include manager themselves
 
@@ -307,39 +307,39 @@ var accuracy = qaForTeam.Any()
             var qaReviews = await _qaReviewRepository.GetAllAsync();
 
             var deptAssignments = claimAssignments
-  .Where(ca => allSubordinates.Contains(int.Parse(ca.AssignedToUserId)))
+          .Where(ca => allSubordinates.Contains(ca.AssignedToUserId))
         .ToList();
 
   var today = DateTime.UtcNow.Date;
          var completedToday = deptAssignments
       .Where(ca => ca.CompletedAt.HasValue && ca.CompletedAt.Value.Date == today)
-   .ToList();
+     .ToList();
 
        var completedWeek = deptAssignments
                 .Where(ca => ca.CompletedAt.HasValue && (DateTime.UtcNow - ca.CompletedAt.Value).Days < 7)
- .ToList();
+           .ToList();
 
-  var avgAccuracy = qaReviews.Any()
-            ? (qaReviews.Count(qa => qa.Result == "PASS") / (double)qaReviews.Count) * 100
-  : 0d;
+       var avgAccuracy = qaReviews.Any()
+              ? (qaReviews.Count(qa => qa.Result == "PASS") / (double)qaReviews.Count) * 100
+        : 0;
 
-   var avgTimeMinutes = deptAssignments.Any(ca => ca.CompletedAt.HasValue)
+     var avgTimeMinutes = deptAssignments.Any(ca => ca.CompletedAt.HasValue)
         ? deptAssignments
-  .Where(ca => ca.CompletedAt.HasValue)
+     .Where(ca => ca.CompletedAt.HasValue)
   .Average(ca => (ca.CompletedAt.Value - ca.AssignedAt).TotalMinutes)
-         : 0d;
+         : 0;
 
-         var approvalRate = deptAssignments.Where(ca => ca.ReviewType == "MEDICAL").Any()
+            var approvalRate = deptAssignments.Where(ca => ca.ReviewType == "MEDICAL").Any()
  ? (deptAssignments.Count(ca => ca.Result == "APPROVE" && ca.ReviewType == "MEDICAL") /
-(double)deptAssignments.Count(ca => ca.ReviewType == "MEDICAL")) * 100
-       : 0d;
+       (double)deptAssignments.Count(ca => ca.ReviewType == "MEDICAL")) * 100
+       : 0;
 
             var denialRate = deptAssignments.Where(ca => ca.ReviewType == "MEDICAL").Any()
      ? (deptAssignments.Count(ca => ca.Result == "DENY" && ca.ReviewType == "MEDICAL") /
 (double)deptAssignments.Count(ca => ca.ReviewType == "MEDICAL")) * 100
-: 0d;
+: 0;
 
-     return new DepartmentMetricsDto
+        return new DepartmentMetricsDto
  {
     Department = "DEPARTMENT", // TODO: Get actual department
     TotalStaff = allSubordinates.Count,
@@ -349,16 +349,16 @@ var accuracy = qaForTeam.Any()
  AverageAccuracy = avgAccuracy,
       AverageCompletionTimeMinutes = avgTimeMinutes,
   ApprovalRatePercentage = approvalRate,
-   DenialRatePercentage = denialRate,
+        DenialRatePercentage = denialRate,
             QAIssuesFound = qaReviews.Count(qa => qa.Result != "PASS")
  };
         }
 
   #endregion
 
-  #region Helper Methods
+        #region Helper Methods
 
-     private SupervisorAssignmentDto MapToDto(SupervisorAssignment assignment)
+        private SupervisorAssignmentDto MapToDto(SupervisorAssignment assignment)
         {
        if (assignment == null)
         return null;
@@ -366,11 +366,11 @@ var accuracy = qaForTeam.Any()
   return new SupervisorAssignmentDto
     {
     Id = assignment.Id,
-   SupervisorUserId = int.Parse(assignment.SupervisorUserId),
-    SubordinateUserId = int.Parse(assignment.SubordinateUserId),
- Department = assignment.Department,
-       SupervisorRoleId = assignment.SupervisorRoleId,
- TeamSize = assignment.TeamSize,
+   SupervisorUserId = assignment.SupervisorUserId,
+          SubordinateUserId = assignment.SubordinateUserId,
+            Department = assignment.Department,
+                SupervisorRoleId = assignment.SupervisorRoleId,
+        TeamSize = assignment.TeamSize,
   AssignedAt = assignment.AssignedAt
         };
  }
@@ -381,21 +381,21 @@ var accuracy = qaForTeam.Any()
 return null;
 
             var supervisor = await _userRepository.GetByIdAsync(assignment.SupervisorUserId);
-var subordinate = await _userRepository.GetByIdAsync(assignment.SubordinateUserId);
- var role = await _roleRepository.GetByIdAsync(assignment.SupervisorRoleId.ToString());
+            var subordinate = await _userRepository.GetByIdAsync(assignment.SubordinateUserId);
+    var role = await _roleRepository.GetByIdAsync(assignment.SupervisorRoleId);
 
        return new SupervisorAssignmentDto
-        {
-        Id = assignment.Id,
-  SupervisorUserId = int.Parse(assignment.SupervisorUserId),
+            {
+                Id = assignment.Id,
+  SupervisorUserId = assignment.SupervisorUserId,
      SupervisorName = supervisor?.FullName ?? "Unknown",
-       SubordinateUserId = int.Parse(assignment.SubordinateUserId),
+       SubordinateUserId = assignment.SubordinateUserId,
                 SubordinateName = subordinate?.FullName ?? "Unknown",
            Department = assignment.Department,
     SupervisorRoleId = assignment.SupervisorRoleId,
       SupervisorRole = role?.DisplayName ?? "Unknown",
      TeamSize = assignment.TeamSize,
-   AssignedAt = assignment.AssignedAt
+            AssignedAt = assignment.AssignedAt
         };
  }
 

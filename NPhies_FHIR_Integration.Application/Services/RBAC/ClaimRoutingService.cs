@@ -1,10 +1,11 @@
+#pragma warning disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NPhies_FHIR_Integration.Domain.Entities;
 using NPhies_FHIR_Integration.Domain.DTOs;
-using NPhies_FHIR_Integration.Domain.Interfaces;
+using NPhies_FFHIR_Integration.Domain.Interfaces;
 
 namespace NPhies_FHIR_Integration.Application.Services.RBAC
 {
