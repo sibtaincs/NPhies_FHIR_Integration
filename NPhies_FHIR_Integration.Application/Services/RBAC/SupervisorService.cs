@@ -117,12 +117,29 @@ var alreadyExists = existing.FirstOrDefault(sa =>
 
      var result = new List<SupervisorAssignmentDto>();
   foreach (var assignment in supervisors)
-            {
-        result.Add(await MapToDtoAsync(assignment));
+       {
+   result.Add(await MapToDtoAsync(assignment));
    }
 
         return result;
-        }
+      }
+
+        public async Task<List<SupervisorAssignmentDto>> GetManagerSupervisorsAsync(int managerId)
+      {
+       // Get all supervisors that report to this manager
+         var assignments = await _supervisorRepository.GetAllAsync();
+  var supervisors = assignments
+          .Where(sa => sa.SupervisorUserId == managerId && sa.RemovedAt == null)
+                .ToList();
+
+            var result = new List<SupervisorAssignmentDto>();
+     foreach (var assignment in supervisors)
+   {
+            result.Add(await MapToDtoAsync(assignment));
+            }
+
+            return result;
+      }
 
      public async Task<bool> RemoveSupervisorAssignmentAsync(int supervisorId, int subordinateId)
         {

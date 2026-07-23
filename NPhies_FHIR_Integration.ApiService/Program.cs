@@ -21,10 +21,10 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
-// Add DbContext - Use In-Memory Database for now (NuGet server unavailable)
-// TODO: Change to UseSqlServer when NuGet is available
+// Add DbContext - Use SQL Server with default connection string
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("NPhiesDb_Development"));
+ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+   "Server=(localdb)\\mssqllocaldb;Database=NPhiesDb;Trusted_Connection=true;"));
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile), typeof(EligibilityMappingProfile));
@@ -49,7 +49,7 @@ builder.Services.AddScoped<IEligibilityErrorRepository, EligibilityErrorReposito
 // Register Claim repositories
 builder.Services.AddScoped<IClaimRepository, ClaimRepository>();
 builder.Services.AddScoped<IClaimItemRepository, ClaimItemRepository>();
-builder.Services.AddScoped<IClaimDiagnosisRepository, ClaimDiagnosisRepository>();
+builder.Services.AddScoped<IClaimDiagnosisRepository, ClaimDiagnosisService>();
 builder.Services.AddScoped<IClaimResponseRepository, ClaimResponseRepository>();
 
 // Phase 2: Register Adjudication and Rejection repositories
@@ -109,79 +109,24 @@ app.UseExceptionHandler();
 // ?? USE COMPREHENSIVE SECURITY SYSTEM
 app.UseComprehensiveSecurity(builder.Configuration);
 
-// Seed test data for in-memory database
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var passwordService = scope.ServiceProvider.GetRequiredService<IPasswordHashingService>();
-    
-    // Create test users for login testing
-    var testUser1 = new User
-    {
-        Id = Guid.NewGuid().ToString(),
-      Username = "test.reviewer",
-  Email = "test.reviewer@example.com",
-        FirstName = "Test",
-        LastName = "Reviewer",
- IsActive = true,
-  IsEmailVerified = true,
-        Roles = new List<string> { "TECHNICAL_REVIEWER" },
-    CreatedAt = DateTime.UtcNow
-    };
-
-    var testUser2 = new User
-    {
-        Id = Guid.NewGuid().ToString(),
-        Username = "admin.manager",
-  Email = "admin.manager@example.com",
-        FirstName = "Admin",
-        LastName = "Manager",
-        IsActive = true,
-        IsEmailVerified = true,
-        Roles = new List<string> { "TECHNICAL_REVIEW_MANAGER" },
-   CreatedAt = DateTime.UtcNow
-    };
-
-    var testUser3 = new User
-    {
-        Id = Guid.NewGuid().ToString(),
-        Username = "john.reviewer",
-        Email = "john.reviewer@example.com",
-        FirstName = "John",
-     LastName = "Reviewer",
-        IsActive = true,
-        IsEmailVerified = true,
-        Roles = new List<string> { "TECHNICAL_REVIEWER" },
- CreatedAt = DateTime.UtcNow
-    };
-
-    // Hash passwords
-  var password = "TestPassword123!";
-    var (hash1, salt1) = passwordService.HashPassword(password);
-    testUser1.PasswordHash = hash1;
-    testUser1.PasswordSalt = salt1;
-
-    var (hash2, salt2) = passwordService.HashPassword("AdminPassword123!");
-    testUser2.PasswordHash = hash2;
-    testUser2.PasswordSalt = salt2;
-
-    var (hash3, salt3) = passwordService.HashPassword(password);
-    testUser3.PasswordHash = hash3;
-    testUser3.PasswordSalt = salt3;
-
-    // Add users to database
-    context.Users.AddRange(testUser1, testUser2, testUser3);
-    await context.SaveChangesAsync();
-    
-    Console.WriteLine("? Test users created successfully!");
-    Console.WriteLine("   - test.reviewer / TestPassword123!");
-    Console.WriteLine("   - admin.manager / AdminPassword123!");
-    Console.WriteLine("   - john.reviewer / TestPassword123!");
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
+    // Seed database in development
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+  await seeder.SeedAsync();
+        
+      // Also seed master data
+        var enhancedSeeder = scope.ServiceProvider.GetRequiredService<EnhancedDatabaseSeeder>();
+        await enhancedSeeder.SeedAllMasterDataAsync();
+
+        // Seed error codes
+        var errorCodeSeeder = scope.ServiceProvider.GetRequiredService<ErrorCodeMasterSeeder>();
+        await errorCodeSeeder.SeedCriticalErrorCodesAsync();
+    }
 }
 
 app.MapControllers();

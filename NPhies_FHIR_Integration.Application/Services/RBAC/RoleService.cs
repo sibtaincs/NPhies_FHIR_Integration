@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NPhies_FHIR_Integration.Domain.Entities;
 using NPhies_FHIR_Integration.Domain.DTOs;
+using NPhies_FHIR_Integration.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace NPhies_FHIR_Integration.Application.Services.RBAC
