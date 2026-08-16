@@ -23,7 +23,12 @@ public interface IClaimResponseService
     /// <summary>
     /// Get response for a claim
     /// </summary>
-  Task<ClaimResponseDto?> GetResponseByClaimIdAsync(string claimId);
+    Task<ClaimResponseDto?> GetResponseByClaimIdAsync(string claimId);
+
+    /// <summary>
+    /// Get response for a claim (alias method)
+    /// </summary>
+    Task<ClaimResponseDto?> GetResponseForClaimAsync(string claimId);
 
     /// <summary>
    /// Get responses by status
@@ -109,6 +114,14 @@ public class ClaimResponseService : IClaimResponseService
    {
   throw new InvalidOperationException("Failed to retrieve response by claim ID", ex);
         }
+    }
+
+    /// <summary>
+    /// Get response for a claim (alias method)
+    /// </summary>
+    public async Task<ClaimResponseDto?> GetResponseForClaimAsync(string claimId)
+    {
+        return await GetResponseByClaimIdAsync(claimId);
     }
 
     /// <summary>

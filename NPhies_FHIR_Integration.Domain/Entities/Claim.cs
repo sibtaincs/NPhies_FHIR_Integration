@@ -52,6 +52,15 @@ public class Claim : BaseEntity
     public string Use { get; set; } = "claim";
 
     /// <summary>
+    /// When the claim was created (alias for CreatedDate)
+    /// </summary>
+    public DateTime Created
+    {
+        get => CreatedDate;
+        set => CreatedDate = value;
+    }
+
+    /// <summary>
     /// When the claim was created
     /// </summary>
     public DateTime CreatedDate { get; set; }
@@ -236,4 +245,76 @@ public class Claim : BaseEntity
     /// Example: "2021-06-30T11:05:48+03:00"
     /// </summary>
     public DateTime? AuthorizationOfflineDate { get; set; }
+
+    // ========== ACCIDENT INFORMATION (inline) ==========
+    // Note: For detailed accident info, use ClaimAccident entity
+    
+    /// <summary>
+    /// Accident date (simplified - for quick reference)
+    /// For detailed accident info, use ClaimAccident entity
+    /// </summary>
+public DateTime? AccidentDate { get; set; }
+
+    /// <summary>
+    /// Accident type: MVA (Motor Vehicle Accident), WORK (Workplace), etc.
+    /// </summary>
+    public string? AccidentType { get; set; }
+
+    /// <summary>
+    /// Accident type system URL
+    /// </summary>
+    public string? AccidentTypeSystem { get; set; }
+
+ // ========== FUNDS RESERVE ==========
+
+    /// <summary>
+    /// Funds reserve requested: patient, provider, none
+    /// Indicates who should hold funds in reserve
+    /// </summary>
+    public string? FundsReserveCode { get; set; }
+
+    /// <summary>
+    /// Funds reserve system URL
+    /// </summary>
+    public string? FundsReserveSystem { get; set; }
+
+    // ========== REFERRAL AND PRESCRIPTION REFERENCES ==========
+  
+    /// <summary>
+    /// Referral identifier (ServiceRequest reference)
+    /// Reference to a referral document or ServiceRequest
+ /// </summary>
+    public string? ReferralIdentifier { get; set; }
+
+/// <summary>
+    /// Prescription identifier (MedicationRequest reference)
+    /// Reference to the prescription/MedicationRequest
+    /// </summary>
+ public string? PrescriptionIdentifier { get; set; }
+
+    /// <summary>
+    /// Original prescription identifier (for prescription refills)
+    /// Reference to the original prescription being refilled
+    /// </summary>
+    public string? OriginalPrescriptionIdentifier { get; set; }
+
+ /// <summary>
+/// Pre-authorization reference number
+    /// Link to a pre-authorization approval (e.g., "136997701")
+    /// </summary>
+    public string? PreAuthorizationRef { get; set; }
+
+    // ========== BILLABLE PERIOD ==========
+    
+  /// <summary>
+    /// Billable period start date
+    /// The period for which charges are being submitted (may differ from service period)
+    /// </summary>
+    public DateTime? BillablePeriodStart { get; set; }
+
+    /// <summary>
+    /// Billable period end date
+ /// The end of the billing period
+    /// </summary>
+    public DateTime? BillablePeriodEnd { get; set; }
 }

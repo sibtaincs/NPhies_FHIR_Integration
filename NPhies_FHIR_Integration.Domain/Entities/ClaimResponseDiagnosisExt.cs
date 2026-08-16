@@ -47,6 +47,9 @@ public class ClaimResponseDiagnosisExt : BaseEntity
     /// </summary>
     public string? DiagnosisTypeSystem { get; set; }
 
+    public string? OnAdmissionCode { get; set; }    
+    public string? OnAdmissionSystem { get; set; }    
+
   /// <summary>
     /// Notes for this diagnosis
  /// </summary>

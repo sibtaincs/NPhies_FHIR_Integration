@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NPhies_FHIR_Integration.Domain.CodeableConcept.Models;
-using NPhies_FHIR_Integration.Domain.CodeableConcept.Services;
+using NPhies_FHIR_Integration.Infrastructure.Data;
 
 namespace NPhies_FHIR_Integration.Infrastructure.Persistence
 {
@@ -22,9 +22,9 @@ namespace NPhies_FHIR_Integration.Infrastructure.Persistence
 
     public class CodeableConceptBulkImporter : ICodeableConceptBulkImporter
     {
-        private readonly ICodeableConceptDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
 
-        public CodeableConceptBulkImporter(ICodeableConceptDbContext dbContext)
+        public CodeableConceptBulkImporter(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }

@@ -18,6 +18,16 @@ public class ClaimResponseDto
     public string? InsurerId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    
+    /// <summary>
+    /// Alias for ClaimResponseStatus for compatibility
+    /// </summary>
+    public string? Outcome => ClaimResponseStatus;
+    
+    /// <summary>
+    /// Alias for CreatedAt for compatibility
+    /// </summary>
+    public DateTime Created => CreatedAt;
 }
 
 /// <summary>

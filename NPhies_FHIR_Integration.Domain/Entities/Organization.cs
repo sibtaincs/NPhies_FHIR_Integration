@@ -129,6 +129,44 @@ public class Organization : BaseEntity
     /// </summary>
     public string Status { get; set; } = "active";
 
+    // ========== SAUDI ARABIA SPECIFIC IDENTIFIERS ==========
+
+    /// <summary>
+    /// Ministry of Health (MOH) License Number
+    /// Required for healthcare providers in Saudi Arabia
+    /// </summary>
+    public string? MOHLicenseNumber { get; set; }
+
+    /// <summary>
+    /// Council of Health Insurance (CHI) Number
+    /// Required for insurance companies operating in Saudi Arabia
+    /// </summary>
+    public string? CHINumber { get; set; }
+
+    /// <summary>
+    /// NPHIES Organization Identifier
+    /// Unique identifier assigned by NPHIES platform
+    /// </summary>
+    public string? NphiesOrganizationId { get; set; }
+
+    /// <summary>
+    /// NPHIES Provider ID
+    /// Specific identifier for providers in NPHIES system
+    /// </summary>
+    public string? NphiesProviderId { get; set; }
+
+    /// <summary>
+    /// NPHIES Payer ID
+    /// Specific identifier for insurance payers in NPHIES system
+    /// </summary>
+    public string? NphiesPayerId { get; set; }
+
+    /// <summary>
+    /// Tax Registration Number / VAT Number
+    /// Required for billing and tax purposes in Saudi Arabia
+    /// </summary>
+    public string? TaxRegistrationNumber { get; set; }
+
     // Navigation Properties
     /// <summary>
     /// Collection of locations managed by this organization

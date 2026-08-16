@@ -4,6 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hl7.Fhir.Model;
+using DomainCoverage = NPhies_FHIR_Integration.Domain.Entities.Coverage;
+using DomainOrganization = NPhies_FHIR_Integration.Domain.Entities.Organization;
+using DomainClaim = NPhies_FHIR_Integration.Domain.Entities.Claim;
+using DomainPatient = NPhies_FHIR_Integration.Domain.Entities.Patient;
+using DomainCoverageEligibilityRequest = NPhies_FHIR_Integration.Domain.Entities.CoverageEligibilityRequest;
 
 namespace NPhies_FHIR_Integration.Application.Services
 {
@@ -21,68 +27,68 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Check coverage period validity
         /// </summary>
-        Task<bool> IsCoverageActiveAsync(Coverage coverage, DateTime serviceDate);
+        Task<bool> IsCoverageActiveAsync(DomainCoverage coverage, DateTime serviceDate);
 
         /// <summary>
         /// Get coverage deductible status
         /// </summary>
-        Task<DeductibleInfo> GetDeductibleStatusAsync(Coverage coverage, int year = 0);
+        Task<DeductibleInfo> GetDeductibleStatusAsync(DomainCoverage coverage, int year = 0);
 
         /// <summary>
         /// Get out-of-pocket tracking
         /// </summary>
-        Task<OutOfPocketInfo> GetOutOfPocketStatusAsync(Coverage coverage, int year = 0);
+        Task<OutOfPocketInfo> GetOutOfPocketStatusAsync(DomainCoverage coverage, int year = 0);
 
         /// <summary>
         /// Calculate copay for service
         /// </summary>
-        Task<decimal> CalculateCopayAsync(Coverage coverage, string serviceCode);
+        Task<decimal> CalculateCopayAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Calculate coinsurance percentage
         /// </summary>
-        Task<decimal> GetCoinsurancePercentAsync(Coverage coverage, string serviceCode);
+        Task<decimal> GetCoinsurancePercentAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Check if service has benefit limitation
         /// </summary>
-        Task<BenefitLimitation> GetBenefitLimitationAsync(Coverage coverage, string serviceCode);
+        Task<BenefitLimitation> GetBenefitLimitationAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Validate benefit period and limits
         /// </summary>
-        Task<BenefitPeriodValidation> ValidateBenefitPeriodAsync(Coverage coverage, string serviceCode, DateTime serviceDate);
+        Task<BenefitPeriodValidation> ValidateBenefitPeriodAsync(DomainCoverage coverage, string serviceCode, DateTime serviceDate);
 
         /// <summary>
         /// Check if service is covered under plan
         /// </summary>
-        Task<bool> IsServiceCoveredAsync(Coverage coverage, string serviceCode, string diagnosis);
+        Task<bool> IsServiceCoveredAsync(DomainCoverage coverage, string serviceCode, string diagnosis);
 
         /// <summary>
         /// Check exclusions for service
         /// </summary>
-        Task<List<string>> GetServiceExclusionsAsync(Coverage coverage, string serviceCode);
+        Task<List<string>> GetServiceExclusionsAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Check waiting period requirements
         /// </summary>
-        Task<WaitingPeriodInfo> GetWaitingPeriodAsync(Coverage coverage, string serviceCode);
+        Task<WaitingPeriodInfo> GetWaitingPeriodAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Validate pre-authorization requirements
         /// </summary>
-        Task<PreAuthRequirement> GetPreAuthRequirementAsync(Coverage coverage, string serviceCode);
+        Task<PreAuthRequirement> GetPreAuthRequirementAsync(DomainCoverage coverage, string serviceCode);
 
         /// <summary>
         /// Get network status for provider
         /// </summary>
-        Task<NetworkStatus> GetNetworkStatusAsync(Organization provider, Coverage coverage);
+        Task<NetworkStatus> GetNetworkStatusAsync(DomainOrganization provider, DomainCoverage coverage);
 
         /// <summary>
         /// Comprehensive eligibility check for claim submission
         /// </summary>
         Task<ComprehensiveEligibilityCheck> PerformComprehensiveEligibilityCheckAsync(
-            Claim claim, Coverage coverage, Organization provider);
+            DomainClaim claim, DomainCoverage coverage, DomainOrganization provider);
     }
 
     /// <summary>
@@ -301,7 +307,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Check if coverage is active on service date
         /// </summary>
-        public async Task<bool> IsCoverageActiveAsync(Coverage coverage, DateTime serviceDate)
+        public async Task<bool> IsCoverageActiveAsync(DomainCoverage coverage, DateTime serviceDate)
         {
             try
             {
@@ -328,7 +334,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get deductible status
         /// </summary>
-        public async Task<DeductibleInfo> GetDeductibleStatusAsync(Coverage coverage, int year = 0)
+        public async Task<DeductibleInfo> GetDeductibleStatusAsync(DomainCoverage coverage, int year = 0)
         {
             var info = new DeductibleInfo();
 
@@ -355,7 +361,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get out-of-pocket tracking
         /// </summary>
-        public async Task<OutOfPocketInfo> GetOutOfPocketStatusAsync(Coverage coverage, int year = 0)
+        public async Task<OutOfPocketInfo> GetOutOfPocketStatusAsync(DomainCoverage coverage, int year = 0)
         {
             var info = new OutOfPocketInfo();
 
@@ -381,7 +387,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Calculate copay for service
         /// </summary>
-        public async Task<decimal> CalculateCopayAsync(Coverage coverage, string serviceCode)
+        public async Task<decimal> CalculateCopayAsync(DomainCoverage coverage, string serviceCode)
         {
             try
             {
@@ -405,7 +411,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get coinsurance percentage
         /// </summary>
-        public async Task<decimal> GetCoinsurancePercentAsync(Coverage coverage, string serviceCode)
+        public async Task<decimal> GetCoinsurancePercentAsync(DomainCoverage coverage, string serviceCode)
         {
             try
             {
@@ -428,7 +434,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get benefit limitation
         /// </summary>
-        public async Task<BenefitLimitation> GetBenefitLimitationAsync(Coverage coverage, string serviceCode)
+        public async Task<BenefitLimitation> GetBenefitLimitationAsync(DomainCoverage coverage, string serviceCode)
         {
             var limitation = new BenefitLimitation
             {
@@ -454,7 +460,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// Validate benefit period
         /// </summary>
         public async Task<BenefitPeriodValidation> ValidateBenefitPeriodAsync(
-             Coverage coverage, string serviceCode, DateTime serviceDate)
+             DomainCoverage coverage, string serviceCode, DateTime serviceDate)
         {
             var validation = new BenefitPeriodValidation { IsValid = true };
 
@@ -487,7 +493,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Check if service is covered
         /// </summary>
-        public async Task<bool> IsServiceCoveredAsync(Coverage coverage, string serviceCode, string diagnosis)
+        public async Task<bool> IsServiceCoveredAsync(DomainCoverage coverage, string serviceCode, string diagnosis)
         {
             try
             {
@@ -510,7 +516,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get service exclusions
         /// </summary>
-        public async Task<List<string>> GetServiceExclusionsAsync(Coverage coverage, string serviceCode)
+        public async Task<List<string>> GetServiceExclusionsAsync(DomainCoverage coverage, string serviceCode)
         {
             var exclusions = new List<string>();
 
@@ -533,7 +539,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get waiting period information
         /// </summary>
-        public async Task<WaitingPeriodInfo> GetWaitingPeriodAsync(Coverage coverage, string serviceCode)
+        public async Task<WaitingPeriodInfo> GetWaitingPeriodAsync(DomainCoverage coverage, string serviceCode)
         {
             var waitingPeriod = new WaitingPeriodInfo();
 
@@ -556,7 +562,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get pre-authorization requirement
         /// </summary>
-        public async Task<PreAuthRequirement> GetPreAuthRequirementAsync(Coverage coverage, string serviceCode)
+        public async Task<PreAuthRequirement> GetPreAuthRequirementAsync(DomainCoverage coverage, string serviceCode)
         {
             var requirement = new PreAuthRequirement
             {
@@ -589,7 +595,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// <summary>
         /// Get network status
         /// </summary>
-        public async Task<NetworkStatus> GetNetworkStatusAsync(Organization provider, Coverage coverage)
+        public async Task<NetworkStatus> GetNetworkStatusAsync(DomainOrganization provider, DomainCoverage coverage)
         {
             var status = new NetworkStatus
             {
@@ -625,7 +631,7 @@ namespace NPhies_FHIR_Integration.Application.Services
         /// Perform comprehensive eligibility check
         /// </summary>
         public async Task<ComprehensiveEligibilityCheck> PerformComprehensiveEligibilityCheckAsync(
-        Claim claim, Coverage coverage, Organization provider)
+        DomainClaim claim, DomainCoverage coverage, DomainOrganization provider)
         {
             var check = new ComprehensiveEligibilityCheck();
 
@@ -704,5 +710,28 @@ namespace NPhies_FHIR_Integration.Application.Services
 
             return check;
         }
+    }
+
+    // You need to implement:
+    public interface IFhirBundleService
+    {
+        Task<Bundle> CreateEligibilityBundleAsync(DomainCoverageEligibilityRequest request);
+        Task<Bundle> CreateClaimBundleAsync(DomainClaim claim);
+        Task<Bundle> CreatePreAuthBundleAsync(DomainClaim preAuth);
+        Task<string> SerializeToJsonAsync(Bundle bundle);
+        Task<T> DeserializeFromJsonAsync<T>(string json) where T : Resource;
+    }
+
+    public class Encounter : BaseEntity
+    {
+        public string EncounterId { get; set; }
+        public string Status { get; set; } // planned, arrived, in-progress, finished
+        public string Class { get; set; } // AMB, IMP, EMER, HH
+        public string Type { get; set; }
+        public DateTime Period_Start { get; set; }
+        public DateTime? Period_End { get; set; }
+        public string PatientId { get; set; }
+        public virtual DomainPatient Patient { get; set; }
+        public virtual ICollection<DomainClaim> Claims { get; set; }
     }
 }

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NPhies_FHIR_Integration.ApiService\NPhies_FHIR_Integration.ApiService.csproj" />
+    <ProjectReference Include="..\NPhies_FHIR_Integration.Application\NPhies_FHIR_Integration.Application.csproj" />
     <ProjectReference Include="..\NPhies_FHIR_Integration.Web\NPhies_FHIR_Integration.Web.csproj" />
   </ItemGroup>
 

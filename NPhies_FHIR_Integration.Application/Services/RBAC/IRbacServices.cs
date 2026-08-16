@@ -244,79 +244,79 @@ Task<int> FindAvailableReviewerAsync(string reviewType, int complexityScore);
     public class RoleFactory
     {
   public static List<CreateUpdateRoleDto> CreateDefaultRoles()
-        {
-            return new List<CreateUpdateRoleDto>
-      {
+ {
+         return new List<CreateUpdateRoleDto>
+   {
    // Technical Review Roles
          new CreateUpdateRoleDto
-          {
+    {
   Name = "TECHNICAL_REVIEWER",
           DisplayName = "Technical Reviewer",
-                    Department = "TECHNICAL",
+      Department = "TECHNICAL",
          Level = 1,
-         Description = "Entry-level technical claim reviewer - validates data completeness and format",
+   Description = "Entry-level technical claim reviewer - validates data completeness and format",
      IsActive = true,
          PermissionIds = new List<int> { 1, 2, 3, 4, 5 } // Basic permissions
           },
-         new CreateUpdateRoleDto
-    {
-           Name = "SENIOR_TECHNICAL_REVIEWER",
-             DisplayName = "Senior Technical Reviewer",
-         Department = "TECHNICAL",
+     new CreateUpdateRoleDto
+ {
+      Name = "SENIOR_TECHNICAL_REVIEWER",
+   DisplayName = "Senior Technical Reviewer",
+   Department = "TECHNICAL",
     Level = 2,
       Description = "Senior technical reviewer - handles complex claim validations",
       IsActive = true,
           PermissionIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 } // + advanced
        },
-             new CreateUpdateRoleDto
+   new CreateUpdateRoleDto
       {
-        Name = "TECHNICAL_REVIEW_SUPERVISOR",
-              DisplayName = "Technical Review Supervisor",
+  Name = "TECHNICAL_REVIEW_SUPERVISOR",
+       DisplayName = "Technical Review Supervisor",
          Department = "TECHNICAL",
      Level = 3,
       Description = "Supervises technical reviewers - QA and escalation authority",
             IsActive = true,
    PermissionIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } // + supervision
-         },
-        new CreateUpdateRoleDto
+   },
+     new CreateUpdateRoleDto
        {
-            Name = "TECHNICAL_REVIEW_MANAGER",
-         DisplayName = "Technical Review Manager",
-              Department = "TECHNICAL",
+       Name = "TECHNICAL_REVIEW_MANAGER",
+      DisplayName = "Technical Review Manager",
+         Department = "TECHNICAL",
       Level = 4,
-               Description = "Manages technical review department - strategy and policy",
-        IsActive = true,
+ Description = "Manages technical review department - strategy and policy",
+IsActive = true,
     PermissionIds = new List<int> { } // All permissions
-                },
+  },
 
-             // Medical Review Roles
-                new CreateUpdateRoleDto
+ // Medical Review Roles
+   new CreateUpdateRoleDto
       {
-        Name = "MEDICAL_REVIEWER",
+  Name = "MEDICAL_REVIEWER",
   DisplayName = "Medical Reviewer",
-           Department = "MEDICAL",
+   Department = "MEDICAL",
            Level = 1,
-                    Description = "Entry-level medical reviewer - routine medical necessity reviews",
-                IsActive = true,
-                    PermissionIds = new List<int> { 1, 3, 4, 13, 14, 15 } // Medical-specific permissions
+  Description = "Entry-level medical reviewer - routine medical necessity reviews",
+              IsActive = true,
+             PermissionIds = new List<int> { 1, 3, 4, 13, 14, 15 } // Medical-specific permissions
            },
             new CreateUpdateRoleDto
-              {
+       {
  Name = "SENIOR_MEDICAL_REVIEWER",
         DisplayName = "Senior Medical Reviewer",
  Department = "MEDICAL",
-           Level = 2,
+      Level = 2,
       Description = "Senior medical reviewer - complex clinical cases",
         IsActive = true,
     PermissionIds = new List<int> { 1, 3, 4, 6, 13, 14, 15, 16 } // + advanced medical
-                },
-           new CreateUpdateRoleDto
-                {
+      },
+     new CreateUpdateRoleDto
+    {
    Name = "MEDICAL_REVIEW_SUPERVISOR",
          DisplayName = "Medical Review Supervisor",
         Department = "MEDICAL",
          Level = 3,
-             Description = "Supervises medical reviewers - clinical QA and appeals",
+   Description = "Supervises medical reviewers - clinical QA and appeals",
         IsActive = true,
            PermissionIds = new List<int> { 1, 3, 4, 6, 9, 10, 11, 13, 14, 15, 16, 17 } // + supervision
        },
@@ -333,40 +333,40 @@ Task<int> FindAvailableReviewerAsync(string reviewType, int complexityScore);
   };
   }
 
-        public static List<Permission> CreateDefaultPermissions()
+ public static List<Permission> CreateDefaultPermissions()
    {
         return new List<Permission>
 {
-             // Basic Permissions (Level 1)
-     new Permission { Id = 1, Name = "CLAIMS:READ", Category = "CLAIMS", Action = "READ", RequiredLevel = 1, Description = "View claims" },
-       new Permission { Id = 2, Name = "CLAIMS:VALIDATE", Category = "CLAIMS", Action = "VALIDATE", RequiredLevel = 1, Description = "Validate claims (technical)" },
-       new Permission { Id = 3, Name = "CLAIMS:REVIEW", Category = "CLAIMS", Action = "REVIEW", RequiredLevel = 1, Description = "Review claims (medical)" },
-                new Permission { Id = 4, Name = "REPORTS:READ", Category = "REPORTS", Action = "READ", RequiredLevel = 1, Description = "View reports" },
-     new Permission { Id = 5, Name = "REPORTS:EXPORT", Category = "REPORTS", Action = "EXPORT", RequiredLevel = 1, Description = "Export reports" },
+// Basic Permissions (Level 1)
+     new Permission { Id = "1", Name = "CLAIMS:READ", Category = "CLAIMS", Action = "READ", RequiredLevel = 1, Description = "View claims" },
+       new Permission { Id = "2", Name = "CLAIMS:VALIDATE", Category = "CLAIMS", Action = "VALIDATE", RequiredLevel = 1, Description = "Validate claims (technical)" },
+       new Permission { Id = "3", Name = "CLAIMS:REVIEW", Category = "CLAIMS", Action = "REVIEW", RequiredLevel = 1, Description = "Review claims (medical)" },
+          new Permission { Id = "4", Name = "REPORTS:READ", Category = "REPORTS", Action = "READ", RequiredLevel = 1, Description = "View reports" },
+     new Permission { Id = "5", Name = "REPORTS:EXPORT", Category = "REPORTS", Action = "EXPORT", RequiredLevel = 1, Description = "Export reports" },
 
        // Advanced Permissions (Level 2)
-                new Permission { Id = 6, Name = "CLAIMS:UPDATE", Category = "CLAIMS", Action = "UPDATE", RequiredLevel = 2, Description = "Add comments to claims" },
-    new Permission { Id = 7, Name = "CLAIMS:ESCALATE", Category = "CLAIMS", Action = "ESCALATE", RequiredLevel = 2, Description = "Escalate complex claims" },
-        new Permission { Id = 8, Name = "REPORTS:CREATE", Category = "REPORTS", Action = "CREATE", RequiredLevel = 2, Description = "Create custom reports" },
+     new Permission { Id = "6", Name = "CLAIMS:UPDATE", Category = "CLAIMS", Action = "UPDATE", RequiredLevel = 2, Description = "Add comments to claims" },
+    new Permission { Id = "7", Name = "CLAIMS:ESCALATE", Category = "CLAIMS", Action = "ESCALATE", RequiredLevel = 2, Description = "Escalate complex claims" },
+    new Permission { Id = "8", Name = "REPORTS:CREATE", Category = "REPORTS", Action = "CREATE", RequiredLevel = 2, Description = "Create custom reports" },
 
           // Supervision Permissions (Level 3)
-                new Permission { Id = 9, Name = "CLAIMS:OVERRIDE", Category = "CLAIMS", Action = "OVERRIDE", RequiredLevel = 3, Description = "Override claim decisions" },
-    new Permission { Id = 10, Name = "USERS:READ", Category = "USERS", Action = "READ", RequiredLevel = 3, Description = "View team members" },
-           new Permission { Id = 11, Name = "QUEUE:MANAGE", Category = "QUEUE", Action = "MANAGE", RequiredLevel = 3, Description = "Manage review queues" },
-         new Permission { Id = 12, Name = "AUDIT:READ", Category = "AUDIT", Action = "READ", RequiredLevel = 3, Description = "View audit logs" },
+       new Permission { Id = "9", Name = "CLAIMS:OVERRIDE", Category = "CLAIMS", Action = "OVERRIDE", RequiredLevel = 3, Description = "Override claim decisions" },
+    new Permission { Id = "10", Name = "USERS:READ", Category = "USERS", Action = "READ", RequiredLevel = 3, Description = "View team members" },
+           new Permission { Id = "11", Name = "QUEUE:MANAGE", Category = "QUEUE", Action = "MANAGE", RequiredLevel = 3, Description = "Manage review queues" },
+         new Permission { Id = "12", Name = "AUDIT:READ", Category = "AUDIT", Action = "READ", RequiredLevel = 3, Description = "View audit logs" },
 
-           // Medical-specific Permissions
-       new Permission { Id = 13, Name = "CLAIMS:APPROVE", Category = "CLAIMS", Action = "APPROVE", RequiredLevel = 1, Description = "Approve claims (medical)" },
-          new Permission { Id = 14, Name = "CLAIMS:DENY", Category = "CLAIMS", Action = "DENY", RequiredLevel = 1, Description = "Deny claims (medical)" },
-   new Permission { Id = 15, Name = "GUIDELINES:READ", Category = "GUIDELINES", Action = "READ", RequiredLevel = 1, Description = "View clinical guidelines" },
-         new Permission { Id = 16, Name = "CLAIMS:REQUEST_INFO", Category = "CLAIMS", Action = "REQUEST_INFO", RequiredLevel = 2, Description = "Request additional info" },
-       new Permission { Id = 17, Name = "CODES:READ", Category = "CODES", Action = "READ", RequiredLevel = 1, Description = "View medical codes" },
+  // Medical-specific Permissions
+ new Permission { Id = "13", Name = "CLAIMS:APPROVE", Category = "CLAIMS", Action = "APPROVE", RequiredLevel = 1, Description = "Approve claims (medical)" },
+      new Permission { Id = "14", Name = "CLAIMS:DENY", Category = "CLAIMS", Action = "DENY", RequiredLevel = 1, Description = "Deny claims (medical)" },
+   new Permission { Id = "15", Name = "GUIDELINES:READ", Category = "GUIDELINES", Action = "READ", RequiredLevel = 1, Description = "View clinical guidelines" },
+ new Permission { Id = "16", Name = "CLAIMS:REQUEST_INFO", Category = "CLAIMS", Action = "REQUEST_INFO", RequiredLevel = 2, Description = "Request additional info" },
+    new Permission { Id = "17", Name = "CODES:READ", Category = "CODES", Action = "READ", RequiredLevel = 1, Description = "View medical codes" },
 
        // Management Permissions (Level 4)
-     new Permission { Id = 18, Name = "USERS:MANAGE", Category = "USERS", Action = "MANAGE", RequiredLevel = 4, Description = "Manage users and roles" },
-      new Permission { Id = 19, Name = "GUIDELINES:MANAGE", Category = "GUIDELINES", Action = "MANAGE", RequiredLevel = 4, Description = "Manage clinical guidelines" },
-         new Permission { Id = 20, Name = "SYSTEM:SETTINGS", Category = "SYSTEM", Action = "SETTINGS", RequiredLevel = 4, Description = "System configuration" }
-      };
+     new Permission { Id = "18", Name = "USERS:MANAGE", Category = "USERS", Action = "MANAGE", RequiredLevel = 4, Description = "Manage users and roles" },
+      new Permission { Id = "19", Name = "GUIDELINES:MANAGE", Category = "GUIDELINES", Action = "MANAGE", RequiredLevel = 4, Description = "Manage clinical guidelines" },
+         new Permission { Id = "20", Name = "SYSTEM:SETTINGS", Category = "SYSTEM", Action = "SETTINGS", RequiredLevel = 4, Description = "System configuration" }
+ };
     }
     }
 }

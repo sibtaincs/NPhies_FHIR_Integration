@@ -22,7 +22,7 @@ public interface IAppealService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-  /// Get all appeals for a claim
+    /// Get all appeals for a claim
     /// </summary>
     Task<List<AppealDto>> GetClaimAppealsAsync(
   string claimId,
@@ -31,11 +31,11 @@ public interface IAppealService
     /// <summary>
     /// Get all appeals for a patient
     /// </summary>
-Task<List<AppealDto>> GetPatientAppealsAsync(
- string patientId,
-        CancellationToken cancellationToken = default);
+    Task<List<AppealDto>> GetPatientAppealsAsync(
+     string patientId,
+            CancellationToken cancellationToken = default);
 
-// ========== APPEAL SUBMISSION ==========
+    // ========== APPEAL SUBMISSION ==========
     /// <summary>
     /// Submit an appeal (finalize before deadline)
     /// </summary>
@@ -53,15 +53,15 @@ Task<List<AppealDto>> GetPatientAppealsAsync(
     /// <summary>
     /// Withdraw an appeal
     /// </summary>
-Task<WithdrawAppealResult> WithdrawAppealAsync(
-        string appealId,
-        string reason,
-        CancellationToken cancellationToken = default);
+    Task<WithdrawAppealResult> WithdrawAppealAsync(
+            string appealId,
+            string reason,
+            CancellationToken cancellationToken = default);
 
     // ========== APPEAL ESCALATION ==========
     /// <summary>
     /// Escalate appeal to next level
-  /// </summary>
+    /// </summary>
     Task<EscalateAppealResult> EscalateAppealAsync(
         string appealId,
    string escalationReason,
@@ -91,7 +91,7 @@ Task<WithdrawAppealResult> WithdrawAppealAsync(
     // ========== DOCUMENTS ==========
     /// <summary>
     /// Attach document to appeal
-  /// </summary>
+    /// </summary>
     Task<AttachDocumentResult> AttachDocumentAsync(
         AttachDocumentRequest request,
         CancellationToken cancellationToken = default);
@@ -135,7 +135,7 @@ public class CreateAppealRequest
 public class UpdateAppealRequest
 {
     public string AppealId { get; set; } = string.Empty;
- public string? AppealReason { get; set; }
+    public string? AppealReason { get; set; }
     public string? SupportingDocumentation { get; set; }
     public string? Notes { get; set; }
 }
@@ -165,7 +165,7 @@ public class CreateAppealResult
     public bool IsSuccess { get; set; }
     public string? AppealId { get; set; }
     public string? AppealNumber { get; set; }
- public string? ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
     public DateTime? DeadlineDate { get; set; }
 }
 
@@ -259,7 +259,7 @@ public class AppealDto
 /// </summary>
 public class AppealStatusDto
 {
-public string AppealId { get; set; } = string.Empty;
+    public string AppealId { get; set; } = string.Empty;
     public string CurrentStatus { get; set; } = string.Empty;
     public DateTime DenialDate { get; set; }
     public DateTime DeadlineDate { get; set; }
@@ -303,7 +303,7 @@ public class AppealDocumentDto
 /// </summary>
 public class AppealStatisticsDto
 {
-  public int TotalAppeals { get; set; }
+    public int TotalAppeals { get; set; }
     public int ActiveAppeals { get; set; }
     public int ApprovedAppeals { get; set; }
     public int DeniedAppeals { get; set; }

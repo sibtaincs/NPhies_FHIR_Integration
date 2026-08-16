@@ -11,7 +11,7 @@ public class ClaimDto
     public string? ClaimIdentifierValue { get; set; }
     public string Status { get; set; } = string.Empty;
     public string ClaimType { get; set; } = string.Empty;
- public string? ClaimTypeSystem { get; set; }
+    public string? ClaimTypeSystem { get; set; }
     public string? ClaimSubType { get; set; }
     public string Use { get; set; } = string.Empty;
     public string? Priority { get; set; }
@@ -28,8 +28,33 @@ public class ClaimDto
     public string? EligibilityOfflineReference { get; set; }
     public DateTime? EligibilityOfflineDate { get; set; }
     public DateTime? AuthorizationOfflineDate { get; set; }
+    
+    // NEW: Accident Information
+    public DateTime? AccidentDate { get; set; }
+    public string? AccidentType { get; set; }
+    public string? AccidentTypeSystem { get; set; }
+    
+    // NEW: Funds Reserve
+    public string? FundsReserveCode { get; set; }
+    public string? FundsReserveSystem { get; set; }
+    
+    // NEW: Referral and Prescription References
+    public string? ReferralIdentifier { get; set; }
+    public string? PrescriptionIdentifier { get; set; }
+    public string? OriginalPrescriptionIdentifier { get; set; }
+    public string? PreAuthorizationRef { get; set; }
+    
+    // NEW: Billable Period
+    public DateTime? BillablePeriodStart { get; set; }
+    public DateTime? BillablePeriodEnd { get; set; }
+  
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Alias for CreatedAt for compatibility
+    /// </summary>
+    public DateTime Created => CreatedAt;
 }
 
 /// <summary>
@@ -60,6 +85,25 @@ public class CreateClaimDto
     public string? EligibilityOfflineReference { get; set; }
     public DateTime? EligibilityOfflineDate { get; set; }
     public DateTime? AuthorizationOfflineDate { get; set; }
+    
+    // NEW: Accident Information
+    public DateTime? AccidentDate { get; set; }
+    public string? AccidentType { get; set; }
+    public string? AccidentTypeSystem { get; set; }
+    
+    // NEW: Funds Reserve
+    public string? FundsReserveCode { get; set; }
+    public string? FundsReserveSystem { get; set; }
+    
+    // NEW: Referral and Prescription References
+    public string? ReferralIdentifier { get; set; }
+    public string? PrescriptionIdentifier { get; set; }
+    public string? OriginalPrescriptionIdentifier { get; set; }
+    public string? PreAuthorizationRef { get; set; }
+    
+    // NEW: Billable Period
+    public DateTime? BillablePeriodStart { get; set; }
+    public DateTime? BillablePeriodEnd { get; set; }
 }
 
 /// <summary>
@@ -67,8 +111,24 @@ public class CreateClaimDto
 /// </summary>
 public class UpdateClaimDto
 {
-public string? Status { get; set; }
+ public string? Status { get; set; }
     public decimal? Total { get; set; }
     public string? EpisodeIdentifierValue { get; set; }
-public DateTime? AuthorizationOfflineDate { get; set; }
+    public DateTime? AuthorizationOfflineDate { get; set; }
+    
+    // NEW: Accident Information
+    public DateTime? AccidentDate { get; set; }
+    public string? AccidentType { get; set; }
+    
+    // NEW: Funds Reserve
+    public string? FundsReserveCode { get; set; }
+    
+    // NEW: Referral and Prescription References
+    public string? ReferralIdentifier { get; set; }
+    public string? PrescriptionIdentifier { get; set; }
+    public string? PreAuthorizationRef { get; set; }
+    
+    // NEW: Billable Period
+    public DateTime? BillablePeriodStart { get; set; }
+    public DateTime? BillablePeriodEnd { get; set; }
 }

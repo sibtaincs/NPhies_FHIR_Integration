@@ -21,9 +21,29 @@ public interface IClaimService
     Task<ClaimDto?> GetClaimAsync(string claimId);
 
     /// <summary>
+    /// Get claim by ID (alias method)
+    /// </summary>
+    Task<ClaimDto?> GetClaimByIdAsync(string claimId);
+
+    /// <summary>
+    /// Get claim by claim number
+    /// </summary>
+    Task<ClaimDto?> GetClaimByNumberAsync(string claimNumber);
+
+    /// <summary>
     /// Get all claims for a patient
     /// </summary>
     Task<IEnumerable<ClaimDto>> GetPatientClaimsAsync(string patientId);
+
+    /// <summary>
+    /// Get all claims by patient ID
+    /// </summary>
+    Task<IEnumerable<ClaimDto>> GetClaimsByPatientIdAsync(string patientId);
+
+    /// <summary>
+    /// Get all claims
+    /// </summary>
+    Task<IEnumerable<ClaimDto>> GetAllClaimsAsync();
 
     /// <summary>
     /// Get claims by status
@@ -37,7 +57,7 @@ public interface IClaimService
 
     /// <summary>
     /// Get claim with all details
- /// </summary>
+    /// </summary>
     Task<ClaimDto?> GetClaimWithDetailsAsync(string claimId);
 }
 
@@ -50,12 +70,12 @@ public class ClaimService : IClaimService
     private readonly IMapper _mapper;
 
     /// <summary>
- /// Constructor with dependencies
+    /// Constructor with dependencies
     /// </summary>
     public ClaimService(IClaimRepository claimRepository, IMapper mapper)
     {
-      _claimRepository = claimRepository ?? throw new ArgumentNullException(nameof(claimRepository));
-_mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _claimRepository = claimRepository ?? throw new ArgumentNullException(nameof(claimRepository));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     /// <summary>
@@ -63,21 +83,21 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     /// </summary>
     public async Task<ClaimDto> CreateClaimAsync(CreateClaimDto dto)
     {
-    try
+        try
         {
-       var claim = _mapper.Map<Claim>(dto);
-     claim.Status = "active";
+            var claim = _mapper.Map<Claim>(dto);
+            claim.Status = "active";
             claim.CreatedAt = DateTime.UtcNow;
 
-    await _claimRepository.AddAsync(claim);
-    await _claimRepository.SaveChangesAsync();
+            await _claimRepository.AddAsync(claim);
+            await _claimRepository.SaveChangesAsync();
 
-      return _mapper.Map<ClaimDto>(claim);
-  }
+            return _mapper.Map<ClaimDto>(claim);
+        }
         catch (Exception ex)
         {
-     throw new InvalidOperationException("Failed to create claim", ex);
-  }
+            throw new InvalidOperationException("Failed to create claim", ex);
+        }
     }
 
     /// <summary>
@@ -85,15 +105,39 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     /// </summary>
     public async Task<ClaimDto?> GetClaimAsync(string claimId)
     {
-      try
+        try
         {
-   var claim = await _claimRepository.GetByIdAsync(claimId);
-      return claim != null ? _mapper.Map<ClaimDto>(claim) : null;
+            var claim = await _claimRepository.GetByIdAsync(claimId);
+            return claim != null ? _mapper.Map<ClaimDto>(claim) : null;
         }
         catch (Exception ex)
- {
+        {
             throw new InvalidOperationException("Failed to retrieve claim", ex);
-   }
+        }
+    }
+
+    /// <summary>
+    /// Get claim by ID (alias method)
+    /// </summary>
+    public async Task<ClaimDto?> GetClaimByIdAsync(string claimId)
+    {
+        return await GetClaimAsync(claimId);
+    }
+
+    /// <summary>
+    /// Get claim by claim number
+    /// </summary>
+    public async Task<ClaimDto?> GetClaimByNumberAsync(string claimNumber)
+    {
+        try
+        {
+            var claim = await _claimRepository.GetByClaimNumberAsync(claimNumber);
+            return claim != null ? _mapper.Map<ClaimDto>(claim) : null;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve claim by number", ex);
+        }
     }
 
     /// <summary>
@@ -103,12 +147,36 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     {
         try
         {
-    var claims = await _claimRepository.GetByPatientIdAsync(patientId);
+            var claims = await _claimRepository.GetByPatientIdAsync(patientId);
             return _mapper.Map<IEnumerable<ClaimDto>>(claims);
-  }
+        }
         catch (Exception ex)
         {
-  throw new InvalidOperationException("Failed to retrieve patient claims", ex);
+            throw new InvalidOperationException("Failed to retrieve patient claims", ex);
+        }
+    }
+
+    /// <summary>
+    /// Get all claims by patient ID (alias method)
+    /// </summary>
+    public async Task<IEnumerable<ClaimDto>> GetClaimsByPatientIdAsync(string patientId)
+    {
+        return await GetPatientClaimsAsync(patientId);
+    }
+
+    /// <summary>
+    /// Get all claims
+    /// </summary>
+    public async Task<IEnumerable<ClaimDto>> GetAllClaimsAsync()
+    {
+        try
+        {
+            var claims = await _claimRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ClaimDto>>(claims);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve all claims", ex);
         }
     }
 
@@ -120,12 +188,12 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         try
         {
             var claims = await _claimRepository.GetByStatusAsync(status);
-     return _mapper.Map<IEnumerable<ClaimDto>>(claims);
-    }
+            return _mapper.Map<IEnumerable<ClaimDto>>(claims);
+        }
         catch (Exception ex)
         {
             throw new InvalidOperationException("Failed to retrieve claims by status", ex);
-     }
+        }
     }
 
     /// <summary>
@@ -133,24 +201,24 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     /// </summary>
     public async Task<ClaimDto> UpdateClaimAsync(string claimId, UpdateClaimDto dto)
     {
-  try
+        try
         {
- var claim = await _claimRepository.GetByIdAsync(claimId);
-    if (claim == null)
-   throw new KeyNotFoundException($"Claim with ID {claimId} not found");
+            var claim = await _claimRepository.GetByIdAsync(claimId);
+            if (claim == null)
+                throw new KeyNotFoundException($"Claim with ID {claimId} not found");
 
-   _mapper.Map(dto, claim);
-         claim.UpdatedAt = DateTime.UtcNow;
+            _mapper.Map(dto, claim);
+            claim.UpdatedAt = DateTime.UtcNow;
 
-          _claimRepository.Update(claim);
+            _claimRepository.Update(claim);
             await _claimRepository.SaveChangesAsync();
 
             return _mapper.Map<ClaimDto>(claim);
         }
         catch (Exception ex)
         {
-       throw new InvalidOperationException("Failed to update claim", ex);
-     }
+            throw new InvalidOperationException("Failed to update claim", ex);
+        }
     }
 
     /// <summary>
@@ -159,9 +227,9 @@ _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     public async Task<ClaimDto?> GetClaimWithDetailsAsync(string claimId)
     {
         try
-     {
+        {
             var claim = await _claimRepository.GetWithDetailsAsync(claimId);
-    return claim != null ? _mapper.Map<ClaimDto>(claim) : null;
+            return claim != null ? _mapper.Map<ClaimDto>(claim) : null;
         }
         catch (Exception ex)
         {

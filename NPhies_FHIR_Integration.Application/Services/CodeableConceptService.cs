@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NPhies_FHIR_Integration.Domain.CodeableConcept.Models;
-using NPhies_FHIR_Integration.Domain.CodeableConcept.Services;
+using NPhies_FHIR_Integration.Infrastructure.Data;
 
 namespace NPhies_FHIR_Integration.Domain.CodeableConcept.Services
 {
@@ -15,17 +15,17 @@ namespace NPhies_FHIR_Integration.Domain.CodeableConcept.Services
     {
         // CodeSystem operations
         Task<CodeSystemDto> GetCodeSystemByUrlAsync(string url);
-      Task<CodeSystemDto> GetCodeSystemByNameAsync(string name);
- Task<IEnumerable<CodeSystemDto>> GetAllCodeSystemsAsync(bool activeOnly = true);
+        Task<CodeSystemDto> GetCodeSystemByNameAsync(string name);
+        Task<IEnumerable<CodeSystemDto>> GetAllCodeSystemsAsync(bool activeOnly = true);
 
-     // Concept operations
+        // Concept operations
         Task<ConceptDto> GetConceptAsync(string code, int codeSystemId);
         Task<IEnumerable<ConceptDto>> GetConceptsByCodeSystemAsync(int codeSystemId, bool activeOnly = true);
         Task<bool> IsValidConceptAsync(string code, string codeSystemUrl);
 
         // ValueSet operations
         Task<ValueSetDto> GetValueSetByUrlAsync(string url);
-     Task<ValueSetDto> GetValueSetByNameAsync(string name);
+        Task<ValueSetDto> GetValueSetByNameAsync(string name);
         Task<IEnumerable<ValueSetDto>> GetAllValueSetsAsync(bool activeOnly = true);
         Task<IEnumerable<ConceptDto>> GetValueSetConceptsAsync(int valueSetId);
         Task<bool> IsCodeInValueSetAsync(string code, string valueSetUrl);
@@ -33,12 +33,12 @@ namespace NPhies_FHIR_Integration.Domain.CodeableConcept.Services
         // Validation operations
         Task<ValidationResultDto> ValidateCodeAsync(string code, string codeSystemUrl, string valueSetUrl = null);
         Task<ValidationResultDto> ValidateRequiredFieldAsync(string path, string code, string messageType);
-    Task<IEnumerable<ValidationRuleDto>> GetValidationRulesForFieldAsync(string fieldPath);
+        Task<IEnumerable<ValidationRuleDto>> GetValidationRulesForFieldAsync(string fieldPath);
 
         // Message type operations
         Task<NphiesMessageTypeDto> GetMessageTypeAsync(string messageType);
         Task<IEnumerable<NphiesMessageRequiredElementDto>> GetMessageRequiredElementsAsync(string messageType);
- Task<ValidationContextDto> GetValidationContextAsync(string messageType, string fieldPath);
+        Task<ValidationContextDto> GetValidationContextAsync(string messageType, string fieldPath);
     }
 
     /// <summary>
@@ -46,66 +46,66 @@ namespace NPhies_FHIR_Integration.Domain.CodeableConcept.Services
     /// </summary>
     public class CodeableConceptService : ICodeableConceptService
     {
- private readonly ICodeableConceptDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
 
-        public CodeableConceptService(ICodeableConceptDbContext dbContext)
+        public CodeableConceptService(ApplicationDbContext dbContext)
         {
-          _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         #region CodeSystem Operations
 
         public async Task<CodeSystemDto> GetCodeSystemByUrlAsync(string url)
         {
-   var codeSystem = await _dbContext.CodeSystems
-              .AsNoTracking()
-  .Where(cs => cs.Url == url && cs.IsActive)
-                .FirstOrDefaultAsync();
-
-       if (codeSystem == null)
-          return null;
-
-   var conceptCount = await _dbContext.Concepts
-  .Where(c => c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive)
-   .CountAsync();
-
-           return MapToCodeSystemDto(codeSystem, conceptCount);
-        }
-
-    public async Task<CodeSystemDto> GetCodeSystemByNameAsync(string name)
-   {
- var codeSystem = await _dbContext.CodeSystems
-      .AsNoTracking()
-     .Where(cs => cs.Name == name && cs.IsActive)
-    .FirstOrDefaultAsync();
+            var codeSystem = await _dbContext.CodeSystems
+                       .AsNoTracking()
+           .Where(cs => cs.Url == url && cs.IsActive)
+                         .FirstOrDefaultAsync();
 
             if (codeSystem == null)
-        return null;
+                return null;
 
- var conceptCount = await _dbContext.Concepts
-            .Where(c => c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive)
-       .CountAsync();
+            var conceptCount = await _dbContext.Concepts
+           .Where(c => c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive)
+            .CountAsync();
+
+            return MapToCodeSystemDto(codeSystem, conceptCount);
+        }
+
+        public async Task<CodeSystemDto> GetCodeSystemByNameAsync(string name)
+        {
+            var codeSystem = await _dbContext.CodeSystems
+                 .AsNoTracking()
+                .Where(cs => cs.Name == name && cs.IsActive)
+               .FirstOrDefaultAsync();
+
+            if (codeSystem == null)
+                return null;
+
+            var conceptCount = await _dbContext.Concepts
+                       .Where(c => c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive)
+                  .CountAsync();
 
             return MapToCodeSystemDto(codeSystem, conceptCount);
         }
 
         public async Task<IEnumerable<CodeSystemDto>> GetAllCodeSystemsAsync(bool activeOnly = true)
         {
-   var query = _dbContext.CodeSystems.AsNoTracking();
+            var query = _dbContext.CodeSystems.AsNoTracking();
 
-if (activeOnly)
-  query = query.Where(cs => cs.IsActive);
+            if (activeOnly)
+                query = query.Where(cs => cs.IsActive);
 
-var codeSystems = await query.ToListAsync();
+            var codeSystems = await query.ToListAsync();
 
-          var dtos = new List<CodeSystemDto>();
-      foreach (var cs in codeSystems)
-        {
-            var conceptCount = await _dbContext.Concepts
-       .Where(c => c.CodeSystemId == cs.CodeSystemId && (activeOnly ? c.IsActive : true))
-       .CountAsync();
+            var dtos = new List<CodeSystemDto>();
+            foreach (var cs in codeSystems)
+            {
+                var conceptCount = await _dbContext.Concepts
+           .Where(c => c.CodeSystemId == cs.CodeSystemId && (activeOnly ? c.IsActive : true))
+           .CountAsync();
 
-     dtos.Add(MapToCodeSystemDto(cs, conceptCount));
+                dtos.Add(MapToCodeSystemDto(cs, conceptCount));
             }
 
             return dtos;
@@ -113,118 +113,118 @@ var codeSystems = await query.ToListAsync();
 
         #endregion
 
-   #region Concept Operations
+        #region Concept Operations
 
-     public async Task<ConceptDto> GetConceptAsync(string code, int codeSystemId)
-   {
-      var concept = await _dbContext.Concepts
-       .AsNoTracking()
-                .Where(c => c.Code == code && c.CodeSystemId == codeSystemId && c.IsActive)
-                .FirstOrDefaultAsync();
+        public async Task<ConceptDto> GetConceptAsync(string code, int codeSystemId)
+        {
+            var concept = await _dbContext.Concepts
+             .AsNoTracking()
+                      .Where(c => c.Code == code && c.CodeSystemId == codeSystemId && c.IsActive)
+                      .FirstOrDefaultAsync();
 
             return concept == null ? null : MapToConceptDto(concept);
         }
 
         public async Task<IEnumerable<ConceptDto>> GetConceptsByCodeSystemAsync(int codeSystemId, bool activeOnly = true)
         {
-  var query = _dbContext.Concepts
-   .AsNoTracking()
-        .Where(c => c.CodeSystemId == codeSystemId);
+            var query = _dbContext.Concepts
+             .AsNoTracking()
+                  .Where(c => c.CodeSystemId == codeSystemId);
 
-     if (activeOnly)
-query = query.Where(c => c.IsActive);
+            if (activeOnly)
+                query = query.Where(c => c.IsActive);
 
-var concepts = await query.OrderBy(c => c.SortOrder ?? 0).ToListAsync();
+            var concepts = await query.OrderBy(c => c.SortOrder ?? 0).ToListAsync();
             return concepts.Select(MapToConceptDto).ToList();
         }
 
         public async Task<bool> IsValidConceptAsync(string code, string codeSystemUrl)
         {
-          var codeSystem = await _dbContext.CodeSystems
-        .AsNoTracking()
-       .Where(cs => cs.Url == codeSystemUrl && cs.IsActive)
-    .FirstOrDefaultAsync();
+            var codeSystem = await _dbContext.CodeSystems
+          .AsNoTracking()
+         .Where(cs => cs.Url == codeSystemUrl && cs.IsActive)
+      .FirstOrDefaultAsync();
 
-    if (codeSystem == null)
-      return false;
+            if (codeSystem == null)
+                return false;
 
-         var conceptExists = await _dbContext.Concepts
-            .AnyAsync(c => c.Code == code && c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive);
+            var conceptExists = await _dbContext.Concepts
+               .AnyAsync(c => c.Code == code && c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive);
 
-      return conceptExists;
+            return conceptExists;
         }
 
-    #endregion
+        #endregion
 
         #region ValueSet Operations
 
-     public async Task<ValueSetDto> GetValueSetByUrlAsync(string url)
+        public async Task<ValueSetDto> GetValueSetByUrlAsync(string url)
         {
-        var valueSet = await _dbContext.ValueSets
- .AsNoTracking()
-    .Include(vs => vs.CodeSystemMappings)
-  .Where(vs => vs.Url == url && vs.IsActive)
-       .FirstOrDefaultAsync();
+            var valueSet = await _dbContext.ValueSets
+     .AsNoTracking()
+        .Include(vs => vs.CodeSystemMappings)
+      .Where(vs => vs.Url == url && vs.IsActive)
+           .FirstOrDefaultAsync();
 
-       if (valueSet == null)
+            if (valueSet == null)
                 return null;
 
-   return await MapToValueSetDtoAsync(valueSet);
+            return await MapToValueSetDtoAsync(valueSet);
         }
 
-   public async Task<ValueSetDto> GetValueSetByNameAsync(string name)
-   {
-          var valueSet = await _dbContext.ValueSets
-        .AsNoTracking()
-          .Include(vs => vs.CodeSystemMappings)
-                .Where(vs => vs.Name == name && vs.IsActive)
-       .FirstOrDefaultAsync();
+        public async Task<ValueSetDto> GetValueSetByNameAsync(string name)
+        {
+            var valueSet = await _dbContext.ValueSets
+          .AsNoTracking()
+            .Include(vs => vs.CodeSystemMappings)
+                  .Where(vs => vs.Name == name && vs.IsActive)
+         .FirstOrDefaultAsync();
 
-      if (valueSet == null)
-     return null;
+            if (valueSet == null)
+                return null;
 
             return await MapToValueSetDtoAsync(valueSet);
         }
 
         public async Task<IEnumerable<ValueSetDto>> GetAllValueSetsAsync(bool activeOnly = true)
-      {
-    var query = _dbContext.ValueSets.AsNoTracking();
+        {
+            var query = _dbContext.ValueSets.AsNoTracking();
 
-         if (activeOnly)
-    query = query.Where(vs => vs.IsActive);
+            if (activeOnly)
+                query = query.Where(vs => vs.IsActive);
 
-  var valueSets = await query.ToListAsync();
- var dtos = new List<ValueSetDto>();
+            var valueSets = await query.ToListAsync();
+            var dtos = new List<ValueSetDto>();
 
-  foreach (var vs in valueSets)
-          dtos.Add(await MapToValueSetDtoAsync(vs));
+            foreach (var vs in valueSets)
+                dtos.Add(await MapToValueSetDtoAsync(vs));
 
             return dtos;
         }
 
         public async Task<IEnumerable<ConceptDto>> GetValueSetConceptsAsync(int valueSetId)
         {
-  var concepts = await _dbContext.Concepts
-     .AsNoTracking()
-     .Where(c => c.CodeSystem.ValueSetMappings
-  .Any(vscm => vscm.ValueSetId == valueSetId) && c.IsActive)
-          .OrderBy(c => c.SortOrder)
-      .ToListAsync();
+            var concepts = await _dbContext.Concepts
+               .AsNoTracking()
+               .Where(c => c.CodeSystem.ValueSetMappings
+            .Any(vscm => vscm.ValueSetId == valueSetId) && c.IsActive)
+                    .OrderBy(c => c.SortOrder)
+                .ToListAsync();
 
             return concepts.Select(MapToConceptDto).ToList();
         }
 
         public async Task<bool> IsCodeInValueSetAsync(string code, string valueSetUrl)
         {
-       var valueSet = await _dbContext.ValueSets
-  .AsNoTracking()
-                .Include(vs => vs.CodeSystemMappings)
-       .ThenInclude(vscm => vscm.CodeSystem)
-          .Where(vs => vs.Url == valueSetUrl && vs.IsActive)
-           .FirstOrDefaultAsync();
+            var valueSet = await _dbContext.ValueSets
+       .AsNoTracking()
+                     .Include(vs => vs.CodeSystemMappings)
+            .ThenInclude(vscm => vscm.CodeSystem)
+               .Where(vs => vs.Url == valueSetUrl && vs.IsActive)
+                .FirstOrDefaultAsync();
 
-    if (valueSet == null)
-      return false;
+            if (valueSet == null)
+                return false;
 
             var codeSystemIds = valueSet.CodeSystemMappings
         .Where(m => m.IsActive)
@@ -232,7 +232,7 @@ var concepts = await query.OrderBy(c => c.SortOrder ?? 0).ToListAsync();
          .ToList();
 
             var conceptExists = await _dbContext.Concepts
-          .AnyAsync(c => c.Code == code && 
+          .AnyAsync(c => c.Code == code &&
         codeSystemIds.Contains(c.CodeSystemId) && c.IsActive);
 
             return conceptExists;
@@ -242,24 +242,24 @@ var concepts = await query.OrderBy(c => c.SortOrder ?? 0).ToListAsync();
 
         #region Validation Operations
 
-   public async Task<ValidationResultDto> ValidateCodeAsync(string code, string codeSystemUrl, string valueSetUrl = null)
-   {
+        public async Task<ValidationResultDto> ValidateCodeAsync(string code, string codeSystemUrl, string valueSetUrl = null)
+        {
             var result = new ValidationResultDto
-          {
-IsValid = false,
-     Errors = new List<string>()
-     };
+            {
+                IsValid = false,
+                Errors = new List<string>()
+            };
 
-        // Validate CodeSystem exists
+            // Validate CodeSystem exists
             var codeSystem = await _dbContext.CodeSystems
               .AsNoTracking()
          .Where(cs => cs.Url == codeSystemUrl && cs.IsActive)
      .FirstOrDefaultAsync();
 
-         if (codeSystem == null)
+            if (codeSystem == null)
             {
-        result.Errors.Add($"CodeSystem '{codeSystemUrl}' not found or inactive.");
-        return result;
+                result.Errors.Add($"CodeSystem '{codeSystemUrl}' not found or inactive.");
+                return result;
             }
 
             // Validate code exists in CodeSystem
@@ -268,186 +268,186 @@ IsValid = false,
     .Where(c => c.Code == code && c.CodeSystemId == codeSystem.CodeSystemId && c.IsActive)
                 .FirstOrDefaultAsync();
 
-   if (concept == null)
-  {
-      result.Errors.Add($"Code '{code}' not found in CodeSystem '{codeSystemUrl}'.");
-    return result;
-         }
+            if (concept == null)
+            {
+                result.Errors.Add($"Code '{code}' not found in CodeSystem '{codeSystemUrl}'.");
+                return result;
+            }
 
             // If ValueSet specified, validate code is in ValueSet
-         if (!string.IsNullOrEmpty(valueSetUrl))
-        {
-   var isInValueSet = await IsCodeInValueSetAsync(code, valueSetUrl);
-         if (!isInValueSet)
-      {
-      result.Errors.Add($"Code '{code}' is not in ValueSet '{valueSetUrl}'.");
-        return result;
-             }
-    }
+            if (!string.IsNullOrEmpty(valueSetUrl))
+            {
+                var isInValueSet = await IsCodeInValueSetAsync(code, valueSetUrl);
+                if (!isInValueSet)
+                {
+                    result.Errors.Add($"Code '{code}' is not in ValueSet '{valueSetUrl}'.");
+                    return result;
+                }
+            }
 
-   result.IsValid = true;
+            result.IsValid = true;
             result.Concept = MapToConceptDto(concept);
             return result;
-     }
+        }
 
         public async Task<ValidationResultDto> ValidateRequiredFieldAsync(string path, string code, string messageType)
-   {
-     var result = new ValidationResultDto
         {
-         IsValid = false,
-Errors = new List<string>()
+            var result = new ValidationResultDto
+            {
+                IsValid = false,
+                Errors = new List<string>()
             };
 
-      // Get validation context
- var context = await GetValidationContextAsync(messageType, path);
-        if (context == null)
-      {
-      result.Errors.Add($"No validation context found for path '{path}' in message type '{messageType}'.");
-        return result;
+            // Get validation context
+            var context = await GetValidationContextAsync(messageType, path);
+            if (context == null)
+            {
+                result.Errors.Add($"No validation context found for path '{path}' in message type '{messageType}'.");
+                return result;
             }
 
             // Validate code
             if (context.ValueSetUrl != null)
-    {
-      var validationResult = await ValidateCodeAsync(code, context.CodeSystemUrl, context.ValueSetUrl);
-   result.IsValid = validationResult.IsValid;
-     result.Errors = validationResult.Errors;
-    result.Concept = validationResult.Concept;
+            {
+                var validationResult = await ValidateCodeAsync(code, context.CodeSystemUrl, context.ValueSetUrl);
+                result.IsValid = validationResult.IsValid;
+                result.Errors = validationResult.Errors;
+                result.Concept = validationResult.Concept;
             }
-else
+            else
             {
                 var validationResult = await ValidateCodeAsync(code, context.CodeSystemUrl);
-      result.IsValid = validationResult.IsValid;
-      result.Errors = validationResult.Errors;
-            result.Concept = validationResult.Concept;
-          }
+                result.IsValid = validationResult.IsValid;
+                result.Errors = validationResult.Errors;
+                result.Concept = validationResult.Concept;
+            }
 
-      return result;
+            return result;
         }
 
         public async Task<IEnumerable<ValidationRuleDto>> GetValidationRulesForFieldAsync(string fieldPath)
-      {
-      var rules = await _dbContext.ValidationRules
-         .AsNoTracking()
-           .Where(vr => vr.FieldPath == fieldPath && vr.IsActive)
-          .ToListAsync();
+        {
+            var rules = await _dbContext.ValidationRules
+               .AsNoTracking()
+                 .Where(vr => vr.FieldPath == fieldPath && vr.IsActive)
+                .ToListAsync();
 
-  return rules.Select(r => new ValidationRuleDto
+            return rules.Select(r => new ValidationRuleDto
             {
-    ValidationRuleId = r.ValidationRuleId,
-           ErrorCode = r.ErrorCode,
-    ErrorMessage = r.ErrorMessage,
+                ValidationRuleId = r.ValidationRuleId,
+                ErrorCode = r.ErrorCode,
+                ErrorMessage = r.ErrorMessage,
                 ErrorMessageArabic = r.ErrorMessageArabic,
-FieldPath = r.FieldPath,
-     RuleType = r.RuleType,
-          Severity = r.Severity
-        }).ToList();
-    }
+                FieldPath = r.FieldPath,
+                RuleType = r.RuleType,
+                Severity = r.Severity
+            }).ToList();
+        }
 
         #endregion
 
-     #region Message Type Operations
+        #region Message Type Operations
 
         public async Task<NphiesMessageTypeDto> GetMessageTypeAsync(string messageType)
- {
+        {
             var type = await _dbContext.NphiesMessageTypes
          .AsNoTracking()
                 .Where(nmt => nmt.MessageType == messageType && nmt.IsActive)
      .FirstOrDefaultAsync();
 
-if (type == null)
-        return null;
+            if (type == null)
+                return null;
 
-      return new NphiesMessageTypeDto
+            return new NphiesMessageTypeDto
             {
-              NphiesMessageTypeId = type.NphiesMessageTypeId,
-          MessageType = type.MessageType,
-  MessageTypeArabic = type.MessageTypeArabic,
-    FhirResourceType = type.FhirResourceType,
-  Description = type.Description,
-        Version = type.Version
+                NphiesMessageTypeId = type.NphiesMessageTypeId,
+                MessageType = type.MessageType,
+                MessageTypeArabic = type.MessageTypeArabic,
+                FhirResourceType = type.FhirResourceType,
+                Description = type.Description,
+                Version = type.Version
             };
         }
 
-   public async Task<IEnumerable<NphiesMessageRequiredElementDto>> GetMessageRequiredElementsAsync(string messageType)
-   {
-        var messageTypeEntity = await _dbContext.NphiesMessageTypes
-           .AsNoTracking()
-   .Where(nmt => nmt.MessageType == messageType && nmt.IsActive)
-    .FirstOrDefaultAsync();
+        public async Task<IEnumerable<NphiesMessageRequiredElementDto>> GetMessageRequiredElementsAsync(string messageType)
+        {
+            var messageTypeEntity = await _dbContext.NphiesMessageTypes
+               .AsNoTracking()
+       .Where(nmt => nmt.MessageType == messageType && nmt.IsActive)
+        .FirstOrDefaultAsync();
 
-  if (messageTypeEntity == null)
- return Enumerable.Empty<NphiesMessageRequiredElementDto>();
+            if (messageTypeEntity == null)
+                return Enumerable.Empty<NphiesMessageRequiredElementDto>();
 
- var elements = await _dbContext.NphiesMessageRequiredElements
-          .AsNoTracking()
-   .Where(nmre => nmre.NphiesMessageTypeId == messageTypeEntity.NphiesMessageTypeId)
-                .Include(nmre => nmre.ValueSet)
- .ToListAsync();
+            var elements = await _dbContext.NphiesMessageRequiredElements
+                     .AsNoTracking()
+              .Where(nmre => nmre.NphiesMessageTypeId == messageTypeEntity.NphiesMessageTypeId)
+                           .Include(nmre => nmre.ValueSet)
+            .ToListAsync();
 
-    return elements.Select(e => new NphiesMessageRequiredElementDto
-    {
-          ElementPath = e.ElementPath,
-      ValueSetUrl = e.ValueSet?.Url,
-        IsRequired = e.IsRequired,
-            Cardinality = e.Cardinality,
-      Notes = e.Notes
-     }).ToList();
+            return elements.Select(e => new NphiesMessageRequiredElementDto
+            {
+                ElementPath = e.ElementPath,
+                ValueSetUrl = e.ValueSet?.Url,
+                IsRequired = e.IsRequired,
+                Cardinality = e.Cardinality,
+                Notes = e.Notes
+            }).ToList();
         }
 
-     public async Task<ValidationContextDto> GetValidationContextAsync(string messageType, string fieldPath)
+        public async Task<ValidationContextDto> GetValidationContextAsync(string messageType, string fieldPath)
         {
-        var element = await _dbContext.ProfileElements
-   .AsNoTracking()
-           .Include(pe => pe.ValueSet)
-    .ThenInclude(vs => vs.CodeSystemMappings)
-     .ThenInclude(vscm => vscm.CodeSystem)
-          .Where(pe => pe.MessageType == messageType && pe.Path == fieldPath && pe.IsActive)
-       .FirstOrDefaultAsync();
+            var element = await _dbContext.ProfileElements
+       .AsNoTracking()
+               .Include(pe => pe.ValueSet)
+        .ThenInclude(vs => vs.CodeSystemMappings)
+         .ThenInclude(vscm => vscm.CodeSystem)
+              .Where(pe => pe.MessageType == messageType && pe.Path == fieldPath && pe.IsActive)
+           .FirstOrDefaultAsync();
 
-    if (element?.ValueSet == null)
-            return null;
+            if (element?.ValueSet == null)
+                return null;
 
-        var codeSystemUrl = element.ValueSet.CodeSystemMappings.FirstOrDefault()?.CodeSystem?.Url;
+            var codeSystemUrl = element.ValueSet.CodeSystemMappings.FirstOrDefault()?.CodeSystem?.Url;
 
             return new ValidationContextDto
             {
                 Path = fieldPath,
-            MessageType = messageType,
-   ValueSetUrl = element.ValueSet.Url,
-    CodeSystemUrl = codeSystemUrl,
-     IsRequired = element.IsRequired,
-        BindingStrength = element.BindingStrength
+                MessageType = messageType,
+                ValueSetUrl = element.ValueSet.Url,
+                CodeSystemUrl = codeSystemUrl,
+                IsRequired = element.IsRequired,
+                BindingStrength = element.BindingStrength
             };
         }
 
         #endregion
 
- #region Helper Methods
+        #region Helper Methods
 
         private CodeSystemDto MapToCodeSystemDto(CodeSystemEntity entity, int conceptCount)
- {
-return new CodeSystemDto
+        {
+            return new CodeSystemDto
             {
-             CodeSystemId = entity.CodeSystemId,
-    Url = entity.Url,
+                CodeSystemId = entity.CodeSystemId,
+                Url = entity.Url,
                 Version = entity.Version,
-        Name = entity.Name,
- Title = entity.Title,
-      Definition = entity.Definition,
-         ConceptCount = conceptCount,
+                Name = entity.Name,
+                Title = entity.Title,
+                Definition = entity.Definition,
+                ConceptCount = conceptCount,
                 IsActive = entity.IsActive
             };
         }
 
-     private ConceptDto MapToConceptDto(ConceptEntity entity)
+        private ConceptDto MapToConceptDto(ConceptEntity entity)
         {
-   return new ConceptDto
-       {
-    ConceptId = entity.ConceptId,
-Code = entity.Code,
+            return new ConceptDto
+            {
+                ConceptId = entity.ConceptId,
+                Code = entity.Code,
                 Display = entity.Display,
-Definition = entity.Definition,
+                Definition = entity.Definition,
                 DisplayArabic = entity.DisplayArabic,
                 IsActive = entity.IsActive
             };
@@ -455,27 +455,27 @@ Definition = entity.Definition,
 
         private async Task<ValueSetDto> MapToValueSetDtoAsync(ValueSetEntity entity)
         {
-  var conceptCount = await _dbContext.Concepts
-       .Where(c => entity.CodeSystemMappings
-         .Select(m => m.CodeSystemId)
-           .Contains(c.CodeSystemId) && c.IsActive)
-    .CountAsync();
+            var conceptCount = await _dbContext.Concepts
+                 .Where(c => entity.CodeSystemMappings
+                   .Select(m => m.CodeSystemId)
+                     .Contains(c.CodeSystemId) && c.IsActive)
+              .CountAsync();
 
             return new ValueSetDto
-   {
-            ValueSetId = entity.ValueSetId,
-     Url = entity.Url,
-         Version = entity.Version,
-    Name = entity.Name,
-     Title = entity.Title,
-          Definition = entity.Definition,
-  CodeSystemUrls = entity.CodeSystemMappings
+            {
+                ValueSetId = entity.ValueSetId,
+                Url = entity.Url,
+                Version = entity.Version,
+                Name = entity.Name,
+                Title = entity.Title,
+                Definition = entity.Definition,
+                CodeSystemUrls = entity.CodeSystemMappings
           .Select(m => m.CodeSystem?.Url)
  .Where(u => u != null)
  .ToList(),
-   ConceptCount = conceptCount,
-       IsActive = entity.IsActive
-         };
+                ConceptCount = conceptCount,
+                IsActive = entity.IsActive
+            };
         }
 
         #endregion
@@ -485,7 +485,7 @@ Definition = entity.Definition,
 
     public class ValidationResultDto
     {
- public bool IsValid { get; set; }
+        public bool IsValid { get; set; }
         public List<string> Errors { get; set; }
         public ConceptDto Concept { get; set; }
     }
@@ -502,18 +502,18 @@ Definition = entity.Definition,
 
     public class NphiesMessageRequiredElementDto
     {
-  public string ElementPath { get; set; }
+        public string ElementPath { get; set; }
         public string ValueSetUrl { get; set; }
         public bool IsRequired { get; set; }
         public string Cardinality { get; set; }
-    public string Notes { get; set; }
+        public string Notes { get; set; }
     }
 
     public class ValidationContextDto
     {
         public string Path { get; set; }
- public string MessageType { get; set; }
-      public string ValueSetUrl { get; set; }
+        public string MessageType { get; set; }
+        public string ValueSetUrl { get; set; }
         public string CodeSystemUrl { get; set; }
         public bool IsRequired { get; set; }
         public string BindingStrength { get; set; }

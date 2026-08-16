@@ -1,3 +1,0 @@
-2025-11-30 12:31:48.552 +03:00 [INF] Retrived Claim Id # 70132
-2025-11-30 13:12:26.976 +03:00 [INF] Retrived Claim Id # 70132
-2025-11-30 14:26:29.988 +03:00 [INF] Retrived Claim Id # 70132

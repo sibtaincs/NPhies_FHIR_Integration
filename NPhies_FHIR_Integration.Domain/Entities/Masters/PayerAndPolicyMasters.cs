@@ -17,40 +17,90 @@ public class PayerMaster : BaseEntity
     [StringLength(255)]
     public string PayerName { get; set; } = string.Empty;
 
+    [StringLength(255)]
+    public string? PayerNameArabic { get; set; }
+
     [StringLength(50)]
     public string? PayerType { get; set; }
 
+    [StringLength(100)]
+    public string? LicenseNumber { get; set; }
+
+    [StringLength(100)]
+    public string? NphiesPayerId { get; set; }
+
     [StringLength(50)]
-  public string? NphiesConnectionStatus { get; set; }
+    public string? NphiesConnectionStatus { get; set; }
 
     [StringLength(500)]
   public string? NphiesApiEndpoint { get; set; }
 
     public bool IsNphiesMember { get; set; }
 
+    [StringLength(200)]
+    public string? ContactEmail { get; set; }
+
+    [StringLength(50)]
+    public string? ContactPhone { get; set; }
+
+    [StringLength(200)]
+    public string? Website { get; set; }
+
     [StringLength(500)]
-  public string? SupportedClaimTypes { get; set; }
+    public string? AddressLine1 { get; set; }
+
+  [StringLength(500)]
+    public string? AddressLine2 { get; set; }
+
+    [StringLength(100)]
+    public string? City { get; set; }
+
+    [StringLength(100)]
+public string? State { get; set; }
+
+    [StringLength(100)]
+    public string? Country { get; set; }
+
+    [StringLength(20)]
+    public string? PostalCode { get; set; }
+
+    public DateTime? ContractStartDate { get; set; }
+
+    public DateTime? ContractEndDate { get; set; }
+
+    public bool IsNphiesIntegrated { get; set; }
+
+ [StringLength(500)]
+    public string? SupportedClaimTypes { get; set; }
 
     [StringLength(500)]
     public string? SupportedEligibilityTypes { get; set; }
 
+    [StringLength(50)]
+    public string? PaymentCycle { get; set; }
+
+    public int? AverageTurnaroundDays { get; set; }
+
     public int MaxClaimsPerDay { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
- public decimal? MaxClaimAmount { get; set; }
+    public decimal? MaxClaimAmount { get; set; }
 
     [StringLength(3)]
     public string CurrencyCode { get; set; } = "SAR";
 
+    [StringLength(1000)]
+    public string? Notes { get; set; }
+
     public bool IsActive { get; set; } = true;
 
-  [StringLength(100)]
+    [StringLength(100)]
     public string? CreatedBy { get; set; }
 
-    [StringLength(100)]
+  [StringLength(100)]
     public string? ModifiedBy { get; set; }
 
-  // Navigation
+    // Navigation
     public virtual ICollection<PayerPolicyMaster> Policies { get; set; } = new List<PayerPolicyMaster>();
 }
 
@@ -64,7 +114,7 @@ public class PayerPolicyMaster : BaseEntity
     [ForeignKey("Payer")]
     public string PayerMasterId { get; set; } = string.Empty;
 
-  [Required]
+    [Required]
     [StringLength(100)]
     public string PolicyCode { get; set; } = string.Empty;
 
@@ -72,43 +122,73 @@ public class PayerPolicyMaster : BaseEntity
     [StringLength(255)]
     public string PolicyName { get; set; } = string.Empty;
 
- [StringLength(100)]
-public string? PolicyType { get; set; }
+    [StringLength(255)]
+    public string? PolicyNameArabic { get; set; }
 
-  [StringLength(100)]
+    [StringLength(1000)]
+    public string? PolicyDescription { get; set; }
+
+    [StringLength(100)]
+    public string? PolicyType { get; set; }
+
+    [StringLength(100)]
     public string? CoverageType { get; set; }
+
+    [StringLength(100)]
+    public string? CoverageLevel { get; set; }
+
+    [StringLength(100)]
+  public string? NetworkType { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal AnnualPremium { get; set; }
 
- [StringLength(3)]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? PremiumAmount { get; set; }
+
+    [StringLength(50)]
+    public string? PremiumFrequency { get; set; }
+
+    [StringLength(3)]
     public string CurrencyCode { get; set; } = "SAR";
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal AnnualDeductible { get; set; }
 
-[Column(TypeName = "decimal(18,2)")]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal? MaxOutOfPocket { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? Copay { get; set; }
+  public decimal? OutOfPocketMax { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+public decimal? Copay { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? CopaymentAmount { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
-public decimal? CoinsurancePercentage { get; set; }
+    public decimal? CoinsurancePercentage { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
   public decimal? CoverageLimitPerVisit { get; set; }
 
- [Column(TypeName = "decimal(18,2)")]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal? CoverageLimitPerYear { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? PreAuthRequiredForAmount { get; set; }
 
+    public bool RequiresPriorAuth { get; set; }
+
     [Required]
     public DateTime EffectiveFromDate { get; set; }
 
-  public DateTime? EffectiveToDate { get; set; }
+    public DateTime? EffectiveToDate { get; set; }
+
+    public DateTime? PolicyStartDate { get; set; }
+
+    public DateTime? PolicyEndDate { get; set; }
 
     public bool IsPolicyActive { get; set; } = true;
 
@@ -116,13 +196,13 @@ public decimal? CoinsurancePercentage { get; set; }
     public string? Notes { get; set; }
 
     [StringLength(100)]
-    public string? CreatedBy { get; set; }
+  public string? CreatedBy { get; set; }
 
     [StringLength(100)]
     public string? ModifiedBy { get; set; }
 
-  // Navigation
-  [ForeignKey("PayerMasterId")]
+    // Navigation
+    [ForeignKey("PayerMasterId")]
     public virtual PayerMaster? Payer { get; set; }
 
     public virtual ICollection<PolicyBenefitCoverage> BenefitCoverages { get; set; } = new List<PolicyBenefitCoverage>();

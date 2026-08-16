@@ -19,6 +19,11 @@ public interface IEligibilityService
     Task<CoverageEligibilityRequestDto> SubmitEligibilityRequestAsync(CoverageEligibilityRequestDto requestDto);
 
     /// <summary>
+    /// Check eligibility (alias for SubmitEligibilityRequestAsync)
+    /// </summary>
+    Task<CoverageEligibilityRequestDto> CheckEligibilityAsync(CoverageEligibilityRequestDto requestDto);
+
+    /// <summary>
     /// Get eligibility request with response
     /// </summary>
     Task<CoverageEligibilityRequestDto?> GetEligibilityRequestAsync(string requestId);
@@ -30,7 +35,7 @@ public interface IEligibilityService
 
     /// <summary>
     /// Process eligibility response from FHIR JSON
- /// </summary>
+    /// </summary>
     Task<CoverageEligibilityResponseDto> ProcessEligibilityResponseAsync(string fhirResponseJson);
 
     /// <summary>
@@ -114,6 +119,14 @@ public class EligibilityService : IEligibilityService
       {
          throw new InvalidOperationException("Failed to submit eligibility request", ex);
         }
+    }
+
+    /// <summary>
+  /// Check eligibility (alias for SubmitEligibilityRequestAsync)
+    /// </summary>
+    public async Task<CoverageEligibilityRequestDto> CheckEligibilityAsync(CoverageEligibilityRequestDto requestDto)
+    {
+            return await SubmitEligibilityRequestAsync(requestDto);
     }
 
     /// <summary>
