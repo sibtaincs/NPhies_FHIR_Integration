@@ -10,22 +10,33 @@ public class PreAuthorizationRequestConfiguration : IEntityTypeConfiguration<Pre
     {
         entity.HasKey(e => e.Id);
         entity.Property(e => e.Id).HasMaxLength(100);
-entity.Property(e => e.RequestId).IsRequired().HasMaxLength(100);
+        entity.Property(e => e.RequestId).IsRequired().HasMaxLength(100);
         entity.Property(e => e.PatientId).IsRequired().HasMaxLength(100);
         entity.Property(e => e.ProviderId).IsRequired().HasMaxLength(100);
         entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-    entity.Property(e => e.RequestedDate).IsRequired();
+        entity.Property(e => e.RequestedDate).IsRequired();
         entity.Property(e => e.FhirRequestBundle).HasColumnType("ntext");
 
         entity.HasIndex(e => e.RequestId).IsUnique();
         entity.HasIndex(e => e.PatientId);
         entity.HasIndex(e => e.ProviderId);
-     entity.HasIndex(e => e.Status);
+        entity.HasIndex(e => e.Status);
+
+        // Fix: Explicitly configure relationships to avoid cascade paths
+        entity.HasOne<Patient>()
+          .WithMany()
+  .HasForeignKey(e => e.PatientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+     entity.HasOne<Organization>()
+      .WithMany()
+            .HasForeignKey(e => e.ProviderId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.Items).WithOne(i => i.PreAuthorizationRequest).HasForeignKey(i => i.PreAuthorizationRequestId).OnDelete(DeleteBehavior.Cascade);
         entity.HasMany(e => e.Diagnoses).WithOne(d => d.PreAuthorizationRequest).HasForeignKey(d => d.PreAuthorizationRequestId).OnDelete(DeleteBehavior.Cascade);
         entity.HasMany(e => e.SupportingInfo).WithOne(s => s.PreAuthorizationRequest).HasForeignKey(s => s.PreAuthorizationRequestId).OnDelete(DeleteBehavior.Cascade);
-        entity.HasOne(e => e.Response).WithOne(r => r.PreAuthorizationRequest).HasForeignKey<PreAuthorizationResponse>(r => r.PreAuthorizationRequestId).OnDelete(DeleteBehavior.Restrict);
+      entity.HasOne(e => e.Response).WithOne(r => r.PreAuthorizationRequest).HasForeignKey<PreAuthorizationResponse>(r => r.PreAuthorizationRequestId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

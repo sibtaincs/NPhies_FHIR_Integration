@@ -443,18 +443,28 @@ public DbSet<MedicationCodeMaster> MedicationCodeMasters { get; set; } = null!;
     {
   base.OnModelCreating(modelBuilder);
 
-        // Apply all entity configurations using the extension method
-        modelBuilder.ApplyAllConfigurations();
-
-        // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
-        // This fixes FK column length mismatches systematically
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        try
         {
-            var idProperty = entity.FindProperty("Id");
-       if (idProperty?.GetMaxLength() == null && idProperty?.ClrType == typeof(string))
-    {
-            idProperty.SetMaxLength(100);
-      }
+   // Apply all entity configurations using the extension method
+            modelBuilder.ApplyAllConfigurations();
+
+  // GLOBAL: Set all Id columns (not yet explicitly configured) to HasMaxLength(100)
+    // This fixes FK column length mismatches systematically
+   foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+       var idProperty = entity.FindProperty("Id");
+    if (idProperty?.GetMaxLength() == null && idProperty?.ClrType == typeof(string))
+  {
+         idProperty.SetMaxLength(100);
+ }
+    }
         }
+     catch (Exception ex)
+        {
+   // Log the error for debugging
+            Console.WriteLine($"? Error in OnModelCreating: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+     throw;
+ }
     }
 }

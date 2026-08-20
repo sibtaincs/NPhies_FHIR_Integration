@@ -9,6 +9,7 @@ using NPhies_FHIR_Integration.Application.Services.Http;
 using NPhies_FHIR_Integration.Application.Services.Orchestration;
 using NPhies_FHIR_Integration.Application.Services.Polling;
 using NPhies_FHIR_Integration.Application.HealthChecks;
+using NPhies_FHIR_Integration.Application.Mapping;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net;
@@ -93,6 +94,9 @@ public static class ServiceCollectionExtensions
     {
         // Authentication Service (Singleton for token caching)
         services.AddSingleton<IAuthenticationService, NphiesAuthenticationService>();
+
+        // FHIR Mapper (Scoped)
+        services.AddScoped<IEntityToFhirMapper, EntityToFhirMapper>();
 
         // FHIR Bundle Service (Scoped)
         services.AddScoped<IFhirBundleService, FhirBundleService>();

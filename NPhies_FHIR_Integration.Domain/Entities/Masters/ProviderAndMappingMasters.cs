@@ -55,7 +55,7 @@ public class NphiesCodeMapping : BaseEntity
 public class ClinicMaster : BaseEntity
 {
     [Required]
-    [StringLength(450)]
+    [StringLength(100)] // Fixed: Changed from 450 to 100 to match Organization.Id
     [ForeignKey("Organization")]
     public string OrganizationId { get; set; } = string.Empty;
 

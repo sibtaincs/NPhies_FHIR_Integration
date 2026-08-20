@@ -271,13 +271,17 @@ namespace NPhies_FHIR_Integration.Domain.CodeableConcept.Models
 
         [StringLength(50)]
         public string Severity { get; set; } // error, warning, info
-        public string ValueSetId { get; set; } // error, warning, info
-        public string ValueSValueSetetId { get; set; } // error, warning, info
-        public string ValueSet { get; set; } // error, warning, info
+
+        // Navigation property
+        [ForeignKey("ValueSet")]
+        public int? ValueSetId { get; set; }
 
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property
+        public virtual ValueSetEntity? ValueSet { get; set; }
     }
 
     /// <summary>

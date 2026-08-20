@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NPhies_FHIR_Integration.Domain.Entities;
+using NPhies_FHIR_Integration.Application.Mapping;
 
 // Type aliases to avoid ambiguous references between domain entities and FHIR models
 using Task = System.Threading.Tasks.Task;
@@ -18,6 +19,9 @@ using DomainClaimResponse = NPhies_FHIR_Integration.Domain.Entities.ClaimRespons
 using DomainEncounter = NPhies_FHIR_Integration.Domain.Entities.Encounter;
 using DomainCoverageEligibilityRequest = NPhies_FHIR_Integration.Domain.Entities.CoverageEligibilityRequest;
 using DomainCoverageEligibilityResponse = NPhies_FHIR_Integration.Domain.Entities.CoverageEligibilityResponse;
+using DomainBenefitBalance = NPhies_FHIR_Integration.Domain.Entities.BenefitBalance;
+using DomainBenefit = NPhies_FHIR_Integration.Domain.Entities.Benefit;
+using DomainEligibilityError = NPhies_FHIR_Integration.Domain.Entities.EligibilityError;
 
 using FhirPatient = Hl7.Fhir.Model.Patient;
 using FhirOrganization = Hl7.Fhir.Model.Organization;
@@ -27,6 +31,7 @@ using FhirClaimResponse = Hl7.Fhir.Model.ClaimResponse;
 using FhirEncounter = Hl7.Fhir.Model.Encounter;
 using FhirMessageHeader = Hl7.Fhir.Model.MessageHeader;
 using FhirCoverageEligibilityRequest = Hl7.Fhir.Model.CoverageEligibilityRequest;
+using FhirCoverageEligibilityResponse = Hl7.Fhir.Model.CoverageEligibilityResponse;
 using FhirTask = Hl7.Fhir.Model.Task;
 
 namespace NPhies_FHIR_Integration.Application.Services.FHIR;
@@ -38,123 +43,314 @@ namespace NPhies_FHIR_Integration.Application.Services.FHIR;
 public class FhirBundleService : IFhirBundleService
 {
     private readonly ILogger<FhirBundleService> _logger;
+    private readonly IEntityToFhirMapper _mapper;
     private readonly FhirJsonSerializer _serializer;
     private readonly FhirJsonParser _parser;
 
-    public FhirBundleService(ILogger<FhirBundleService> logger)
+    public FhirBundleService(
+    ILogger<FhirBundleService> logger,
+  IEntityToFhirMapper mapper)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
-   // Initialize FHIR serializer and parser with settings
+        // Initialize FHIR serializer and parser with settings
         var serializerSettings = new SerializerSettings
-        {
-     Pretty = true,
+   {
+            Pretty = true,
             AppendNewLine = false
         };
 
-      _serializer = new FhirJsonSerializer(serializerSettings);
-        _parser = new FhirJsonParser();
+        _serializer = new FhirJsonSerializer(serializerSettings);
+   _parser = new FhirJsonParser();
     }
 
     public Task<Bundle> CreateEligibilityRequestBundleAsync(
         DomainCoverageEligibilityRequest request,
         DomainPatient patient,
         DomainCoverage coverage,
-    DomainOrganization provider,
+  DomainOrganization provider,
         DomainOrganization insurer)
     {
-        _logger.LogInformation("Creating eligibility request bundle for patient {PatientId}", patient.Id);
-        // Implementation stub - return empty bundle for now
-     var bundle = new Bundle
- {
-            Type = Bundle.BundleType.Message,
-            Timestamp = DateTimeOffset.UtcNow,
-   Id = Guid.NewGuid().ToString()
+   _logger.LogInformation("Creating eligibility request bundle for patient {PatientId}", patient.Id);
+
+        // Create FHIR resources
+    var fhirPatient = _mapper.MapToFhirPatient(patient);
+        var fhirCoverage = _mapper.MapToFhirCoverage(coverage);
+        var fhirProvider = _mapper.MapToFhirOrganization(provider);
+        var fhirInsurer = _mapper.MapToFhirOrganization(insurer);
+
+        // Create eligibility request
+        var fhirRequest = _mapper.MapToFhirEligibilityRequest(
+       request,
+    $"Patient/{fhirPatient.Id}",
+       $"Coverage/{fhirCoverage.Id}",
+      $"Organization/{fhirProvider.Id}",
+    $"Organization/{fhirInsurer.Id}"
+        );
+
+        // Create MessageHeader
+        var messageHeader = _mapper.CreateMessageHeader("eligibility-request", provider);
+        messageHeader.Focus = new List<ResourceReference>
+      {
+   new ResourceReference($"CoverageEligibilityRequest/{fhirRequest.Id}")
         };
-     return Task.FromResult(bundle);
-    }
 
-    public Task<DomainCoverageEligibilityResponse> ParseEligibilityResponseAsync(Bundle responseBundle)
-    {
-     _logger.LogInformation("Parsing eligibility response bundle");
- // Implementation stub
-        var response = new DomainCoverageEligibilityResponse
-        {
-       Id = Guid.NewGuid().ToString(),
-            Status = "active",
-  Outcome = "complete",
-            ResponseCreatedAt = DateTime.UtcNow,
-        ResponseReceivedAt = DateTime.UtcNow,
-     CreatedAt = DateTime.UtcNow,
-   IsActive = true
-     };
-        return Task.FromResult(response);
-    }
-
-  public Task<Bundle> CreateClaimRequestBundleAsync(
-   DomainClaim claim,
-     DomainPatient patient,
-    DomainOrganization provider,
-        DomainOrganization insurer,
-        DomainCoverage coverage,
-        DomainEncounter? encounter = null)
-    {
-        _logger.LogInformation("Creating claim request bundle for claim {ClaimId}", claim.Id);
-        // Implementation stub
+      // Create bundle
         var bundle = new Bundle
-  {
-         Type = Bundle.BundleType.Message,
+        {
+        Type = Bundle.BundleType.Message,
+     Id = Guid.NewGuid().ToString(),
             Timestamp = DateTimeOffset.UtcNow,
-    Id = Guid.NewGuid().ToString()
-     };
+          Entry = new List<Bundle.EntryComponent>
+    {
+        new Bundle.EntryComponent
+         {
+        FullUrl = $"urn:uuid:{messageHeader.Id}",
+          Resource = messageHeader
+    },
+    new Bundle.EntryComponent
+     {
+         FullUrl = $"urn:uuid:{fhirRequest.Id}",
+               Resource = fhirRequest
+            },
+       new Bundle.EntryComponent
+                {
+   FullUrl = $"urn:uuid:{fhirPatient.Id}",
+         Resource = fhirPatient
+                },
+        new Bundle.EntryComponent
+        {
+        FullUrl = $"urn:uuid:{fhirCoverage.Id}",
+     Resource = fhirCoverage
+             },
+       new Bundle.EntryComponent
+  {
+         FullUrl = $"urn:uuid:{fhirProvider.Id}",
+         Resource = fhirProvider
+    },
+       new Bundle.EntryComponent
+    {
+     FullUrl = $"urn:uuid:{fhirInsurer.Id}",
+Resource = fhirInsurer
+      }
+            }
+        };
+
+        _logger.LogInformation("Created eligibility bundle with {Count} entries", bundle.Entry.Count);
+        return Task.FromResult(bundle);
+    }
+
+    public async Task<DomainCoverageEligibilityResponse> ParseEligibilityResponseAsync(Bundle responseBundle)
+    {
+        _logger.LogInformation("Parsing eligibility response bundle");
+
+        try
+        {
+            // Extract resources
+   var eligibilityResponse = await ParseResourceFromBundleAsync<FhirCoverageEligibilityResponse>(responseBundle);
+     if (eligibilityResponse == null)
+ {
+    throw new InvalidOperationException("No CoverageEligibilityResponse found in bundle");
+            }
+
+      var outcome = await ParseResourceFromBundleAsync<OperationOutcome>(responseBundle);
+
+            // Map to domain entity
+       var response = new DomainCoverageEligibilityResponse
+       {
+                Id = eligibilityResponse.Id,
+       ResponseUUID = Guid.NewGuid().ToString(),
+     Status = eligibilityResponse.Status.ToString().ToLower(),
+     Outcome = eligibilityResponse.Outcome.ToString().ToLower(),
+          ResponseCreatedAt = DateTime.Parse(eligibilityResponse.Created),
+     ResponseReceivedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+   IsActive = true
+ };
+
+         // Parse insurance details
+      if (eligibilityResponse.Insurance?.Any() == true)
+            {
+     var insurance = eligibilityResponse.Insurance.First();
+response.IsInForce = insurance.Inforce ?? false;
+       response.EligibilityStatus = insurance.Inforce == true ? "active" : "inactive";
+
+  // Parse benefit balances
+       if (insurance.Item?.Any() == true)
+    {
+     response.BenefitBalances = new List<DomainBenefitBalance>();
+ foreach (var item in insurance.Item)
+ {
+       var benefitBalance = new DomainBenefitBalance
+        {
+      Id = Guid.NewGuid().ToString(),
+         Category = item.Category?.Coding?.FirstOrDefault()?.Code,
+ CreatedAt = DateTime.UtcNow,
+     IsActive = true,
+       Benefits = new List<DomainBenefit>()
+   };
+
+         if (item.Benefit?.Any() == true)
+   {
+   foreach (var benefit in item.Benefit)
+    {
+       var domainBenefit = new DomainBenefit
+    {
+  Id = Guid.NewGuid().ToString(),
+    CreatedAt = DateTime.UtcNow,
+IsActive = true
+  };
+ benefitBalance.Benefits.Add(domainBenefit);
+        }
+ }
+
+  response.BenefitBalances.Add(benefitBalance);
+   }
+    }
+    }
+
+    // Parse errors if any
+     if (outcome != null && outcome.Issue?.Any() == true)
+ {
+     response.Errors = new List<DomainEligibilityError>();
+      foreach (var issue in outcome.Issue)
+         {
+           response.Errors.Add(new DomainEligibilityError
+          {
+       Id = Guid.NewGuid().ToString(),
+ErrorCode = issue.Code?.ToString(),
+     ErrorMessage = issue.Diagnostics,
+      CreatedAt = DateTime.UtcNow,
+        IsActive = true
+   });
+  }
+ }
+  _logger.LogInformation("Successfully parsed eligibility response. Status: {Status}, Outcome: {Outcome}",
+    response.Status, response.Outcome);
+
+       return response;
+    }
+     catch (Exception ex)
+        {
+      _logger.LogError(ex, "Failed to parse eligibility response bundle");
+         throw;
+        }
+    }
+
+    public Task<Bundle> CreateClaimRequestBundleAsync(
+      DomainClaim claim,
+        DomainPatient patient,
+        DomainOrganization provider,
+        DomainOrganization insurer,
+    DomainCoverage coverage,
+        DomainEncounter? encounter = null)
+ {
+        _logger.LogInformation("Creating claim request bundle for claim {ClaimNumber}", claim.ClaimNumber);
+
+        // Create FHIR resources
+        var fhirPatient = _mapper.MapToFhirPatient(patient);
+        var fhirProvider = _mapper.MapToFhirOrganization(provider);
+     var fhirInsurer = _mapper.MapToFhirOrganization(insurer);
+        var fhirCoverage = _mapper.MapToFhirCoverage(coverage);
+
+    // Create claim
+        var fhirClaim = _mapper.MapToFhirClaim(
+            claim,
+$"Patient/{fhirPatient.Id}",
+            $"Organization/{fhirProvider.Id}",
+            $"Organization/{fhirInsurer.Id}",
+        $"Coverage/{fhirCoverage.Id}",
+    encounter != null ? $"Encounter/{encounter.Id}" : null
+        );
+
+        // Create MessageHeader
+        var messageHeader = _mapper.CreateMessageHeader("claim-request", provider);
+      messageHeader.Focus = new List<ResourceReference>
+        {
+new ResourceReference($"Claim/{fhirClaim.Id}")
+        };
+
+        // Build bundle entries
+        var entries = new List<Bundle.EntryComponent>
+        {
+  new Bundle.EntryComponent { FullUrl = $"urn:uuid:{messageHeader.Id}", Resource = messageHeader },
+    new Bundle.EntryComponent { FullUrl = $"urn:uuid:{fhirClaim.Id}", Resource = fhirClaim },
+            new Bundle.EntryComponent { FullUrl = $"urn:uuid:{fhirPatient.Id}", Resource = fhirPatient },
+        new Bundle.EntryComponent { FullUrl = $"urn:uuid:{fhirProvider.Id}", Resource = fhirProvider },
+   new Bundle.EntryComponent { FullUrl = $"urn:uuid:{fhirInsurer.Id}", Resource = fhirInsurer },
+          new Bundle.EntryComponent { FullUrl = $"urn:uuid:{fhirCoverage.Id}", Resource = fhirCoverage }
+        };
+
+    // Add encounter if provided
+        if (encounter != null)
+  {
+   var fhirEncounter = _mapper.MapToFhirEncounter(encounter);
+   entries.Add(new Bundle.EntryComponent
+            {
+              FullUrl = $"urn:uuid:{fhirEncounter.Id}",
+           Resource = fhirEncounter
+       });
+        }
+
+        // Create bundle
+    var bundle = new Bundle
+        {
+   Type = Bundle.BundleType.Message,
+      Id = Guid.NewGuid().ToString(),
+    Timestamp = DateTimeOffset.UtcNow,
+            Entry = entries
+        };
+
+   _logger.LogInformation("Created claim bundle with {Count} entries", bundle.Entry.Count);
         return Task.FromResult(bundle);
     }
 
     public Task<DomainClaimResponse> ParseClaimResponseAsync(Bundle responseBundle)
     {
-     _logger.LogInformation("Parsing claim response bundle");
-        // Implementation stub
+  _logger.LogInformation("Parsing claim response bundle");
+        
+        // TODO: Implement claim response parsing similar to eligibility response
+        // This is a simplified stub - you can expand it based on your domain model
+  
         var response = new DomainClaimResponse
         {
-            Id = Guid.NewGuid().ToString(),
-          ClaimResponseStatus = "active",
-            CreatedAt = DateTime.UtcNow,
-  IsActive = true
-        };
-  return Task.FromResult(response);
+Id = Guid.NewGuid().ToString(),
+     ClaimResponseStatus = "active",
+    CreatedAt = DateTime.UtcNow,
+ IsActive = true
+      };
+        
+return Task.FromResult(response);
     }
 
     public Task<Bundle> CreatePreAuthRequestBundleAsync(
-        DomainClaim preAuth,
-      DomainPatient patient,
-      DomainOrganization provider,
-     DomainOrganization insurer,
-      DomainCoverage coverage,
-      DomainEncounter? encounter = null)
+   DomainClaim preAuth,
+        DomainPatient patient,
+        DomainOrganization provider,
+      DomainOrganization insurer,
+        DomainCoverage coverage,
+        DomainEncounter? encounter = null)
     {
-        _logger.LogInformation("Creating pre-auth request bundle for claim {ClaimId}", preAuth.Id);
-   // Implementation stub
- var bundle = new Bundle
-        {
-          Type = Bundle.BundleType.Message,
-            Timestamp = DateTimeOffset.UtcNow,
-            Id = Guid.NewGuid().ToString()
-        };
-     return Task.FromResult(bundle);
+  _logger.LogInformation("Creating pre-auth request bundle for claim {ClaimNumber}", preAuth.ClaimNumber);
+        
+     // Pre-auth is same as claim, just with use=preauthorization
+        return CreateClaimRequestBundleAsync(preAuth, patient, provider, insurer, coverage, encounter);
     }
 
-    public Task<DomainClaimResponse> ParsePreAuthResponseAsync(Bundle responseBundle)
-    {
-      _logger.LogInformation("Parsing pre-auth response bundle");
- // Implementation stub
+ public Task<DomainClaimResponse> ParsePreAuthResponseAsync(Bundle responseBundle)
+ {
+        _logger.LogInformation("Parsing pre-auth response bundle");
+        
         var response = new DomainClaimResponse
         {
-  Id = Guid.NewGuid().ToString(),
-          ClaimResponseStatus = "active",
-         Use = "preauthorization",
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true
-    };
+         Id = Guid.NewGuid().ToString(),
+ ClaimResponseStatus = "active",
+            Use = "preauthorization",
+CreatedAt = DateTime.UtcNow,
+IsActive = true
+ };
+        
         return Task.FromResult(response);
     }
 

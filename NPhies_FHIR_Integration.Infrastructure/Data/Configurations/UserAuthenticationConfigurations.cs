@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NPhies_FHIR_Integration.Domain.Entities;
+using System.Text.Json;
 
 namespace NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
@@ -8,43 +9,51 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> entity)
     {
-        entity.HasKey(u => u.Id);
-        entity.Property(u => u.Id).HasMaxLength(100);
+   entity.HasKey(u => u.Id);
+    entity.Property(u => u.Id).HasMaxLength(100);
         entity.Property(u => u.Username).IsRequired().HasMaxLength(100);
-        entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+   entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
         entity.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
-        entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
-  entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(500);
-     entity.Property(u => u.PasswordSalt).IsRequired().HasMaxLength(500);
-    entity.Property(u => u.Roles).HasConversion(v => string.Join(",", v), v => v.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList()).HasMaxLength(1000);
-    entity.Property(u => u.IsActive).IsRequired();
-entity.Property(u => u.IsEmailVerified).IsRequired();
-        entity.Property(u => u.IsMfaEnabled).IsRequired();
+  entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
+        entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(500);
+   entity.Property(u => u.PasswordSalt).IsRequired().HasMaxLength(500);
+      
+        // ? FIXED: Proper JSON serialization for List<string> Roles
+      entity.Property(u => u.Roles)
+    .HasConversion(
+         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+      v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+          .HasColumnType("nvarchar(max)")
+   .HasColumnName("Roles");
+        
+ entity.Property(u => u.IsActive).IsRequired();
+        entity.Property(u => u.IsEmailVerified).IsRequired();
+     entity.Property(u => u.IsMfaEnabled).IsRequired();
         entity.Property(u => u.MfaSecret).HasMaxLength(255);
-        entity.Property(u => u.IsLocked).IsRequired();
+    entity.Property(u => u.IsLocked).IsRequired();
         entity.Property(u => u.FailedLoginAttempts).IsRequired();
-entity.Property(u => u.LastLoginAt);
-   entity.Property(u => u.LockedUntilAt);
- entity.Property(u => u.CreatedAt).IsRequired();
-   entity.Property(u => u.UpdatedAt);
-      entity.Property(u => u.DeletedAt);
+    entity.Property(u => u.LastLoginAt);
+        entity.Property(u => u.LockedUntilAt);
+      entity.Property(u => u.CreatedAt).IsRequired();
+        entity.Property(u => u.UpdatedAt);
+        entity.Property(u => u.DeletedAt);
         entity.Property(u => u.CreatedBy).HasMaxLength(100);
-entity.Property(u => u.UpdatedBy).HasMaxLength(100);
-   entity.Property(u => u.OrganizationId).HasMaxLength(100);
-entity.Property(u => u.DepartmentId).HasMaxLength(100);
+        entity.Property(u => u.UpdatedBy).HasMaxLength(100);
+        entity.Property(u => u.OrganizationId).HasMaxLength(100);
+        entity.Property(u => u.DepartmentId).HasMaxLength(100);
 
         entity.HasIndex(u => u.Username).IsUnique();
-    entity.HasIndex(u => u.Email).IsUnique();
-   entity.HasIndex(u => u.IsActive);
-     entity.HasIndex(u => u.IsLocked);
-   entity.HasIndex(u => u.OrganizationId);
-   entity.HasIndex(u => u.DepartmentId);
-   entity.HasIndex(u => u.CreatedAt);
+        entity.HasIndex(u => u.Email).IsUnique();
+        entity.HasIndex(u => u.IsActive);
+        entity.HasIndex(u => u.IsLocked);
+ entity.HasIndex(u => u.OrganizationId);
+        entity.HasIndex(u => u.DepartmentId);
+      entity.HasIndex(u => u.CreatedAt);
 
- entity.HasMany(u => u.AuditLogs).WithOne(a => a.User).HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Restrict);
-   entity.HasMany(u => u.RefreshTokens).WithOne(r => r.User).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
-   entity.HasMany(u => u.LoginAttempts).WithOne(l => l.User).HasForeignKey(l => l.UserId).OnDelete(DeleteBehavior.Restrict);
- entity.HasMany(u => u.RateLimitLogs).WithOne(r => r.User).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
+    entity.HasMany(u => u.AuditLogs).WithOne(a => a.User).HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Restrict);
+     entity.HasMany(u => u.RefreshTokens).WithOne(r => r.User).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
+        entity.HasMany(u => u.LoginAttempts).WithOne(l => l.User).HasForeignKey(l => l.UserId).OnDelete(DeleteBehavior.Restrict);
+        entity.HasMany(u => u.RateLimitLogs).WithOne(r => r.User).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

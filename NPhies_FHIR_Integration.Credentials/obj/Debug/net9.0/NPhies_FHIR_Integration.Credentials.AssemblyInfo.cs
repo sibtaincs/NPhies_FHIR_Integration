@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NPhies_FHIR_Integration.Credentials")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98bf706b6490a18aedd836b3a5f77502258913bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b54e7d396a719cdd7d72285fa5715547bb81b29c")]
 [assembly: System.Reflection.AssemblyProductAttribute("NPhies_FHIR_Integration.Credentials")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NPhies_FHIR_Integration.Credentials")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

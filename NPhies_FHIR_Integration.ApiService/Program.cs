@@ -19,6 +19,7 @@ using NPhies_FHIR_Integration.Application.Services.Caching;
 using NPhies_FHIR_Integration.Application.Services.Events;
 using NPhies_FHIR_Integration.Application.Services.RCM;
 using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
+using NPhies_FHIR_Integration.Application.Services.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,9 @@ builder.Services.AddComprehensiveSecurity(builder.Configuration);
 
 // 🚀 ADD NPHIES INTEGRATION SERVICES (Week 2 - Day 4)
 builder.Services.AddNphiesIntegration(builder.Configuration);
+
+// 🔍 ADD NPHIES DIAGNOSTIC SERVICE
+builder.Services.AddScoped<INphiesDiagnosticService, NphiesDiagnosticService>();
 
 // Add controllers
 builder.Services.AddControllers();
