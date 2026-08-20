@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NPhies_FHIR_Integration.Domain.Entities;
-using NPhies_FHIR_Integration.Infrastructure.Data;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 using System;
 using System.Collections.Generic;
 using System.Linq;

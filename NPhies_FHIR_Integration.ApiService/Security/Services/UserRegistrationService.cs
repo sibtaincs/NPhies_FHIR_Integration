@@ -1,7 +1,7 @@
 using NPhies_FHIR_Integration.ApiService.Security.Models;
 using NPhies_FHIR_Integration.Domain.Entities;
-using NPhies_FHIR_Integration.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 namespace NPhies_FHIR_Integration.ApiService.Security.Services;
 

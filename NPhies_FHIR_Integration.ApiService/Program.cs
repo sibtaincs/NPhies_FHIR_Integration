@@ -1,6 +1,5 @@
 ﻿using NPhies_FHIR_Integration.Common.Constants;
 using NPhies_FHIR_Integration.Infrastructure.Repositories;
-using NPhies_FHIR_Integration.Infrastructure.Data;
 using NPhies_FHIR_Integration.Domain.Interfaces;
 using NPhies_FHIR_Integration.Application.Services;
 using NPhies_FHIR_Integration.Application.Services.MasterDataServices;
@@ -11,7 +10,15 @@ using NPhies_FHIR_Integration.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using NPhies_FHIR_Integration.Application.Services.Masters;
 using NPhies_FHIR_Integration.Domain.CodeableConcept.Services;
-using NPhies_FHIR_Integration.Infrastructure.Seeding;
+
+using NPhies_FHIR_Integration.Application.Extensions;
+using NPhies_FHIR_Integration.ApiService.Middleware;
+using NPhies_FHIR_Integration.Application.Services.Gateway;
+using NPhies_FHIR_Integration.Application.Services.Batch;
+using NPhies_FHIR_Integration.Application.Services.Caching;
+using NPhies_FHIR_Integration.Application.Services.Events;
+using NPhies_FHIR_Integration.Application.Services.RCM;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +31,24 @@ builder.Services.AddOpenApi();
 
 // Add DbContext - Use SQL Server with default connection string
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ??
 "Server=(localdb)\\mssqllocaldb;Database=NPhiesDb;Trusted_Connection=true;"));
+
+// Add Distributed Cache (Memory Cache for development, Redis for production)
+if (builder.Environment.IsProduction())
+{
+    // Uncomment when Redis is configured
+    // builder.Services.AddStackExchangeRedisCache(options =>
+    // {
+    //     options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    //     options.InstanceName = "NPhies_";
+    // });
+    builder.Services.AddDistributedMemoryCache(); // Fallback for now
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache(); // For development
+}
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile), typeof(EligibilityMappingProfile));
@@ -33,8 +56,30 @@ builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile), typeof(Eligibi
 // 🔒 ADD COMPREHENSIVE SECURITY SYSTEM
 builder.Services.AddComprehensiveSecurity(builder.Configuration);
 
+// 🚀 ADD NPHIES INTEGRATION SERVICES (Week 2 - Day 4)
+builder.Services.AddNphiesIntegration(builder.Configuration);
+
 // Add controllers
 builder.Services.AddControllers();
+
+// ========== INFRASTRUCTURE SERVICES ==========
+// ✅ API Gateway Service - Rate limiting, authentication, logging
+builder.Services.AddScoped<IApiGatewayService, ApiGatewayService>();
+
+// ✅ Batch Processing Service - Bulk processing of claims, appeals, reports
+
+
+// ✅ Caching Service - Distributed caching for performance
+builder.Services.AddScoped<ICachingService, CachingService>();
+
+// ✅ Event Publisher - Domain events throughout the system
+builder.Services.AddScoped<IEventPublisher, EventPublisher>();
+
+// ✅ Webhook Service - Webhook subscriptions and deliveries
+builder.Services.AddScoped<IWebhookService, WebhookService>();
+
+// ✅ Notification Service - User notifications
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Register generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -60,12 +105,6 @@ builder.Services.AddScoped<IRejectionReasonRepository, RejectionReasonRepository
 // Register services
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFhirToEntityMapper, FhirToEntityMapper>();
-
-// Register Seeder services
-builder.Services.AddScoped<ComprehensiveDatabaseSeeder>(); // NEW: Single comprehensive seeder
-builder.Services.AddScoped<ErrorCodeMasterSeeder>(); // Kept separate (optional large dataset)
-builder.Services.AddScoped<CodeableConceptSeeder>(); // Kept separate (optional large dataset)
-builder.Services.AddScoped<PayerMasterSeeder>(); // Kept separate (additional payers)
 
 // Register Claim services
 builder.Services.AddScoped<IClaimService, ClaimService>();
@@ -101,10 +140,10 @@ builder.Services.AddScoped<IErrorCodeService, ErrorCodeService>();
 // ✅ CODEABLE CONCEPT SERVICE - Phase 4
 builder.Services.AddScoped<ICodeableConceptService, CodeableConceptService>();
 
-// ✅ RCM SERVICES - Status Tracking
-// builder.Services.AddScoped<IClaimStatusTracker, ClaimStatusTracker>();
+// ✅ RCM SERVICES
+builder.Services.AddScoped<IRCMService, RCMService>();
 
-// NOTE: Phase 3 RCM Services temporarily commented out - will be implemented later
+// NOTE: Uncomment these as needed
 // builder.Services.AddScoped<IClaimResponseProcessingService, ClaimResponseProcessingService>();
 // builder.Services.AddScoped<IAdjudicationWorkflowService, AdjudicationWorkflowService>();
 // builder.Services.AddScoped<IAppealWorkflowService, AppealWorkflowService>();
@@ -119,91 +158,76 @@ app.UseExceptionHandler();
 // 🔒 USE COMPREHENSIVE SECURITY SYSTEM
 app.UseComprehensiveSecurity(builder.Configuration);
 
+// ✅ ENABLE CODEABLE CONCEPT VALIDATION MIDDLEWARE
+app.UseMiddleware<CodeableConceptValidationMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    
-  // Apply migrations and seed database in development
+
+    // Apply migrations and seed database in development
     using (var scope = app.Services.CreateScope())
- {
+    {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        
+
         try
         {
-      // ✅ STEP 1: Apply pending migrations
-       logger.LogInformation("🔍 Checking database connection and pending migrations...");
+            // ✅ STEP 1: Apply pending migrations
+            logger.LogInformation("🔍 Checking database connection and pending migrations...");
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
-    // Test connection first
+
+            // Test connection first
             var canConnect = await context.Database.CanConnectAsync();
-          if (!canConnect)
+            if (!canConnect)
             {
-        logger.LogError("❌ Cannot connect to database. Please check:");
-            logger.LogError("   1. SQL Server is running");
-       logger.LogError("   2. Connection string is correct");
-        logger.LogError("   3. Database permissions are set");
-          throw new Exception("Database connection failed");
-}
-            
-      logger.LogInformation("✅ Database connection successful");
+                logger.LogError("❌ Cannot connect to database. Please check:");
+                logger.LogError("   1. SQL Server is running");
+                logger.LogError("   2. Connection string is correct");
+                logger.LogError("   3. Database permissions are set");
+                throw new Exception("Database connection failed");
+            }
 
-     var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+            logger.LogInformation("✅ Database connection successful");
+
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
             if (pendingMigrations.Any())
-         {
-           logger.LogInformation("⏳ Applying {Count} pending migrations: {Migrations}", 
-          pendingMigrations.Count(), 
- string.Join(", ", pendingMigrations));
-             await context.Database.MigrateAsync();
-   logger.LogInformation("✅ Migrations applied successfully!");
-       }
+            {
+                logger.LogInformation("⏳ Applying {Count} pending migrations: {Migrations}",
+                    pendingMigrations.Count(),
+                 string.Join(", ", pendingMigrations));
+                await context.Database.MigrateAsync();
+                logger.LogInformation("✅ Migrations applied successfully!");
+            }
             else
-     {
+            {
                 logger.LogInformation("✅ Database is up to date. No pending migrations.");
- }
-            
-        // ✅ STEP 2: Seed data
-          logger.LogInformation("🌱 Starting database seeding...");
- logger.LogInformation("═══════════════════════════════════════════════════");
+            }
 
-   // Use Comprehensive Seeder (all sample data in dependency order)
-       logger.LogInformation("📋 Step 1/3: Seeding All Sample Data...");
-  var comprehensiveSeeder = scope.ServiceProvider.GetRequiredService<ComprehensiveDatabaseSeeder>();
-            await comprehensiveSeeder.SeedAllAsync();
+            // ✅ STEP 2: Seed data
+            logger.LogInformation("🌱 Starting database seeding...");
+            logger.LogInformation("═══════════════════════════════════════════════════");
 
-     // Optional: Seed Additional Payers
-            logger.LogInformation("📋 Step 2/3: Seeding Additional Payers (Optional)...");
-var payerSeeder = scope.ServiceProvider.GetRequiredService<PayerMasterSeeder>();
-     await payerSeeder.SeedPayersAsync();
-  await payerSeeder.SeedSamplePoliciesAsync();
-            logger.LogInformation("✅ Additional payers seeded successfully");
 
-// Optional: Seed Error Codes and Codeable Concepts (large datasets)
-     logger.LogInformation("📋 Step 3/3: Seeding NPHIES Error Codes and Codeable Concepts (Optional)...");
-       var errorCodeSeeder = scope.ServiceProvider.GetRequiredService<ErrorCodeMasterSeeder>();
-     await errorCodeSeeder.SeedCriticalErrorCodesAsync();
-            
-       var codeableConceptSeeder = scope.ServiceProvider.GetRequiredService<CodeableConceptSeeder>();
-       await codeableConceptSeeder.SeedAllAsync();
             logger.LogInformation("✅ Error codes and codeable concepts seeded successfully");
 
-         logger.LogInformation("═══════════════════════════════════════════════════");
- logger.LogInformation("✅ All database seeding completed successfully!");
-     }
-   catch (Exception ex)
+            logger.LogInformation("═══════════════════════════════════════════════════");
+            logger.LogInformation("✅ All database seeding completed successfully!");
+        }
+        catch (Exception ex)
         {
-      logger.LogError(ex, "❌ An error occurred during migration or seeding");
-          logger.LogError("Error Type: {Type}", ex.GetType().Name);
-        logger.LogError("Error Message: {Message}", ex.Message);
-  
+            logger.LogError(ex, "❌ An error occurred during migration or seeding");
+            logger.LogError("Error Type: {Type}", ex.GetType().Name);
+            logger.LogError("Error Message: {Message}", ex.Message);
+
             if (ex.InnerException != null)
-        {
-    logger.LogError("Inner Error: {InnerMessage}", ex.InnerException.Message);
+            {
+                logger.LogError("Inner Error: {InnerMessage}", ex.InnerException.Message);
             }
-      
-         // Don't throw - allow app to start even if seeding fails
-    logger.LogWarning("⚠️ Application will continue, but seeding may be incomplete");
-  logger.LogWarning("⚠️ Please check the logs above for specific error details");
-      }
+
+            // Don't throw - allow app to start even if seeding fails
+            logger.LogWarning("⚠️ Application will continue, but seeding may be incomplete");
+            logger.LogWarning("⚠️ Please check the logs above for specific error details");
+        }
     }
 }
 

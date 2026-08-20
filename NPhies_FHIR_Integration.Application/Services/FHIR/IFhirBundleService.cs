@@ -1,4 +1,5 @@
 using Hl7.Fhir.Model;
+using System.Threading.Tasks;
 
 // Type aliases to avoid ambiguous references
 using DomainPatient = NPhies_FHIR_Integration.Domain.Entities.Patient;

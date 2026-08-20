@@ -712,15 +712,6 @@ namespace NPhies_FHIR_Integration.Application.Services
         }
     }
 
-    // You need to implement:
-    public interface IFhirBundleService
-    {
-        Task<Bundle> CreateEligibilityBundleAsync(DomainCoverageEligibilityRequest request);
-        Task<Bundle> CreateClaimBundleAsync(DomainClaim claim);
-        Task<Bundle> CreatePreAuthBundleAsync(DomainClaim preAuth);
-        Task<string> SerializeToJsonAsync(Bundle bundle);
-        Task<T> DeserializeFromJsonAsync<T>(string json) where T : Resource;
-    }
 
     public class Encounter : BaseEntity
     {

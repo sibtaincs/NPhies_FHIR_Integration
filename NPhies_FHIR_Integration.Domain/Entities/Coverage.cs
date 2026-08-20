@@ -66,10 +66,12 @@ public string? PlanCodeSystem { get; set; }
     /// <summary>
     /// Subscriber ID (from Coverage.subscriberId)
     /// </summary>
-  public string? SubscriberId { get; set; }
+    public string? SubscriberId { get; set; }
 
     /// <summary>
-    /// Subscriber patient ID (reference to patient)
+    /// Subscriber patient ID (reference to the patient who is the policy subscriber)
+    /// May be different from the beneficiary patient (PatientId) in cases where coverage is for dependents
+  /// Example: Father is subscriber, child is beneficiary
     /// </summary>
     public string? SubscriberPatientId { get; set; }
 
@@ -139,6 +141,14 @@ public string? CoverageClassValue { get; set; }
     /// The patient covered by this policy
     /// </summary>
     public Patient? Patient { get; set; }
+
+    /// <summary>
+    /// The patient who is the policy subscriber (policy holder)
+    /// May be the same as Patient (when SubscriberRelationship = "self")
+    /// or different (when coverage is for spouse, child, or other dependent)
+    /// Per NPHIES FHIR IG: Coverage.subscriber references the Patient who holds the policy
+    /// </summary>
+    public Patient? SubscriberPatient { get; set; }
 
     /// <summary>
     /// The insurance company providing this coverage

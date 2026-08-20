@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using NPhies_FHIR_Integration.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 namespace NPhies_FHIR_Integration.Application.Services;
 

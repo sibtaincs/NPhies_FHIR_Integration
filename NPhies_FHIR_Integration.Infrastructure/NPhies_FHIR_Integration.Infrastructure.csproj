@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NPhies_FHIR_Integration.Infrastructure\" />
     <Folder Include="NPhies_FHIR_Integration\" />
   </ItemGroup>
 

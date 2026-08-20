@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NPhies_FHIR_Integration.Domain.Entities;
 using NPhies_FHIR_Integration.Domain.Interfaces;
-using NPhies_FHIR_Integration.Infrastructure.Data;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 namespace NPhies_FHIR_Integration.Infrastructure.Repositories;
 

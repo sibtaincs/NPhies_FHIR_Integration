@@ -1,7 +1,7 @@
 using NPhies_FHIR_Integration.Domain.Entities;
-using NPhies_FHIR_Integration.Infrastructure.Data;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 namespace NPhies_FHIR_Integration.Application.Services;
 

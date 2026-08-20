@@ -18,14 +18,14 @@ public class AppealService : IAppealService
 {
     private readonly ILogger<AppealService> _logger;
     private readonly IErrorCodeService _errorCodeService;
- private readonly IAppealRepository _appealRepository;
+    private readonly IAppealRepository _appealRepository;
 
     public AppealService(
         ILogger<AppealService> logger,
         IErrorCodeService errorCodeService,
         IAppealRepository appealRepository)
     {
-      _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _errorCodeService = errorCodeService ?? throw new ArgumentNullException(nameof(errorCodeService));
         _appealRepository = appealRepository ?? throw new ArgumentNullException(nameof(appealRepository));
     }
@@ -35,113 +35,113 @@ public class AppealService : IAppealService
     /// <summary>
     /// Create a new appeal for a denied claim
     /// </summary>
-public async Task<CreateAppealResult> CreateAppealAsync(
-        CreateAppealRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<CreateAppealResult> CreateAppealAsync(
+            CreateAppealRequest request,
+            CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Creating appeal for claim {ClaimId}, error code {ErrorCode}",
             request.ClaimId, request.ErrorCodeBeingAppealed);
 
         try
         {
- // Validate request
-    if (string.IsNullOrEmpty(request.ClaimId))
-    {
-       return new CreateAppealResult
+            // Validate request
+            if (string.IsNullOrEmpty(request.ClaimId))
             {
-     IsSuccess = false,
-   ErrorMessage = "Claim ID is required"
-        };
-            }
-
-        if (string.IsNullOrEmpty(request.ErrorCodeBeingAppealed))
-  {
-            return new CreateAppealResult
-{
-            IsSuccess = false,
-          ErrorMessage = "Error code is required"
-            };
-            }
-
-            // Get error code details
-       var errorCode = await _errorCodeService.GetErrorCodeAsync(
-                request.ErrorCodeBeingAppealed);
-
-            if (errorCode == null)
-    {
-     return new CreateAppealResult
-              {
-          IsSuccess = false,
-        ErrorMessage = $"Error code {request.ErrorCodeBeingAppealed} not found"
-       };
-            }
-
-            // Check if error code allows appeal
-     if (!errorCode.AllowsAppeal)
-        {
-           return new CreateAppealResult
-    {
-      IsSuccess = false,
-   ErrorMessage = $"Error code {request.ErrorCodeBeingAppealed} does not allow appeals"
+                return new CreateAppealResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Claim ID is required"
                 };
             }
 
-       // Create appeal entity
-      var appeal = new AppealRequest
+            if (string.IsNullOrEmpty(request.ErrorCodeBeingAppealed))
             {
-       AppealNumber = GenerateAppealNumber(),
- AppealIdentifierSystem = "http://nphies.sa/identifier/appeal-id",
-       AppealIdentifierValue = Guid.NewGuid().ToString(),
-    ClaimId = request.ClaimId,
-     ClaimResponseId = request.ClaimResponseId,
-          PatientId = request.PatientId,
- InsurerId = request.InsurerId,
-       ProviderId = request.ProviderId,
- ErrorCodeBeingAppealed = request.ErrorCodeBeingAppealed,
-  ErrorDescription = errorCode.ErrorDescription,
-    AppealReason = request.AppealReason,
-           SupportingDocumentation = request.SupportingDocumentation,
+                return new CreateAppealResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Error code is required"
+                };
+            }
+
+            // Get error code details
+            var errorCode = await _errorCodeService.GetErrorCodeAsync(
+                     request.ErrorCodeBeingAppealed);
+
+            if (errorCode == null)
+            {
+                return new CreateAppealResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Error code {request.ErrorCodeBeingAppealed} not found"
+                };
+            }
+
+            // Check if error code allows appeal
+            if (!errorCode.AllowsAppeal)
+            {
+                return new CreateAppealResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Error code {request.ErrorCodeBeingAppealed} does not allow appeals"
+                };
+            }
+
+            // Create appeal entity
+            var appeal = new AppealRequest
+            {
+                AppealNumber = GenerateAppealNumber(),
+                AppealIdentifierSystem = "http://nphies.sa/identifier/appeal-id",
+                AppealIdentifierValue = Guid.NewGuid().ToString(),
+                ClaimId = request.ClaimId,
+                ClaimResponseId = request.ClaimResponseId,
+                PatientId = request.PatientId,
+                InsurerId = request.InsurerId,
+                ProviderId = request.ProviderId,
+                ErrorCodeBeingAppealed = request.ErrorCodeBeingAppealed,
+                ErrorDescription = errorCode.ErrorDescription,
+                AppealReason = request.AppealReason,
+                SupportingDocumentation = request.SupportingDocumentation,
                 DenialDate = DateTime.UtcNow,
-    AppealDeadlineDate = DateTime.UtcNow.AddDays(errorCode.StandardAppealDays),
-           AppealStatus = "draft",
- AppealLevel = 1,
-    IsActive = true,
-          AllowsEscalation = true,
-     InternalReferenceNumber = Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper()
-       };
+                AppealDeadlineDate = DateTime.UtcNow.AddDays(errorCode.StandardAppealDays),
+                AppealStatus = "draft",
+                AppealLevel = 1,
+                IsActive = true,
+                AllowsEscalation = true,
+                InternalReferenceNumber = Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper()
+            };
 
             // Add initial status history
             appeal.StatusHistory.Add(new AppealStatusHistory
-    {
-           Status = "draft",
-  ChangedBy = "system",
+            {
+                Status = "draft",
+                ChangedBy = "system",
                 ChangeReason = "Appeal created",
-  StatusChangeDate = DateTime.UtcNow,
-      Comments = "Initial appeal created"
-       });
+                StatusChangeDate = DateTime.UtcNow,
+                Comments = "Initial appeal created"
+            });
 
-   // Save appeal
- var savedAppeal = await _appealRepository.AddAsync(appeal, cancellationToken);
+            // Save appeal
+            var savedAppeal = await _appealRepository.AddAsync(appeal, cancellationToken);
 
-        _logger.LogInformation("Appeal {AppealNumber} created with deadline {Deadline}",
-     savedAppeal.AppealNumber, savedAppeal.AppealDeadlineDate);
+            _logger.LogInformation("Appeal {AppealNumber} created with deadline {Deadline}",
+         savedAppeal.AppealNumber, savedAppeal.AppealDeadlineDate);
 
-    return new CreateAppealResult
-  {
-IsSuccess = true,
-                AppealId = savedAppeal.Id,
-    AppealNumber = savedAppeal.AppealNumber,
-           DeadlineDate = savedAppeal.AppealDeadlineDate
-    };
-   }
-        catch (Exception ex)
- {
-  _logger.LogError(ex, "Error creating appeal for claim {ClaimId}", request.ClaimId);
             return new CreateAppealResult
-       {
-           IsSuccess = false,
-  ErrorMessage = ex.Message
-      };
+            {
+                IsSuccess = true,
+                AppealId = savedAppeal.Id,
+                AppealNumber = savedAppeal.AppealNumber,
+                DeadlineDate = savedAppeal.AppealDeadlineDate
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating appeal for claim {ClaimId}", request.ClaimId);
+            return new CreateAppealResult
+            {
+                IsSuccess = false,
+                ErrorMessage = ex.Message
+            };
         }
     }
 
@@ -156,21 +156,21 @@ IsSuccess = true,
 
         try
         {
-    var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
-        if (appeal == null)
-        {
-       _logger.LogWarning("Appeal {AppealId} not found", appealId);
-  return null;
-   }
+            var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
+            if (appeal == null)
+            {
+                _logger.LogWarning("Appeal {AppealId} not found", appealId);
+                return null;
+            }
 
-        return MapToDto(appeal);
-      }
+            return MapToDto(appeal);
+        }
         catch (Exception ex)
         {
-       _logger.LogError(ex, "Error retrieving appeal {AppealId}", appealId);
-          return null;
+            _logger.LogError(ex, "Error retrieving appeal {AppealId}", appealId);
+            return null;
         }
-  }
+    }
 
     /// <summary>
     /// Get all appeals for a claim
@@ -186,11 +186,11 @@ IsSuccess = true,
             var appeals = await _appealRepository.GetByClaimIdAsync(claimId, cancellationToken);
             return appeals.Select(MapToDto).ToList();
         }
-   catch (Exception ex)
+        catch (Exception ex)
         {
- _logger.LogError(ex, "Error retrieving appeals for claim {ClaimId}", claimId);
+            _logger.LogError(ex, "Error retrieving appeals for claim {ClaimId}", claimId);
             return new List<AppealDto>();
-     }
+        }
     }
 
     /// <summary>
@@ -200,21 +200,21 @@ IsSuccess = true,
         string patientId,
    CancellationToken cancellationToken = default)
     {
-  _logger.LogInformation("Retrieving appeals for patient {PatientId}", patientId);
+        _logger.LogInformation("Retrieving appeals for patient {PatientId}", patientId);
 
         try
         {
-var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellationToken);
-          return appeals.Select(MapToDto).ToList();
+            var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellationToken);
+            return appeals.Select(MapToDto).ToList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving appeals for patient {PatientId}", patientId);
- return new List<AppealDto>();
+            return new List<AppealDto>();
         }
     }
 
- // ========== APPEAL SUBMISSION ==========
+    // ========== APPEAL SUBMISSION ==========
 
     /// <summary>
     /// Submit an appeal (finalize before deadline)
@@ -222,47 +222,47 @@ var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellatio
     public async Task<SubmitAppealResult> SubmitAppealAsync(
         string appealId,
         CancellationToken cancellationToken = default)
-  {
+    {
         _logger.LogInformation("Submitting appeal {AppealId}", appealId);
 
-      try
+        try
         {
-  var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
+            var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
             if (appeal == null)
-       {
-     return new SubmitAppealResult
-     {
-            IsSuccess = false,
-     Message = $"Appeal {appealId} not found"
+            {
+                return new SubmitAppealResult
+                {
+                    IsSuccess = false,
+                    Message = $"Appeal {appealId} not found"
                 };
-     }
+            }
 
-   // Check if within deadline
-         if (!appeal.IsWithinDeadline())
-   {
-    return new SubmitAppealResult
-       {
-          IsSuccess = false,
-    Message = "Appeal deadline has passed"
-         };
-   }
+            // Check if within deadline
+            if (!appeal.IsWithinDeadline())
+            {
+                return new SubmitAppealResult
+                {
+                    IsSuccess = false,
+                    Message = "Appeal deadline has passed"
+                };
+            }
 
-      // Update status
-    appeal.AppealStatus = "submitted";
-          appeal.AppealSubmittedDate = DateTime.UtcNow;
-     appeal.LastStatusUpdateDate = DateTime.UtcNow;
+            // Update status
+            appeal.AppealStatus = "submitted";
+            appeal.AppealSubmittedDate = DateTime.UtcNow;
+            appeal.LastStatusUpdateDate = DateTime.UtcNow;
 
-        // Add status history
+            // Add status history
             await _appealRepository.AddStatusHistoryAsync(
         appealId,
      new AppealStatusHistory
-           {
-    Status = "submitted",
-           ChangedBy = "provider",
+     {
+         Status = "submitted",
+         ChangedBy = "provider",
          ChangeReason = "Appeal submitted to insurer",
-    StatusChangeDate = DateTime.UtcNow,
-    Comments = $"Appeal submitted on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}"
-  },
+         StatusChangeDate = DateTime.UtcNow,
+         Comments = $"Appeal submitted on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}"
+     },
       cancellationToken);
 
             // Save changes
@@ -270,23 +270,23 @@ var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellatio
 
             _logger.LogInformation("Appeal {AppealId} submitted successfully", appealId);
 
- return new SubmitAppealResult
-   {
-    IsSuccess = true,
-     AppealId = appealId,
-        SubmittedDate = DateTime.UtcNow,
-       ExpectedDecisionDate = DateTime.UtcNow.AddDays(30),
-   ConfirmationNumber = appeal.InternalReferenceNumber,
-           Message = "Appeal submitted successfully"
-      };
-        }
-     catch (Exception ex)
-        {
-   _logger.LogError(ex, "Error submitting appeal {AppealId}", appealId);
             return new SubmitAppealResult
             {
- IsSuccess = false,
-     Message = ex.Message
+                IsSuccess = true,
+                AppealId = appealId,
+                SubmittedDate = DateTime.UtcNow,
+                ExpectedDecisionDate = DateTime.UtcNow.AddDays(30),
+                ConfirmationNumber = appeal.InternalReferenceNumber,
+                Message = "Appeal submitted successfully"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting appeal {AppealId}", appealId);
+            return new SubmitAppealResult
+            {
+                IsSuccess = false,
+                Message = ex.Message
             };
         }
     }
@@ -300,50 +300,50 @@ var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellatio
     {
         _logger.LogInformation("Updating appeal {AppealId}", request.AppealId);
 
-    try
+        try
         {
-         var appeal = await _appealRepository.GetByIdAsync(request.AppealId, cancellationToken);
-      if (appeal == null)
-    {
-        return new UpdateAppealResult
+            var appeal = await _appealRepository.GetByIdAsync(request.AppealId, cancellationToken);
+            if (appeal == null)
             {
-          IsSuccess = false,
-    Message = $"Appeal {request.AppealId} not found"
-          };
+                return new UpdateAppealResult
+                {
+                    IsSuccess = false,
+                    Message = $"Appeal {request.AppealId} not found"
+                };
             }
 
             // Update fields
             if (!string.IsNullOrEmpty(request.AppealReason))
                 appeal.AppealReason = request.AppealReason;
 
-        if (!string.IsNullOrEmpty(request.SupportingDocumentation))
-     appeal.SupportingDocumentation = request.SupportingDocumentation;
+            if (!string.IsNullOrEmpty(request.SupportingDocumentation))
+                appeal.SupportingDocumentation = request.SupportingDocumentation;
 
-        if (!string.IsNullOrEmpty(request.Notes))
-       appeal.Notes = request.Notes;
+            if (!string.IsNullOrEmpty(request.Notes))
+                appeal.Notes = request.Notes;
 
-  appeal.LastStatusUpdateDate = DateTime.UtcNow;
-  appeal.UpdatedAt = DateTime.UtcNow;
+            appeal.LastStatusUpdateDate = DateTime.UtcNow;
+            appeal.UpdatedAt = DateTime.UtcNow;
 
-    await _appealRepository.UpdateAsync(appeal, cancellationToken);
+            await _appealRepository.UpdateAsync(appeal, cancellationToken);
 
             _logger.LogInformation("Appeal {AppealId} updated successfully", request.AppealId);
 
-      return new UpdateAppealResult
-            {
-     IsSuccess = true,
-     AppealId = request.AppealId,
-        Message = "Appeal updated successfully"
-      };
-        }
-     catch (Exception ex)
-      {
-         _logger.LogError(ex, "Error updating appeal {AppealId}", request.AppealId);
             return new UpdateAppealResult
-          {
-          IsSuccess = false,
-    Message = ex.Message
-  };
+            {
+                IsSuccess = true,
+                AppealId = request.AppealId,
+                Message = "Appeal updated successfully"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating appeal {AppealId}", request.AppealId);
+            return new UpdateAppealResult
+            {
+                IsSuccess = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -357,7 +357,7 @@ var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellatio
     {
         _logger.LogInformation("Withdrawing appeal {AppealId}, reason: {Reason}", appealId, reason);
 
-    try
+        try
         {
             await _appealRepository.MarkAsWithdrawnAsync(appealId, reason, cancellationToken);
 
@@ -365,137 +365,137 @@ var appeals = await _appealRepository.GetByPatientIdAsync(patientId, cancellatio
             await _appealRepository.AddStatusHistoryAsync(
        appealId,
       new AppealStatusHistory
- {
-     Status = "withdrawn",
-       ChangedBy = "provider",
-         ChangeReason = reason,
+      {
+          Status = "withdrawn",
+          ChangedBy = "provider",
+          ChangeReason = reason,
           StatusChangeDate = DateTime.UtcNow
-       },
+      },
   cancellationToken);
 
-    _logger.LogInformation("Appeal {AppealId} withdrawn successfully", appealId);
+            _logger.LogInformation("Appeal {AppealId} withdrawn successfully", appealId);
 
-return new WithdrawAppealResult
+            return new WithdrawAppealResult
             {
-      IsSuccess = true,
-     AppealId = appealId,
-             WithdrawnDate = DateTime.UtcNow,
-         Message = "Appeal withdrawn successfully"
-          };
-      }
-  catch (Exception ex)
+                IsSuccess = true,
+                AppealId = appealId,
+                WithdrawnDate = DateTime.UtcNow,
+                Message = "Appeal withdrawn successfully"
+            };
+        }
+        catch (Exception ex)
         {
-       _logger.LogError(ex, "Error withdrawing appeal {AppealId}", appealId);
-         return new WithdrawAppealResult
-    {
-       IsSuccess = false,
-   Message = ex.Message
-       };
- }
+            _logger.LogError(ex, "Error withdrawing appeal {AppealId}", appealId);
+            return new WithdrawAppealResult
+            {
+                IsSuccess = false,
+                Message = ex.Message
+            };
+        }
     }
 
     // ========== APPEAL ESCALATION ==========
 
-  /// <summary>
-  /// Escalate appeal to next level
+    /// <summary>
+    /// Escalate appeal to next level
     /// </summary>
     public async Task<EscalateAppealResult> EscalateAppealAsync(
         string appealId,
         string escalationReason,
         CancellationToken cancellationToken = default)
     {
-   _logger.LogInformation("Escalating appeal {AppealId}: {Reason}", appealId, escalationReason);
+        _logger.LogInformation("Escalating appeal {AppealId}: {Reason}", appealId, escalationReason);
 
         try
-    {
-    var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
-      if (appeal == null)
-     {
-return new EscalateAppealResult
+        {
+            var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
+            if (appeal == null)
+            {
+                return new EscalateAppealResult
                 {
-        IsSuccess = false,
-Message = $"Appeal {appealId} not found"
-         };
+                    IsSuccess = false,
+                    Message = $"Appeal {appealId} not found"
+                };
             }
 
-          if (!appeal.AllowsEscalation)
-  {
-return new EscalateAppealResult
-        {
-     IsSuccess = false,
-          Message = "This appeal cannot be escalated further"
-      };
-      }
+            if (!appeal.AllowsEscalation)
+            {
+                return new EscalateAppealResult
+                {
+                    IsSuccess = false,
+                    Message = "This appeal cannot be escalated further"
+                };
+            }
 
             if (appeal.AppealLevel >= 3)
-      {
-   return new EscalateAppealResult
-   {
-              IsSuccess = false,
-     Message = "Appeal already at maximum level"
-          };
-        }
+            {
+                return new EscalateAppealResult
+                {
+                    IsSuccess = false,
+                    Message = "Appeal already at maximum level"
+                };
+            }
 
             // Create new appeal at next level
-    var escalatedAppeal = new AppealRequest
+            var escalatedAppeal = new AppealRequest
             {
-         AppealNumber = GenerateAppealNumber(),
+                AppealNumber = GenerateAppealNumber(),
                 AppealIdentifierSystem = appeal.AppealIdentifierSystem,
-     AppealIdentifierValue = Guid.NewGuid().ToString(),
-         ClaimId = appeal.ClaimId,
-     ClaimResponseId = appeal.ClaimResponseId,
-          PatientId = appeal.PatientId,
-        InsurerId = appeal.InsurerId,
-      ProviderId = appeal.ProviderId,
-         ErrorCodeBeingAppealed = appeal.ErrorCodeBeingAppealed,
-           ErrorDescription = appeal.ErrorDescription,
-      AppealReason = $"Escalated from Level {appeal.AppealLevel}: {escalationReason}",
-            DenialDate = appeal.DenialDate,
-    AppealDeadlineDate = DateTime.UtcNow.AddDays(60), // Extended for escalation
-  AppealStatus = "draft",
- AppealLevel = appeal.AppealLevel + 1,
-  IsActive = true,
+                AppealIdentifierValue = Guid.NewGuid().ToString(),
+                ClaimId = appeal.ClaimId,
+                ClaimResponseId = appeal.ClaimResponseId,
+                PatientId = appeal.PatientId,
+                InsurerId = appeal.InsurerId,
+                ProviderId = appeal.ProviderId,
+                ErrorCodeBeingAppealed = appeal.ErrorCodeBeingAppealed,
+                ErrorDescription = appeal.ErrorDescription,
+                AppealReason = $"Escalated from Level {appeal.AppealLevel}: {escalationReason}",
+                DenialDate = appeal.DenialDate,
+                AppealDeadlineDate = DateTime.UtcNow.AddDays(60), // Extended for escalation
+                AppealStatus = "draft",
+                AppealLevel = appeal.AppealLevel + 1,
+                IsActive = true,
                 AllowsEscalation = appeal.AppealLevel < 2 // Allow further escalation only up to Level 2
             };
 
-var savedEscalatedAppeal = await _appealRepository.AddAsync(escalatedAppeal, cancellationToken);
+            var savedEscalatedAppeal = await _appealRepository.AddAsync(escalatedAppeal, cancellationToken);
 
-     // Link escalated appeal to original
-    appeal.EscalatedAppealId = savedEscalatedAppeal.Id;
+            // Link escalated appeal to original
+            appeal.EscalatedAppealId = savedEscalatedAppeal.Id;
             await _appealRepository.UpdateAsync(appeal, cancellationToken);
 
-          // Add history
-       await _appealRepository.AddStatusHistoryAsync(
-       appealId,
-                new AppealStatusHistory
-         {
-  Status = "escalated",
-             ChangedBy = "provider",
-          ChangeReason = escalationReason,
-           StatusChangeDate = DateTime.UtcNow,
-  Comments = $"Escalated to Level {escalatedAppeal.AppealLevel} - {savedEscalatedAppeal.AppealNumber}"
-          },
-         cancellationToken);
+            // Add history
+            await _appealRepository.AddStatusHistoryAsync(
+            appealId,
+                     new AppealStatusHistory
+                     {
+                         Status = "escalated",
+                         ChangedBy = "provider",
+                         ChangeReason = escalationReason,
+                         StatusChangeDate = DateTime.UtcNow,
+                         Comments = $"Escalated to Level {escalatedAppeal.AppealLevel} - {savedEscalatedAppeal.AppealNumber}"
+                     },
+              cancellationToken);
 
             _logger.LogInformation("Appeal {AppealId} escalated to {NewAppealId}", appealId, savedEscalatedAppeal.Id);
 
-          return new EscalateAppealResult
-         {
-      IsSuccess = true,
-  EscalatedAppealId = savedEscalatedAppeal.Id,
-           NewAppealLevel = escalatedAppeal.AppealLevel,
-            NewDeadlineDate = escalatedAppeal.AppealDeadlineDate,
-      Message = $"Appeal escalated to Level {escalatedAppeal.AppealLevel}"
-            };
-        }
-     catch (Exception ex)
-        {
-     _logger.LogError(ex, "Error escalating appeal {AppealId}", appealId);
             return new EscalateAppealResult
             {
-        IsSuccess = false,
-     Message = ex.Message
-    };
+                IsSuccess = true,
+                EscalatedAppealId = savedEscalatedAppeal.Id,
+                NewAppealLevel = escalatedAppeal.AppealLevel,
+                NewDeadlineDate = escalatedAppeal.AppealDeadlineDate,
+                Message = $"Appeal escalated to Level {escalatedAppeal.AppealLevel}"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error escalating appeal {AppealId}", appealId);
+            return new EscalateAppealResult
+            {
+                IsSuccess = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -511,41 +511,41 @@ var savedEscalatedAppeal = await _appealRepository.AddAsync(escalatedAppeal, can
         _logger.LogInformation("Getting status for appeal {AppealId}", appealId);
 
         try
-   {
+        {
             var appeal = await _appealRepository.GetByIdAsync(appealId, cancellationToken);
-     if (appeal == null)
-      {
-          return new AppealStatusDto { AppealId = appealId };
-   }
-
-var history = await _appealRepository.GetStatusHistoryAsync(appealId, cancellationToken);
-
- return new AppealStatusDto
-      {
-   AppealId = appealId,
-         CurrentStatus = appeal.AppealStatus,
-          DenialDate = appeal.DenialDate,
-   DeadlineDate = appeal.AppealDeadlineDate,
-          SubmittedDate = appeal.AppealSubmittedDate,
-     ReceivedDate = appeal.ReceivedDate,
-  ReviewCompletedDate = appeal.ReviewCompletedDate,
- ExpectedDecisionDate = appeal.ExpectedDecisionDate,
-    StatusHistory = history.Select(h => new StatusChangeDto
+            if (appeal == null)
             {
-           Status = h.Status,
-   ChangedDate = h.StatusChangeDate,
-            ChangedBy = h.ChangedBy,
-        Reason = h.ChangeReason
-          }).ToList(),
-   DaysRemainingToAppeal = appeal.DaysRemainingToAppeal(),
- DaysSinceSubmission = appeal.AppealSubmittedDate.HasValue ? 
-         (int)(DateTime.UtcNow - appeal.AppealSubmittedDate.Value).TotalDays : 0
-        };
+                return new AppealStatusDto { AppealId = appealId };
+            }
+
+            var history = await _appealRepository.GetStatusHistoryAsync(appealId, cancellationToken);
+
+            return new AppealStatusDto
+            {
+                AppealId = appealId,
+                CurrentStatus = appeal.AppealStatus,
+                DenialDate = appeal.DenialDate,
+                DeadlineDate = appeal.AppealDeadlineDate,
+                SubmittedDate = appeal.AppealSubmittedDate,
+                ReceivedDate = appeal.ReceivedDate,
+                ReviewCompletedDate = appeal.ReviewCompletedDate,
+                ExpectedDecisionDate = appeal.ExpectedDecisionDate,
+                StatusHistory = history.Select(h => new StatusChangeDto
+                {
+                    Status = h.Status,
+                    ChangedDate = h.StatusChangeDate,
+                    ChangedBy = h.ChangedBy,
+                    Reason = h.ChangeReason
+                }).ToList(),
+                DaysRemainingToAppeal = appeal.DaysRemainingToAppeal(),
+                DaysSinceSubmission = appeal.AppealSubmittedDate.HasValue ?
+                    (int)(DateTime.UtcNow - appeal.AppealSubmittedDate.Value).TotalDays : 0
+            };
         }
         catch (Exception ex)
-      {
- _logger.LogError(ex, "Error getting appeal status for {AppealId}", appealId);
-     return new AppealStatusDto { AppealId = appealId };
+        {
+            _logger.LogError(ex, "Error getting appeal status for {AppealId}", appealId);
+            return new AppealStatusDto { AppealId = appealId };
         }
     }
 
@@ -558,16 +558,16 @@ var history = await _appealRepository.GetStatusHistoryAsync(appealId, cancellati
     {
         _logger.LogInformation("Retrieving appeals nearing deadline (threshold: {Days} days)", daysThreshold);
 
-   try
-   {
-      var appeals = await _appealRepository.GetAppealsNearingDeadlineAsync(daysThreshold, cancellationToken);
-            return appeals.Select(MapToDto).ToList();
-    }
-      catch (Exception ex)
+        try
         {
-     _logger.LogError(ex, "Error retrieving appeals nearing deadline");
+            var appeals = await _appealRepository.GetAppealsNearingDeadlineAsync(daysThreshold, cancellationToken);
+            return appeals.Select(MapToDto).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving appeals nearing deadline");
             return new List<AppealDto>();
- }
+        }
     }
 
     /// <summary>
@@ -578,35 +578,35 @@ var history = await _appealRepository.GetStatusHistoryAsync(appealId, cancellati
     {
         _logger.LogInformation("Retrieving appeal statistics");
 
-try
+        try
         {
-  var totalAppeals = await _appealRepository.GetTotalCountAsync(cancellationToken);
-     var activeAppeals = (await _appealRepository.GetActiveAppealsAsync(cancellationToken)).Count;
-  var approvedAppeals = await _appealRepository.GetCountByStatusAsync("approved", cancellationToken);
+            var totalAppeals = await _appealRepository.GetTotalCountAsync(cancellationToken);
+            var activeAppeals = (await _appealRepository.GetActiveAppealsAsync(cancellationToken)).Count;
+            var approvedAppeals = await _appealRepository.GetCountByStatusAsync("approved", cancellationToken);
             var deniedAppeals = await _appealRepository.GetCountByStatusAsync("denied", cancellationToken);
-  var partialAppeals = await _appealRepository.GetCountByStatusAsync("partial", cancellationToken);
+            var partialAppeals = await _appealRepository.GetCountByStatusAsync("partial", cancellationToken);
             var withdrawnAppeals = await _appealRepository.GetCountByStatusAsync("withdrawn", cancellationToken);
-    var approvalRate = await _appealRepository.GetApprovalRateAsync(cancellationToken);
-        var totalAmountApproved = await _appealRepository.GetTotalApprovedAmountAsync(cancellationToken);
-      var apprealNearDeadline = (await _appealRepository.GetAppealsNearingDeadlineAsync(5, cancellationToken)).Count;
+            var approvalRate = await _appealRepository.GetApprovalRateAsync(cancellationToken);
+            var totalAmountApproved = await _appealRepository.GetTotalApprovedAmountAsync(cancellationToken);
+            var apprealNearDeadline = (await _appealRepository.GetAppealsNearingDeadlineAsync(5, cancellationToken)).Count;
 
-       return new AppealStatisticsDto
-       {
-  TotalAppeals = totalAppeals,
-          ActiveAppeals = activeAppeals,
+            return new AppealStatisticsDto
+            {
+                TotalAppeals = totalAppeals,
+                ActiveAppeals = activeAppeals,
                 ApprovedAppeals = approvedAppeals,
-DeniedAppeals = deniedAppeals,
-   PartialAppeals = partialAppeals,
-          WithdrawnAppeals = withdrawnAppeals,
-           AverageApprovalRate = approvalRate,
- TotalAmountApproved = totalAmountApproved,
-     AppealsNearingDeadline = apprealNearDeadline
+                DeniedAppeals = deniedAppeals,
+                PartialAppeals = partialAppeals,
+                WithdrawnAppeals = withdrawnAppeals,
+                AverageApprovalRate = approvalRate,
+                TotalAmountApproved = totalAmountApproved,
+                AppealsNearingDeadline = apprealNearDeadline
             };
         }
         catch (Exception ex)
         {
-      _logger.LogError(ex, "Error retrieving appeal statistics");
-   return new AppealStatisticsDto();
+            _logger.LogError(ex, "Error retrieving appeal statistics");
+            return new AppealStatisticsDto();
         }
     }
 
@@ -619,67 +619,67 @@ DeniedAppeals = deniedAppeals,
         AttachDocumentRequest request,
         CancellationToken cancellationToken = default)
     {
-    _logger.LogInformation("Attaching document to appeal {AppealId}", request.AppealId);
+        _logger.LogInformation("Attaching document to appeal {AppealId}", request.AppealId);
 
- try
+        try
         {
- var document = new AppealDocument
-         {
-    DocumentType = request.DocumentType,
-    DocumentTitle = request.DocumentTitle,
+            var document = new AppealDocument
+            {
+                DocumentType = request.DocumentType,
+                DocumentTitle = request.DocumentTitle,
                 DocumentDescription = request.DocumentDescription,
- FilePath = request.FilePath,
-    FileSizeBytes = request.FileSizeBytes,
- MimeType = request.MimeType,
-     AttachedDate = DateTime.UtcNow,
-  IsVerified = false,
-           Notes = request.Notes,
-       IsActive = true
-   };
+                FilePath = request.FilePath,
+                FileSizeBytes = request.FileSizeBytes,
+                MimeType = request.MimeType,
+                AttachedDate = DateTime.UtcNow,
+                IsVerified = false,
+                Notes = request.Notes,
+                IsActive = true
+            };
 
             await _appealRepository.AddDocumentAsync(request.AppealId, document, cancellationToken);
 
-            _logger.LogInformation("Document {DocumentTitle} attached to appeal {AppealId}", 
+            _logger.LogInformation("Document {DocumentTitle} attached to appeal {AppealId}",
         request.DocumentTitle, request.AppealId);
 
             return new AttachDocumentResult
-     {
-    IsSuccess = true,
-        DocumentId = document.Id,
-       Message = "Document attached successfully"
-  };
+            {
+                IsSuccess = true,
+                DocumentId = document.Id.ToString(),
+                Message = "Document attached successfully"
+            };
         }
-     catch (Exception ex)
+        catch (Exception ex)
         {
-      _logger.LogError(ex, "Error attaching document to appeal {AppealId}", request.AppealId);
+            _logger.LogError(ex, "Error attaching document to appeal {AppealId}", request.AppealId);
             return new AttachDocumentResult
-       {
-           IsSuccess = false,
-           Message = ex.Message
-    };
-    }
+            {
+                IsSuccess = false,
+                Message = ex.Message
+            };
+        }
     }
 
     /// <summary>
     /// Remove document from appeal
     /// </summary>
-  public async Task<bool> RemoveDocumentAsync(
-   string appealId,
-        string documentId,
-        CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveDocumentAsync(
+     string appealId,
+          string documentId,
+          CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Removing document {DocumentId} from appeal {AppealId}", documentId, appealId);
 
         try
         {
             await _appealRepository.RemoveDocumentAsync(appealId, documentId, cancellationToken);
-  return true;
-  }
+            return true;
+        }
         catch (Exception ex)
         {
-          _logger.LogError(ex, "Error removing document {DocumentId}", documentId);
+            _logger.LogError(ex, "Error removing document {DocumentId}", documentId);
             return false;
-      }
+        }
     }
 
     /// <summary>
@@ -689,27 +689,27 @@ DeniedAppeals = deniedAppeals,
         string appealId,
         CancellationToken cancellationToken = default)
     {
-   _logger.LogInformation("Retrieving documents for appeal {AppealId}", appealId);
+        _logger.LogInformation("Retrieving documents for appeal {AppealId}", appealId);
 
         try
         {
             var documents = await _appealRepository.GetDocumentsAsync(appealId, cancellationToken);
             return documents.Select(d => new AppealDocumentDto
-  {
-          DocumentId = d.Id,
-    DocumentType = d.DocumentType,
-DocumentTitle = d.DocumentTitle,
+            {
+                DocumentId = d.Id.ToString(),
+                DocumentType = d.DocumentType,
+                DocumentTitle = d.DocumentTitle,
                 DocumentDescription = d.DocumentDescription,
-FileSizeBytes = d.FileSizeBytes,
-     MimeType = d.MimeType,
-       AttachedDate = d.AttachedDate,
-     IsVerified = d.IsVerified
+                FileSizeBytes = d.FileSizeBytes,
+                MimeType = d.MimeType,
+                AttachedDate = d.AttachedDate,
+                IsVerified = d.IsVerified
             }).ToList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving documents for appeal {AppealId}", appealId);
-    return new List<AppealDocumentDto>();
+            return new List<AppealDocumentDto>();
         }
     }
 
@@ -723,8 +723,8 @@ FileSizeBytes = d.FileSizeBytes,
     {
         var date = DateTime.UtcNow.ToString("yyyyMMdd");
         var random = new Random();
-    var number = random.Next(100000, 999999);
-    return $"APPEAL-{date}-{number}";
+        var number = random.Next(100000, 999999);
+        return $"APPEAL-{date}-{number}";
     }
 
     /// <summary>
@@ -734,26 +734,26 @@ FileSizeBytes = d.FileSizeBytes,
     {
         return new AppealDto
         {
-     AppealId = appeal.Id,
-          AppealNumber = appeal.AppealNumber,
+            AppealId = appeal.Id,
+            AppealNumber = appeal.AppealNumber,
             ClaimId = appeal.ClaimId,
             PatientId = appeal.PatientId,
-  InsurerId = appeal.InsurerId,
+            InsurerId = appeal.InsurerId,
             ErrorCodeBeingAppealed = appeal.ErrorCodeBeingAppealed,
-        ErrorDescription = appeal.ErrorDescription ?? string.Empty,
-   AppealStatus = appeal.AppealStatus,
-     AppealLevel = appeal.AppealLevel,
+            ErrorDescription = appeal.ErrorDescription ?? string.Empty,
+            AppealStatus = appeal.AppealStatus,
+            AppealLevel = appeal.AppealLevel,
             AppealReason = appeal.AppealReason,
-     DenialDate = appeal.DenialDate,
-        AppealDeadlineDate = appeal.AppealDeadlineDate,
-         AppealSubmittedDate = appeal.AppealSubmittedDate,
-ReviewCompletedDate = appeal.ReviewCompletedDate,
-          ExpectedDecisionDate = appeal.ExpectedDecisionDate,
-     AppealOutcome = appeal.AppealOutcome,
+            DenialDate = appeal.DenialDate,
+            AppealDeadlineDate = appeal.AppealDeadlineDate,
+            AppealSubmittedDate = appeal.AppealSubmittedDate,
+            ReviewCompletedDate = appeal.ReviewCompletedDate,
+            ExpectedDecisionDate = appeal.ExpectedDecisionDate,
+            AppealOutcome = appeal.AppealOutcome,
             ApprovedAmount = appeal.ApprovedAmount,
-     IsActive = appeal.IsActive,
-         AllowsEscalation = appeal.AllowsEscalation,
-      DaysRemainingToAppeal = appeal.DaysRemainingToAppeal()
+            IsActive = appeal.IsActive,
+            AllowsEscalation = appeal.AllowsEscalation,
+            DaysRemainingToAppeal = appeal.DaysRemainingToAppeal()
         };
     }
 }

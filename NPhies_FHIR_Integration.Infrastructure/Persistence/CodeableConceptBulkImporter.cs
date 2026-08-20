@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NPhies_FHIR_Integration.Domain.CodeableConcept.Models;
-using NPhies_FHIR_Integration.Infrastructure.Data;
+using NPhies_FHIR_Integration.Infrastructure.Data.Configurations;
 
 namespace NPhies_FHIR_Integration.Infrastructure.Persistence
 {
