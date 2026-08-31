@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="NPhies_FHIR_Integration\**" />
+    <EmbeddedResource Remove="NPhies_FHIR_Integration\**" />
+    <None Remove="NPhies_FHIR_Integration\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NPhies_FHIR_Integration.Domain\NPhies_FHIR_Integration.Domain.csproj" />
   </ItemGroup>
 
@@ -15,10 +21,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="NPhies_FHIR_Integration\" />
   </ItemGroup>
 
 </Project>
